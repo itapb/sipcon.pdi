@@ -1,4 +1,5 @@
 import { CardFase } from '@/components/card/CardFase';
+import { TableInspection } from '@/components/tables/TableInspection';
 import { useAuthStore } from '@/store/useAuthStore';
 import { AntDesign, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -7,7 +8,6 @@ import {
   Image,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -69,6 +69,7 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
+            {/* TODO: Traer esta información de la BD */}
             {fases.map((item, index) => (
               <CardFase
                 key={item.name_fase + index}
@@ -81,10 +82,7 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
 
-          <Text style={{ fontSize: 20, textAlign: 'center', marginTop: 10 }}>
-            Bienvenido, {user || 'Usuario'} estás registrado en el area de:{' '}
-            &quot;{area}&quot;
-          </Text>
+          <TableInspection />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
