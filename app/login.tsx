@@ -1,5 +1,5 @@
+import { useAuthStore } from '@/store/useAuthStore';
 import { Picker } from '@react-native-picker/picker';
-
 import React, { useState } from 'react';
 import {
   Alert,
@@ -20,13 +20,17 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [area, setArea] = useState('');
 
+  const { login } = useAuthStore();
+
   const handleLogin = () => {
-    // Aquí podrías validar los datos antes de entrar
-    if (!usuario || !password) {
+    if (!usuario || !password || !area) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
-    console.log('Ingresando con:', { usuario, area });
+
+    // Al ejecutar esto, el isLoggedIn del Store cambia a true.
+    // El _layout.tsx detectará el cambio y hará el router.replace('/') por ti.
+    login(usuario, area);
   };
 
   return (
