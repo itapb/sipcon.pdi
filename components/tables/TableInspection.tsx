@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { FC, useState } from 'react';
-import { Dimensions, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Dimensions, StyleSheet, TextInput, View } from 'react-native';
+import { DatatableInspection } from './DatatableInspection';
 
 const { width } = Dimensions.get('window');
 
@@ -19,7 +20,8 @@ export const TableInspection: FC = () => {
           onChangeText={setsearch}
         />
       </View>
-      <Text>Tabla</Text>
+
+      <DatatableInspection />
     </View>
   );
 };
@@ -31,23 +33,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   container_input: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 20,
     paddingHorizontal: 15,
     backgroundColor: '#fafafa',
+    width: width * 0.9,
     gap: 5,
   },
   input: {
     height: 50,
-    width: width * 0.75,
+    width: width * 0.7,
     color: '#333',
+  },
+  scroll: {
+    width: '100%', // El scroll ocupa todo el ancho
+    flex: 1, // El scroll ocupa todo el alto restante
+  },
+  scrollContent: {
+    paddingBottom: 20, // Espacio extra al final para que no pegue con el borde
+    flexGrow: 1, // Importante para que el contenido se expanda
   },
 });
