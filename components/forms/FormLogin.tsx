@@ -35,8 +35,8 @@ export const FormLogin: FC = () => {
     <View style={styles.formContainer}>
       <Text style={styles.title}>Inicia Sesión</Text>
 
+      {/* Input 1: Usuario */}
       <View>
-        {/* Input 1: Usuario */}
         <Text style={styles.label}>Usuario:</Text>
         <TextInput
           style={styles.input}
@@ -47,8 +47,8 @@ export const FormLogin: FC = () => {
         />
       </View>
 
+      {/* Input 2: Contraseña */}
       <View>
-        {/* Input 2: Contraseña */}
         <Text style={styles.label}>Contraseña:</Text>
         <TextInput
           style={styles.input}
@@ -60,8 +60,8 @@ export const FormLogin: FC = () => {
         />
       </View>
 
+      {/* Input 3: Lista */}
       <View>
-        {/* Input 3: Lista */}
         <Text style={styles.label}>Área:</Text>
         <View style={styles.pickerContainer}>
           <Picker
@@ -76,7 +76,7 @@ export const FormLogin: FC = () => {
               style={{ display: 'none' }}
             />
             <Picker.Item label='Planta Calidad' value='plantacalidad' />
-            <Picker.Item label='Distribuión' value='distribución' />
+            <Picker.Item label='Distribución' value='distribución' />
             <Picker.Item label='Ventas' value='ventas' />
             <Picker.Item
               label='Servicio concesionario'
@@ -86,6 +86,7 @@ export const FormLogin: FC = () => {
         </View>
       </View>
 
+      {/* Boton de ingreso */}
       <View>
         <TouchableOpacity
           style={styles.button}
@@ -96,6 +97,7 @@ export const FormLogin: FC = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Opción en casos de olvidar la contraseña */}
       <View>
         <Text style={styles.labelPasword}>Olvidé mi contraseña</Text>
       </View>

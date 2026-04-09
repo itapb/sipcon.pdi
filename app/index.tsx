@@ -1,16 +1,11 @@
 import { CardFase } from '@/components/card/CardFase';
 import { TableInspection } from '@/components/tables/TableInspection';
+import { MenuHeader } from '@/layout/MenuHeader';
 import { useAuthStore } from '@/store/useAuthStore';
-import { AntDesign, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome5 } from '@expo/vector-icons';
 import React from 'react';
 
-import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -45,24 +40,10 @@ export default function HomeScreen() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => console.log('Abrir menú')}
-            style={styles.menuButton}
-          >
-            <Ionicons name='menu' size={30} color='#333' />
-          </TouchableOpacity>
+        {/* Cabecera del menú */}
+        <MenuHeader />
 
-          <Image
-            source={require('../assets/images/logos/LogoAPB.png')}
-            style={{
-              width: 100,
-              height: 80,
-              resizeMode: 'center',
-            }}
-          />
-        </View>
-
+        {/* Cards de las fases */}
         <View style={styles.container}>
           <ScrollView
             horizontal={true}
@@ -82,6 +63,7 @@ export default function HomeScreen() {
             ))}
           </ScrollView>
 
+          {/* Datatable */}
           <TableInspection />
         </View>
       </SafeAreaView>
@@ -93,19 +75,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    backgroundColor: '#fff',
-  },
-  menuButton: {
-    padding: 5,
   },
   container: {
     paddingVertical: 20,
