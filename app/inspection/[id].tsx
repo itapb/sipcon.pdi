@@ -1,5 +1,6 @@
 import { CardCar } from '@/components/card/CardCar';
 import { InspectionFeature } from '@/components/features/InspectionFeature';
+import { inspectionGroups } from '@/constants/DataInspectionDetail';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { Link, useLocalSearchParams } from 'expo-router';
 import {
@@ -39,7 +40,7 @@ export default function InspectionScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Área con Scroll */}
+        {/* Información rápida de la unidad */}
         <CardCar
           model_name='Changan CS15'
           vin={1234567890}
@@ -47,34 +48,29 @@ export default function InspectionScreen() {
           imageSource={require('../../assets/images/carros/FotoAuto.png')}
         />
 
+        {/* Lista de features */}
         <ScrollView
           style={styles.scrollContainer}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Listado de preguntas */}
-          <InspectionFeature
-            feature='¿El VIN del auto coincide con la documentación?'
-            fileCount={1}
-          />
-          <InspectionFeature
-            feature='Estado de la pintura y carrocería (¿Hay abolladuras?)'
-            fileCount={3}
-          />
-          <InspectionFeature
-            feature='Verificación de kit de herramientas y llanta de repuesto'
-            fileCount={0}
-          />
-          <InspectionFeature
-            feature='Funcionamiento de luces (Altas, bajas y frenos)'
-            fileCount={2}
-          />
-          <InspectionFeature
-            feature='Limpieza de interiores y estado de la tapicería'
-            fileCount={1}
-          />
+          {inspectionGroups.map((group, index) => (
+            <View key={index} style={styles.groupContainer}>
+              {/* Título del Grupo */}
+              <Text style={styles.groupTitle}>{group.title}</Text>
 
-          <View style={{ height: 30 }} />
+              {/* Listado de Preguntas del Grupo */}
+              {group.questions.map((q) => (
+                <InspectionFeature
+                  key={q.id}
+                  feature={q.text}
+                  fileCount={q.files}
+                />
+              ))}
+            </View>
+          ))}
+
+          <View style={{ height: 40 }} />
         </ScrollView>
       </SafeAreaView>
     </SafeAreaProvider>
@@ -132,5 +128,18 @@ const styles = StyleSheet.create({
   },
   red: {
     backgroundColor: '#FF383C',
+  },
+  groupContainer: {
+    marginBottom: 20, // Espacio entre grupos
+  },
+  groupTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#94A3B8', // Un gris azulado elegante
+    textTransform: 'uppercase', // Estilo de sección profesional
+    letterSpacing: 1,
+    marginLeft: 20,
+    marginBottom: 8,
+    marginTop: 10,
   },
 });

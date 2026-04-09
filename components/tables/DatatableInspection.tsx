@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { Checkbox, DataTable, Divider, List, Text } from 'react-native-paper';
-import { GetItems } from './data';
+import { GetItems } from '../../constants/data';
 
 const { height } = Dimensions.get('window');
 
