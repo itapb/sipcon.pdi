@@ -1,44 +1,38 @@
+import { BreadCrumbInspection } from '@/components/breadcrumb/BreadCrumbInspection';
 import { CardCar } from '@/components/card/CardCar';
-import { InspectionFeature } from '@/components/features/InspectionFeature';
+import { ListFeatures } from '@/components/features/ListFeatures';
 import { inspectionGroups } from '@/constants/DataInspectionDetail';
 import { MenuHeader } from '@/layout/MenuHeader';
-import { Link, useLocalSearchParams } from 'expo-router';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Searchbar } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
   const { id } = useLocalSearchParams();
+  const [searchQuery, setSearchQuery] = useState(''); // Estado de búsqueda
+
+  // Lógica de filtrado
+  const filteredGroups = inspectionGroups
+    .map((group) => {
+      const questions = group.questions.filter((q) =>
+        q.text.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+      return questions.length > 0 ||
+        group.title.toLowerCase().includes(searchQuery.toLowerCase())
+        ? { ...group, questions }
+        : null;
+    })
+    .filter((g) => g !== null);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Encabezado fijo */}
         <MenuHeader />
 
         {/* BreadCrumbs fijos */}
-        <View style={styles.breadCrumbs}>
-          <View style={styles.breadCrumbsTexts}>
-            <Link href={'/'} asChild>
-              <TouchableOpacity>
-                <Text style={styles.text}>Inicio {'> '}</Text>
-              </TouchableOpacity>
-            </Link>
-            <Text style={[styles.text, styles.text_fase]}>Fase</Text>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.button, styles.red]}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.buttonText}>Cerrar inspección</Text>
-          </TouchableOpacity>
-        </View>
+        <BreadCrumbInspection />
 
         {/* Información rápida de la unidad */}
         <CardCar
@@ -48,30 +42,19 @@ export default function InspectionScreen() {
           imageSource={require('../../assets/images/carros/FotoAuto.png')}
         />
 
+        {/* Buscador para la inspección */}
+        <View style={styles.searchContainer}>
+          <Searchbar
+            placeholder='Buscar pregunta...'
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={styles.searchBar}
+            inputStyle={styles.searchInput}
+          />
+        </View>
+
         {/* Lista de features */}
-        <ScrollView
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {inspectionGroups.map((group, index) => (
-            <View key={index} style={styles.groupContainer}>
-              {/* Título del Grupo */}
-              <Text style={styles.groupTitle}>{group.title}</Text>
-
-              {/* Listado de Preguntas del Grupo */}
-              {group.questions.map((q) => (
-                <InspectionFeature
-                  key={q.id}
-                  feature={q.text}
-                  fileCount={q.files}
-                />
-              ))}
-            </View>
-          ))}
-
-          <View style={{ height: 40 }} />
-        </ScrollView>
+        <ListFeatures Groups={filteredGroups} />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -82,64 +65,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-
-  scrollContent: {
-    paddingVertical: 10,
-  },
-  breadCrumbs: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  searchContainer: {
     paddingHorizontal: 15,
-    height: 55,
+    paddingVertical: 10,
     backgroundColor: '#fff',
-    borderColor: '#E2E8F0',
     borderBottomWidth: 1,
-    zIndex: 10,
+    borderBottomColor: '#F1F5F9',
   },
-  breadCrumbsTexts: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  searchBar: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    elevation: 0,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    height: 45,
   },
-  text: {
-    color: '#64748B',
-    fontSize: 15,
-  },
-  text_fase: {
-    color: '#0C8CE9',
-    fontWeight: '600',
-  },
-  button: {
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  red: {
-    backgroundColor: '#FF383C',
-  },
-  groupContainer: {
-    marginBottom: 20, // Espacio entre grupos
-  },
-  groupTitle: {
+  searchInput: {
     fontSize: 14,
-    fontWeight: '800',
-    color: '#94A3B8', // Un gris azulado elegante
-    textTransform: 'uppercase', // Estilo de sección profesional
-    letterSpacing: 1,
-    marginLeft: 20,
-    marginBottom: 8,
-    marginTop: 10,
+    minHeight: 0,
   },
 });
