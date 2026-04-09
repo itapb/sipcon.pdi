@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { Image, ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MediaActions } from '../media/MediaActions';
+import { ModalFiles } from '../modal/ModalFile';
 
 type Props = {
   model_name: string;
@@ -28,6 +29,8 @@ export const CardCar: FC<Props> = (props) => {
             <Text style={styles.value}> {props.plate}</Text>
           </View>
         </View>
+
+        <ModalFiles visible={true} onDismiss={() => {}} />
 
         {/* Acciones de media */}
         <MediaActions
