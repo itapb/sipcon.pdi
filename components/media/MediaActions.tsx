@@ -1,8 +1,8 @@
 import { OpenCamera } from '@/utils/handles/OpenCamera';
-import { OpenGallery } from '@/utils/handles/OpenGallery';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import type { FC } from 'react';
+import { useState, type FC } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ModalFiles } from '../modal/ModalFile';
 
 type Props = {
   fileCount: number;
@@ -11,6 +11,8 @@ type Props = {
 };
 
 export const MediaActions: FC<Props> = (props) => {
+  const [OpenModal, setOpenModal] = useState(false);
+
   return (
     <View style={[styles.iconsRow, props.additional_styles]}>
       {/* Botón Cámara: Toma foto y cierra */}
@@ -25,7 +27,7 @@ export const MediaActions: FC<Props> = (props) => {
 
       {/* Icono de la carpeta */}
       <TouchableOpacity
-        onPress={OpenGallery}
+        onPress={() => setOpenModal(true)}
         style={styles.folderContainer}
         activeOpacity={0.6}
       >
@@ -36,6 +38,9 @@ export const MediaActions: FC<Props> = (props) => {
             <Text style={styles.badgeText}>{`${props.fileCount}`}</Text>
           </View>
         )}
+
+        {/* Modal para los archivos */}
+        <ModalFiles visible={OpenModal} onDismiss={setOpenModal} />
       </TouchableOpacity>
     </View>
   );

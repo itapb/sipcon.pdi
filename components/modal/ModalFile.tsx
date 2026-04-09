@@ -1,3 +1,4 @@
+import { OpenGallery } from '@/utils/handles/OpenGallery';
 import { Entypo, Feather } from '@expo/vector-icons';
 import type { FC, ReactNode } from 'react';
 import {
@@ -14,7 +15,7 @@ const { height } = Dimensions.get('window');
 
 type Props = {
   visible: boolean;
-  onDismiss: () => void;
+  onDismiss: React.Dispatch<React.SetStateAction<boolean>>;
   title?: string;
   children?: ReactNode;
 };
@@ -24,7 +25,7 @@ export const ModalFiles: FC<Props> = ({ visible, onDismiss }) => {
     <Portal>
       <Modal
         visible={visible}
-        onDismiss={onDismiss}
+        onDismiss={() => onDismiss(false)}
         contentContainerStyle={styles.modalContainer}
       >
         {/* Cabecera del modal */}
@@ -33,7 +34,7 @@ export const ModalFiles: FC<Props> = ({ visible, onDismiss }) => {
           <IconButton
             icon='close'
             size={20}
-            onPress={onDismiss}
+            onPress={() => onDismiss(false)}
             style={styles.closeButton}
           />
         </View>
@@ -53,12 +54,17 @@ export const ModalFiles: FC<Props> = ({ visible, onDismiss }) => {
 
         {/* Botones de acción */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.button]} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={[styles.button]}
+            activeOpacity={0.7}
+            onPress={() => onDismiss(false)}
+          >
             <Text style={styles.buttonText}>Cancelar</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.blue]}
             activeOpacity={0.7}
+            onPress={OpenGallery}
           >
             <Entypo name='attachment' size={24} color='white' />
 
