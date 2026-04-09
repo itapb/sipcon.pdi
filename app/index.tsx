@@ -1,6 +1,6 @@
 import { CardFase } from '@/components/card/CardFase';
 import { TableInspection } from '@/components/tables/TableInspection';
-import { fases } from '@/constants/DataFase';
+import { FASES } from '@/constants/DataFase';
 import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -26,7 +26,7 @@ export default function HomeScreen() {
             contentContainerStyle={styles.scrollContent}
           >
             {/* TODO: Traer esta información de la BD */}
-            {fases.map((item, index) => (
+            {FASES.map((item, index) => (
               <CardFase
                 key={item.name_fase + index}
                 color={item.color}

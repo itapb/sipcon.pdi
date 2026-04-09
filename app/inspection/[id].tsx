@@ -1,7 +1,9 @@
 import { BreadCrumbInspection } from '@/components/breadcrumb/BreadCrumbInspection';
 import { CardCar } from '@/components/card/CardCar';
 import { ListFeatures } from '@/components/features/ListFeatures';
-import { inspectionGroups } from '@/constants/DataInspectionDetail';
+import { DATAFASES } from '@/constants/DataFases';
+import { INSPECTIONGROUPS } from '@/constants/DataInspectionDetail';
+import { FooterInspections } from '@/layout/FooterInspections';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -12,19 +14,18 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 export default function InspectionScreen() {
   const { id } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState(''); // Estado de búsqueda
+  const [activePhase, setActivePhase] = useState(DATAFASES[0].label);
 
   // Lógica de filtrado
-  const filteredGroups = inspectionGroups
-    .map((group) => {
-      const questions = group.questions.filter((q) =>
-        q.text.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-      return questions.length > 0 ||
-        group.title.toLowerCase().includes(searchQuery.toLowerCase())
-        ? { ...group, questions }
-        : null;
-    })
-    .filter((g) => g !== null);
+  const filteredGroups = INSPECTIONGROUPS.map((group) => {
+    const questions = group.questions.filter((q) =>
+      q.text.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+    return questions.length > 0 ||
+      group.title.toLowerCase().includes(searchQuery.toLowerCase())
+      ? { ...group, questions }
+      : null;
+  }).filter((g) => g !== null);
 
   return (
     <SafeAreaProvider>
@@ -56,6 +57,12 @@ export default function InspectionScreen() {
         {/* Lista de features */}
         <ListFeatures Groups={filteredGroups} />
       </SafeAreaView>
+
+      <FooterInspections
+        phases={DATAFASES}
+        activePhase={activePhase}
+        onPhaseChange={setActivePhase}
+      />
     </SafeAreaProvider>
   );
 }

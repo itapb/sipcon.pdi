@@ -1,6 +1,6 @@
 import { AntDesign, FontAwesome5 } from '@expo/vector-icons';
 
-export const fases = [
+export const FASES = [
   {
     color: '#16A34A',
     name_fase: 'Chequeo',

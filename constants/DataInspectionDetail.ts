@@ -1,4 +1,4 @@
-export const inspectionGroups = [
+export const INSPECTIONGROUPS = [
   {
     title: 'Documentación y Motor',
     questions: [
