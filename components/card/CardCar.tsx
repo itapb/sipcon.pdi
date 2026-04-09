@@ -12,7 +12,7 @@ type Props = {
 
 export const CardCar: FC<Props> = (props) => {
   return (
-    <Card style={styles.card}>
+    <Card mode='contained' style={styles.card}>
       <Card.Content style={styles.content}>
         {/* Sección de texto */}
         <View style={styles.textSection}>
@@ -29,20 +29,24 @@ export const CardCar: FC<Props> = (props) => {
           </View>
         </View>
 
-        {/* Imagen del vehículo  */}
+        {/* Acciones de media */}
+        <MediaActions
+          fileCount={1}
+          additional_styles={{
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            gap: 3,
+          }}
+        />
+
+        {/* Contenedor de imagen */}
         <View style={styles.imageContainer}>
           <Image
             source={props.imageSource}
             style={styles.vehicleImage}
-            resizeMode='contain'
+            resizeMode='cover'
           />
         </View>
-
-        {/* Iconos superiores más discretos */}
-        <MediaActions
-          fileCount={1}
-          additional_styles={{ left: 12, top: 10, position: 'absolute' }}
-        />
       </Card.Content>
     </Card>
   );
@@ -52,57 +56,57 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     marginHorizontal: 15,
-    marginVertical: 6,
-    borderRadius: 12,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginTop: 5,
+    borderRadius: 0,
   },
   content: {
     flexDirection: 'row',
-    paddingTop: 22,
-    paddingBottom: 10,
-    paddingHorizontal: 15,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingHorizontal: 7,
     alignItems: 'center',
     position: 'relative',
   },
   textSection: {
     flex: 1,
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A253A',
-    marginBottom: 2,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 1,
+    textTransform: 'uppercase',
   },
   dataRow: {
     flexDirection: 'row',
-    marginBottom: 1,
+    alignItems: 'center',
+    marginBottom: 0,
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#7B8FA1',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#94A3B8',
+    lineHeight: 19,
   },
   value: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#64748B',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+    lineHeight: 14,
   },
   imageContainer: {
-    backgroundColor: '#F3F5F7',
-    borderRadius: 10,
-    width: 130,
-    height: 95,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    width: 100,
+    height: 75,
     overflow: 'hidden',
-    marginLeft: 8,
+    marginLeft: 10,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   vehicleImage: {
-    width: '90%',
-    height: '90%',
+    width: '100%',
+    height: '100%',
   },
 });

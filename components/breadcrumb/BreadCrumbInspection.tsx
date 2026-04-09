@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 15,
-    height: 55,
+    height: 45,
     backgroundColor: '#fff',
     borderColor: '#E2E8F0',
     borderBottomWidth: 1,
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
   },
   text_fase: {
     color: '#0C8CE9',
-    fontWeight: '600',
+    fontWeight: '700',
   },
   button: {
-    borderRadius: 8,
+    borderRadius: 6,
     paddingVertical: 6,
     paddingHorizontal: 12,
     justifyContent: 'center',

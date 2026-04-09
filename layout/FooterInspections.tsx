@@ -1,12 +1,12 @@
 import { type FC } from 'react';
 import {
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export interface PhaseItem {
   id: string;
@@ -24,8 +24,17 @@ export const FooterInspections: FC<Props> = ({
   activePhase,
   onPhaseChange,
 }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.fixedFooter}>
+    <View
+      style={[
+        styles.fixedFooter,
+        {
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+        },
+      ]}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -64,33 +73,30 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-
-    height: 60,
+    minHeight: 60,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
-
     elevation: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
-
-    paddingBottom: Platform.OS === 'ios' ? 15 : 0,
   },
   scrollContainer: {
     paddingHorizontal: 10,
+    height: 60,
     alignItems: 'center',
   },
   footerButton: {
     height: '100%',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   footerButtonText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
     color: '#94A3B8',
     letterSpacing: 0.5,
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
   },
   activeIndicator: {
     position: 'absolute',
-    bottom: 10, // Ajustado para que no choque con el borde inferior
+    bottom: 12,
     width: 20,
     height: 3,
     backgroundColor: '#3B82F6',

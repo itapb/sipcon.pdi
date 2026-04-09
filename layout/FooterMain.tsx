@@ -1,8 +1,11 @@
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { type FC } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const FooterMain: FC = () => {
+  const insets = useSafeAreaInsets();
+
   // Acción para Nueva Inspección
   const handleNewInspection = () => {
     Alert.alert(
@@ -29,14 +32,20 @@ export const FooterMain: FC = () => {
           text: 'Sí',
           style: 'destructive',
           onPress: () => console.log('Dando salida a las unidades'),
-          // Aquí pondrías la lógica de logout
         },
       ],
     );
   };
 
   return (
-    <View style={styles.fixedFooter}>
+    <View
+      style={[
+        styles.fixedFooter,
+        {
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+        },
+      ]}
+    >
       {/* Botón Izquierdo: NUEVA INSPECCIÓN */}
       <TouchableOpacity
         style={styles.footerButton}
@@ -67,12 +76,11 @@ export const FooterMain: FC = () => {
 const styles = StyleSheet.create({
   fixedFooter: {
     position: 'absolute',
-    display: 'flex',
     bottom: 0,
     left: 0,
     right: 0,
     zIndex: 10,
-    height: 70,
+    minHeight: 70,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -84,6 +92,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
+    paddingTop: 10,
   },
   footerButton: {
     alignItems: 'center',

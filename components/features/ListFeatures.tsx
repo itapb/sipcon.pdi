@@ -19,6 +19,7 @@ export const ListFeatures: FC<Props> = (props) => {
       style={styles.scrollContainer}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps='handled'
     >
       {/* Mapeo de grupos filtrados */}
       {props.Groups.map((group, index) => (
@@ -34,7 +35,7 @@ export const ListFeatures: FC<Props> = (props) => {
         </View>
       ))}
 
-      <View style={{ height: 40 }} />
+      <View style={{ height: 200 }} />
     </ScrollView>
   );
 };
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   groupTitle: {
-    fontSize: 14,
+    fontSize: 13, // Un poquito más pequeño para seguir tu nueva línea minimalista
     fontWeight: '800',
     color: '#94A3B8',
     textTransform: 'uppercase',

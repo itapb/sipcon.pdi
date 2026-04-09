@@ -38,37 +38,39 @@ export default function InspectionScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <MenuHeader />
         {/* BreadCrumbs fijos */}
-        <BreadCrumbInspection />
+        <View style={styles.mainContent}>
+          <BreadCrumbInspection />
 
-        {/* Información rápida de la unidad */}
-        <CardCar
-          model_name='Changan CS15'
-          vin={1234567890}
-          plate='ABC-123'
-          imageSource={require('../../assets/images/carros/FotoAuto.png')}
-        />
+          {/* Información rápida de la unidad */}
+          <CardCar
+            model_name='Changan CS15'
+            vin={1234567890}
+            plate='ABC-123'
+            imageSource={require('../../assets/images/carros/FotoAuto.png')}
+          />
 
-        {/* Buscador para la inspección */}
-        <View style={styles.searchContainer}>
-          <Searchbar
-            placeholder='Buscar pregunta...'
-            onChangeText={setSearchQuery}
-            value={searchQuery}
-            style={styles.searchBar}
-            inputStyle={styles.searchInput}
+          {/* Buscador para la inspección */}
+          <View style={styles.searchContainer}>
+            <Searchbar
+              placeholder='Buscar pregunta...'
+              onChangeText={setSearchQuery}
+              value={searchQuery}
+              style={styles.searchBar}
+              inputStyle={styles.searchInput}
+            />
+          </View>
+
+          {/* Lista de features */}
+          <ListFeatures Groups={filteredGroups} />
+
+          {/* Footer con Carrusel Horizontal */}
+          <FooterInspections
+            phases={DATAFASES}
+            activePhase={activePhase}
+            onPhaseChange={setActivePhase}
           />
         </View>
-
-        {/* Lista de features */}
-        <ListFeatures Groups={filteredGroups} />
       </SafeAreaView>
-
-      {/* Footer Anclado */}
-      <FooterInspections
-        phases={DATAFASES}
-        activePhase={activePhase}
-        onPhaseChange={setActivePhase}
-      />
     </SafeAreaProvider>
   );
 }
@@ -77,6 +79,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  mainContent: {
+    flex: 1,
+    paddingBottom: 70,
   },
   searchContainer: {
     paddingHorizontal: 15,
