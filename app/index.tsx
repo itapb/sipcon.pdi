@@ -1,19 +1,20 @@
 import { CardFase } from '@/components/card/CardFase';
 import { TableInspection } from '@/components/tables/TableInspection';
 import { fases } from '@/constants/DataFase';
+import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  const { isLoggedIn, user, area } = useAuthStore();
+  const { isLoggedIn } = useAuthStore();
 
   if (!isLoggedIn) return null;
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         {/* Cabecera del menú */}
         <MenuHeader />
 
@@ -40,6 +41,8 @@ export default function HomeScreen() {
           {/* Datatable */}
           <TableInspection />
         </View>
+
+        <FooterMain />
       </SafeAreaView>
     </SafeAreaProvider>
   );
@@ -49,6 +52,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  mainWrapper: {
+    flex: 1,
+    justifyContent: 'space-between',
   },
   container: {
     paddingVertical: 20,
