@@ -1,25 +1,22 @@
-import { Feather } from '@expo/vector-icons';
 import { FC, useState } from 'react';
-import { Dimensions, StyleSheet, TextInput, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
+import { Searchbar } from 'react-native-paper';
 import { DatatableInspection } from './DatatableInspection';
 
 const { width } = Dimensions.get('window');
 
 export const TableInspection: FC = () => {
-  const [search, setsearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   return (
     <View style={styles.container}>
-      <View style={styles.container_input}>
-        <Feather name='search' size={20} color='#999' />
-        <TextInput
-          style={styles.input}
-          placeholder='Buscar Modelo o VIM'
-          placeholderTextColor={'#999'}
-          value={search}
-          onChangeText={setsearch}
-        />
-      </View>
+      <Searchbar
+        placeholder='Buscar Modelo o VIN'
+        onChangeText={setSearchQuery}
+        value={searchQuery}
+        style={styles.searchBar}
+        inputStyle={styles.searchInput}
+      />
 
       <DatatableInspection />
     </View>
@@ -53,11 +50,25 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   scroll: {
-    width: '100%', // El scroll ocupa todo el ancho
-    flex: 1, // El scroll ocupa todo el alto restante
+    width: '100%',
+    flex: 1,
   },
   scrollContent: {
-    paddingBottom: 20, // Espacio extra al final para que no pegue con el borde
-    flexGrow: 1, // Importante para que el contenido se expanda
+    paddingBottom: 20,
+    flexGrow: 1,
+  },
+  searchBar: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    elevation: 0,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    height: 45,
+    width: width * 0.9,
+    marginVertical: 10,
+  },
+  searchInput: {
+    fontSize: 14,
+    minHeight: 0,
   },
 });
