@@ -1,39 +1,97 @@
 export const INSPECTIONGROUPS = [
+  // --- FASE: RECEPCION ---
   {
-    title: 'Documentación y Motor',
+    phaseId: 'RECEPCION',
+    title: 'Estado de Arribo',
     questions: [
       {
-        id: 1,
-        text: '¿El VIN del auto coincide con la documentación?',
+        id: 101,
+        text: '¿Se recibió manual de usuario y duplicado de llaves?',
         files: 1,
       },
-      { id: 2, text: 'Nivel de aceite y estado del motor', files: 0 },
-    ],
-  },
-  {
-    title: 'Exterior',
-    questions: [
       {
-        id: 3,
-        text: 'Estado de la pintura y carrocería (¿Abolladuras?)',
+        id: 102,
+        text: 'Verificar daños por transporte en techo y capó',
         files: 3,
       },
-      {
-        id: 4,
-        text: 'Funcionamiento de luces (Altas, bajas y frenos)',
-        files: 2,
-      },
     ],
   },
   {
-    title: 'Interior',
+    phaseId: 'RECEPCION',
+    title: 'Identificación de Unidad',
     questions: [
       {
-        id: 5,
-        text: 'Limpieza de interiores y estado de la tapicería',
+        id: 103,
+        text: '¿El VIN físico coincide con el de la guía de despacho?',
         files: 1,
       },
-      { id: 6, text: 'Verificación de kit de herramientas y llanta', files: 0 },
+    ],
+  },
+
+  // --- FASE: CHEQUEO ---
+  {
+    phaseId: 'CHEQUEO',
+    title: 'Inventario y Accesorios',
+    questions: [
+      { id: 201, text: 'Presencia de antena y ganchos de remolque', files: 0 },
+      { id: 202, text: 'Estado de alfombras y kit de herramientas', files: 1 },
+    ],
+  },
+
+  // --- FASE: MECANICA ---
+  {
+    phaseId: 'MECANICA',
+    title: 'Fluidos y Compartimiento',
+    questions: [
+      { id: 301, text: 'Nivel de refrigerante y líquido de frenos', files: 1 },
+      { id: 302, text: 'Verificar fugas de aceite en el cárter', files: 2 },
+    ],
+  },
+
+  // --- FASE: CARROCERIA ---
+  {
+    phaseId: 'CARROCERIA',
+    title: 'Exterior y Ajustes',
+    questions: [
+      { id: 401, text: 'Alineación de puertas y cierre de maletera', files: 1 },
+      { id: 402, text: 'Revisar rayones en parachoques y laterales', files: 3 },
+    ],
+  },
+
+  // --- FASE: LIMPIEZA ---
+  {
+    phaseId: 'LIMPIEZA',
+    title: 'Detallado Estético',
+    questions: [
+      {
+        id: 501,
+        text: 'Eliminación completa de parafinas protectoras',
+        files: 0,
+      },
+      { id: 502, text: 'Limpieza de rines y neumáticos', files: 1 },
+    ],
+  },
+
+  // --- FASE: PDI ---
+  {
+    phaseId: 'PDI',
+    title: 'Sistemas Eléctricos y Luces',
+    questions: [
+      { id: 601, text: 'Funcionamiento de pantalla táctil y GPS', files: 0 },
+      { id: 602, text: 'Prueba de luces (Altas, Bajas, Frenos)', files: 2 },
+    ],
+  },
+
+  // --- FASE: AUDITORIA ---
+  {
+    phaseId: 'AUDITORIA',
+    title: 'Certificación Final',
+    questions: [
+      {
+        id: 701,
+        text: 'Aprobación visual final para vitrina de ventas',
+        files: 1,
+      },
     ],
   },
 ];

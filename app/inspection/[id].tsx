@@ -13,25 +13,30 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
   const { id } = useLocalSearchParams();
-  const [searchQuery, setSearchQuery] = useState(''); // Estado de búsqueda
-  const [activePhase, setActivePhase] = useState(DATAFASES[0].label);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activePhase, setActivePhase] = useState(DATAFASES[0].id);
 
-  // Lógica de filtrado
-  const filteredGroups = INSPECTIONGROUPS.map((group) => {
-    const questions = group.questions.filter((q) =>
-      q.text.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
-    return questions.length > 0 ||
-      group.title.toLowerCase().includes(searchQuery.toLowerCase())
-      ? { ...group, questions }
-      : null;
-  }).filter((g) => g !== null);
+  const filteredGroups = INSPECTIONGROUPS.filter(
+    (group) => group.phaseId === activePhase,
+  ) // 1. Filtramos por la fase activa
+    .map((group) => {
+      // 2. Filtramos preguntas por búsqueda de texto
+      const questions = group.questions.filter((q) =>
+        q.text.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+
+      // Si el título del grupo coincide o hay preguntas que coincidan, retornamos el grupo
+      return questions.length > 0 ||
+        group.title.toLowerCase().includes(searchQuery.toLowerCase())
+        ? { ...group, questions }
+        : null;
+    })
+    .filter((g) => g !== null);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <MenuHeader />
-
         {/* BreadCrumbs fijos */}
         <BreadCrumbInspection />
 
@@ -58,6 +63,7 @@ export default function InspectionScreen() {
         <ListFeatures Groups={filteredGroups} />
       </SafeAreaView>
 
+      {/* Footer Anclado */}
       <FooterInspections
         phases={DATAFASES}
         activePhase={activePhase}
