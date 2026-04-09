@@ -1,25 +1,34 @@
+import { OpenCamera } from '@/utils/handles/OpenCamera';
+import { OpenGallery } from '@/utils/handles/OpenGallery';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import type { FC } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type Props = {
   fileCount: number;
   additional_styles?: object;
+  onImageCaptured?: (uri: string) => void;
 };
 
 export const MediaActions: FC<Props> = (props) => {
   return (
     <View style={[styles.iconsRow, props.additional_styles]}>
-      {/* Icono de la cámara */}
-      <MaterialCommunityIcons
-        name='camera-outline'
-        size={30}
-        color='#B0BEC5'
-        style={styles.iconCamera}
-      />
+      {/* Botón Cámara: Toma foto y cierra */}
+      <TouchableOpacity onPress={OpenCamera} activeOpacity={0.6}>
+        <MaterialCommunityIcons
+          name='camera-outline'
+          size={30}
+          color='#B0BEC5'
+          style={styles.iconCamera}
+        />
+      </TouchableOpacity>
 
       {/* Icono de la carpeta */}
-      <View style={styles.folderContainer}>
+      <TouchableOpacity
+        onPress={OpenGallery}
+        style={styles.folderContainer}
+        activeOpacity={0.6}
+      >
         <FontAwesome5 name='folder' size={28} color='#B0BEC5' />
 
         {props.fileCount > 0 && (
@@ -27,7 +36,7 @@ export const MediaActions: FC<Props> = (props) => {
             <Text style={styles.badgeText}>{`${props.fileCount}`}</Text>
           </View>
         )}
-      </View>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -35,6 +44,7 @@ export const MediaActions: FC<Props> = (props) => {
 const styles = StyleSheet.create({
   iconsRow: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   iconCamera: {
     marginRight: 10,
@@ -49,7 +59,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2196F3',
     width: 20,
     height: 20,
-    borderRadius: 7.5,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -57,7 +67,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
 });
