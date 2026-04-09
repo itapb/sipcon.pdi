@@ -54,8 +54,6 @@ export const DatatableInspection = () => {
 
   // Estados
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
-  const [page, setPage] = React.useState(0);
-  const [itemsPerPage, setItemsPerPage] = React.useState(5);
 
   // Agrupación de datos (Lote -> Modelo)
   const nestedData = React.useMemo(() => {
@@ -69,12 +67,6 @@ export const DatatableInspection = () => {
   }, [items]);
 
   const allLotes = React.useMemo(() => Object.keys(nestedData), [nestedData]);
-
-  // Lógica de paginación por Lotes
-  const paginatedLotes = React.useMemo(() => {
-    const start = page * itemsPerPage;
-    return allLotes.slice(start, start + itemsPerPage);
-  }, [allLotes, page, itemsPerPage]);
 
   // Handlers
   const handleSelectVehicle = React.useCallback((id: number) => {
@@ -105,8 +97,8 @@ export const DatatableInspection = () => {
         </DataTable.Header>
 
         <View style={styles.tableBodyContainer}>
-          <ScrollView>
-            {paginatedLotes.map((loteName) => (
+          <ScrollView showsVerticalScrollIndicator={false}>
+            {allLotes.map((loteName) => (
               <List.Accordion
                 key={loteName}
                 title={loteName}
@@ -146,20 +138,6 @@ export const DatatableInspection = () => {
           </ScrollView>
         </View>
 
-        <DataTable.Pagination
-          page={page}
-          numberOfPages={Math.ceil(allLotes.length / itemsPerPage)}
-          onPageChange={(p) => setPage(p)}
-          label={`${page * itemsPerPage + 1}-${Math.min((page + 1) * itemsPerPage, allLotes.length)} de ${allLotes.length}`}
-          numberOfItemsPerPageList={[5, 10, 20]}
-          numberOfItemsPerPage={itemsPerPage}
-          onItemsPerPageChange={(value) => {
-            setItemsPerPage(value);
-            setPage(0);
-          }}
-          selectPageDropdownLabel={'Filas:'}
-        />
-
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Total seleccionados:{' '}
@@ -171,15 +149,12 @@ export const DatatableInspection = () => {
   );
 };
 
-// --- ESTILOS COMPACTOS ---
 const styles = StyleSheet.create({
   container: { width: '100%', backgroundColor: 'white' },
   tableCard: { width: '100%' },
   headerBackground: { backgroundColor: '#f5f5f5' },
   headerText: { fontWeight: 'bold' },
-  tableBodyContainer: { height: height * 0.35 },
-
-  // Estilos de Acordeón Compacto
+  tableBodyContainer: { height: height * 0.42 },
   accordionHeader: {
     paddingVertical: 0,
     height: 52,
@@ -208,8 +183,6 @@ const styles = StyleSheet.create({
     margin: 0,
     marginLeft: 10,
   },
-
-  // Fila de Vehículo
   vehicleRow: {
     flexDirection: 'row',
     paddingVertical: 5,
@@ -232,8 +205,6 @@ const styles = StyleSheet.create({
   },
   plateText: { fontSize: 11, color: '#777' },
   complianceText: { fontWeight: 'bold', color: '#2e7d32', fontSize: 13 },
-
-  // Footer
   footer: {
     padding: 8,
     alignItems: 'center',
