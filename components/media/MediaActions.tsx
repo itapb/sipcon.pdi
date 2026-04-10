@@ -1,7 +1,7 @@
-import { OpenCamera } from '@/utils/handles/OpenCamera';
+import { CameraScanner } from '@/utils/handles/camera/OpenCamera';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState, type FC } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ModalFiles } from '../modal/ModalFile';
 
 type Props = {
@@ -11,12 +11,20 @@ type Props = {
 };
 
 export const MediaActions: FC<Props> = (props) => {
-  const [OpenModal, setOpenModal] = useState(false);
+  const [openFiles, setOpenFiles] = useState(false);
+  const [openCamera, setOpenCamera] = useState(false); // Estado para controlar la cámara
+
+  const handleCapture = (uri: string) => {
+    if (props.onImageCaptured) {
+      props.onImageCaptured(uri);
+    }
+    setOpenCamera(false);
+  };
 
   return (
     <View style={[styles.iconsRow, props.additional_styles]}>
-      {/* Botón Cámara: Toma foto y cierra */}
-      <TouchableOpacity onPress={OpenCamera} activeOpacity={0.6}>
+      {/* Botón de la cámara */}
+      <TouchableOpacity onPress={() => setOpenCamera(true)} activeOpacity={0.6}>
         <MaterialCommunityIcons
           name='camera-outline'
           size={30}
@@ -27,7 +35,7 @@ export const MediaActions: FC<Props> = (props) => {
 
       {/* Icono de la carpeta */}
       <TouchableOpacity
-        onPress={() => setOpenModal(true)}
+        onPress={() => setOpenFiles(true)}
         style={styles.folderContainer}
         activeOpacity={0.6}
       >
@@ -38,10 +46,22 @@ export const MediaActions: FC<Props> = (props) => {
             <Text style={styles.badgeText}>{`${props.fileCount}`}</Text>
           </View>
         )}
-
-        {/* Modal para los archivos */}
-        <ModalFiles visible={OpenModal} onDismiss={setOpenModal} />
       </TouchableOpacity>
+
+      {/* MODAL DE LA CÁMARA */}
+      <Modal
+        visible={openCamera}
+        animationType='slide'
+        presentationStyle='fullScreen'
+      >
+        <CameraScanner
+          onClose={() => setOpenCamera(false)}
+          onCapture={handleCapture}
+        />
+      </Modal>
+
+      {/* Modal para los archivos */}
+      <ModalFiles visible={openFiles} onDismiss={() => setOpenFiles(false)} />
     </View>
   );
 };
