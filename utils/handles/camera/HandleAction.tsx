@@ -9,38 +9,42 @@ type Props = {
 };
 
 export const HandleAction = async (props: Props) => {
-  if (!props.cameraRef.current) return;
+  if (!props.cameraRef.current) {
+    console.warn('Cámara no lista');
+    return;
+  }
 
   try {
     if (props.mode === 'picture') {
+      console.log('📸 Capturando imagen...');
       const photo = await props.cameraRef.current.takePictureAsync({
         quality: 0.6,
+        shutterSound: false, // A veces el sonido del obturador causa conflictos de hilos
       });
-
       if (photo) {
-        console.log('FOTO TOMADA: ', photo.uri);
+        console.log('✅ FOTO TOMADA:', photo.uri);
         props.onCapture(photo.uri, 'picture');
       }
     } else {
       if (props.isRecording) {
-        console.log('DETENIENDO VIDEO...');
-        props.cameraRef.current.stopRecording();
+        console.log('stopRecording()');
+        await props.cameraRef.current.stopRecording();
         props.setIsRecording(false);
       } else {
         props.setIsRecording(true);
-        console.log('GRABANDO VIDEO...');
+        console.log('🎥 Iniciando grabación...');
         const video = await props.cameraRef.current.recordAsync({
           maxDuration: 60,
         });
 
         if (video) {
-          console.log('VIDEO GRABADO: ', video.uri);
-
+          console.log('✅ VIDEO GRABADO:', video.uri);
           props.onCapture(video.uri, 'video');
         }
       }
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error('❌ Error en HandleAction:', error);
+    if (props.mode === 'video') props.setIsRecording(false);
   }
 };

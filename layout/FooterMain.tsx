@@ -1,24 +1,16 @@
+import { ModalInspection } from '@/components/modal/ModalInspection';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import { type FC } from 'react';
+import { useState, type FC } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export const FooterMain: FC = () => {
   const insets = useSafeAreaInsets();
+  const [openInpection, setOpenInpection] = useState(false);
 
   // Acción para Nueva Inspección
   const handleNewInspection = () => {
-    Alert.alert(
-      'Nueva Inspección',
-      '¿Deseas iniciar un nuevo registro de inspección?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Continuar',
-          onPress: () => console.log('Navegando a nueva inspección...'),
-        },
-      ],
-    );
+    setOpenInpection(true);
   };
 
   // Acción para Salida
@@ -69,6 +61,7 @@ export const FooterMain: FC = () => {
         <MaterialCommunityIcons name='car-side' size={26} color='#EF4444' />
         <Text style={[styles.footerButtonText, styles.textRed]}>SALIDA</Text>
       </TouchableOpacity>
+      <ModalInspection onDismiss={setOpenInpection} visible={openInpection} />
     </View>
   );
 };

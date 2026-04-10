@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.PDI_ReactNative"
+      "package": "com.anonymous.PDI_ReactNative",
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "output": "static",
@@ -47,3 +48,4 @@
     }
   }
 }
+
