@@ -1,3 +1,4 @@
+import { AccordionObservation } from '@/components/Accordion/AccordionObservation';
 import { BreadCrumbInspection } from '@/components/breadcrumb/BreadCrumbInspection';
 import { CardCar } from '@/components/card/CardCar';
 import { ListFeatures } from '@/components/features/ListFeatures';
@@ -8,30 +9,20 @@ import { MenuHeader } from '@/layout/MenuHeader';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Searchbar } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
   const { id } = useLocalSearchParams();
-  const [searchQuery, setSearchQuery] = useState('');
+
   const [activePhase, setActivePhase] = useState(DATAFASES[0].id);
+  const [observation, setObservation] = useState('');
+
+  // Estado para controlar la visibilidad del acordeón
+  const [showObservation, setShowObservation] = useState(false);
 
   const filteredGroups = INSPECTIONGROUPS.filter(
     (group) => group.phaseId === activePhase,
-  ) // 1. Filtramos por la fase activa
-    .map((group) => {
-      // 2. Filtramos preguntas por búsqueda de texto
-      const questions = group.questions.filter((q) =>
-        q.text.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-
-      // Si el título del grupo coincide o hay preguntas que coincidan, retornamos el grupo
-      return questions.length > 0 ||
-        group.title.toLowerCase().includes(searchQuery.toLowerCase())
-        ? { ...group, questions }
-        : null;
-    })
-    .filter((g) => g !== null);
+  ).filter((g) => g !== null);
 
   return (
     <SafeAreaProvider>
@@ -49,16 +40,13 @@ export default function InspectionScreen() {
             imageSource={require('../../assets/images/carros/FotoAuto.png')}
           />
 
-          {/* Buscador para la inspección */}
-          <View style={styles.searchContainer}>
-            <Searchbar
-              placeholder='Buscar pregunta...'
-              onChangeText={setSearchQuery}
-              value={searchQuery}
-              style={styles.searchBar}
-              inputStyle={styles.searchInput}
-            />
-          </View>
+          {/* Observaciones Generales */}
+          <AccordionObservation
+            observation={observation}
+            setObservation={setObservation}
+            showObservation={showObservation}
+            setShowObservation={setShowObservation}
+          />
 
           {/* Lista de features */}
           <ListFeatures Groups={filteredGroups} />
@@ -82,25 +70,6 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    paddingBottom: 70,
-  },
-  searchContainer: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  searchBar: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
-    elevation: 0,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    height: 45,
-  },
-  searchInput: {
-    fontSize: 14,
-    minHeight: 0,
+    paddingBottom: 80,
   },
 });
