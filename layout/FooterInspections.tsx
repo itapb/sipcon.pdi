@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { type FC } from 'react';
 import {
   ScrollView,
@@ -11,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export interface PhaseItem {
   id: string;
   label: string;
+  isCompleted: boolean;
 }
 
 interface Props {
@@ -25,6 +27,12 @@ export const FooterInspections: FC<Props> = ({
   onPhaseChange,
 }) => {
   const insets = useSafeAreaInsets();
+
+  const getStatusColor = (isDone: boolean, isActive: boolean) => {
+    if (isDone) return '#22C55E'; // Verde Esmeralda
+    if (isActive) return '#3B82F6'; // Azul
+    return '#94A3B8'; // Gris Slate
+  };
 
   return (
     <View
@@ -42,6 +50,9 @@ export const FooterInspections: FC<Props> = ({
       >
         {phases.map((phase) => {
           const isActive = activePhase === phase.id;
+          const isDone = phase.isCompleted;
+
+          getStatusColor(isDone, isActive);
 
           return (
             <TouchableOpacity
@@ -50,14 +61,38 @@ export const FooterInspections: FC<Props> = ({
               onPress={() => onPhaseChange(phase.id)}
               activeOpacity={0.7}
             >
-              <Text
-                style={[styles.footerButtonText, isActive && styles.textActive]}
-              >
-                {phase.label.toUpperCase()}
-              </Text>
+              <View style={styles.contentWrapper}>
+                {/* Icono de check si está completo */}
+                {isDone && (
+                  <MaterialCommunityIcons
+                    name='check-circle'
+                    size={12}
+                    color='#22C55E'
+                    style={styles.checkIcon}
+                  />
+                )}
 
-              {/* Indicador inferior (Línea azul) */}
-              {isActive && <View style={styles.activeIndicator} />}
+                <Text
+                  style={[
+                    styles.footerButtonText,
+                    { color: getStatusColor(isDone, isActive) },
+                    isActive && styles.textActive,
+                    !isDone && !isActive && { color: '#EF4444' }, // Opcional: Rojo si no está listo
+                  ]}
+                >
+                  {phase.label.toUpperCase()}
+                </Text>
+              </View>
+
+              {/* Indicador inferior dinámico */}
+              {isActive && (
+                <View
+                  style={[
+                    styles.activeIndicator,
+                    { backgroundColor: getStatusColor(isDone, isActive) },
+                  ]}
+                />
+              )}
             </TouchableOpacity>
           );
         })}
@@ -73,7 +108,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 1000,
-    minHeight: 60,
+    minHeight: 65,
     backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
@@ -90,27 +125,32 @@ const styles = StyleSheet.create({
   },
   footerButton: {
     height: '100%',
-    paddingHorizontal: 18,
+    paddingHorizontal: 15,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
+  contentWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkIcon: {
+    marginRight: 4,
+  },
   footerButtonText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    color: '#94A3B8',
     letterSpacing: 0.5,
   },
   textActive: {
-    color: '#3B82F6',
     fontWeight: '900',
+    fontSize: 11,
   },
   activeIndicator: {
     position: 'absolute',
-    bottom: 12,
-    width: 20,
+    bottom: 8,
+    width: 24,
     height: 3,
-    backgroundColor: '#3B82F6',
     borderRadius: 2,
   },
 });
