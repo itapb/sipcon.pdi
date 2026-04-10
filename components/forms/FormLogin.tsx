@@ -1,5 +1,4 @@
 import { useAuthStore } from '@/store/useAuthStore';
-import { Picker } from '@react-native-picker/picker';
 import React, { useState, type FC } from 'react';
 import {
   Alert,
@@ -16,19 +15,18 @@ const { width, height } = Dimensions.get('window');
 export const FormLogin: FC = () => {
   const [usuario, setUsuario] = useState('');
   const [password, setPassword] = useState('');
-  const [area, setArea] = useState('');
 
   const { login } = useAuthStore();
 
   const handleLogin = () => {
-    if (!usuario || !password || !area) {
+    if (!usuario || !password) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
 
     // Al ejecutar esto, el isLoggedIn del Store cambia a true.
     // El _layout.tsx detectará el cambio y hará el router.replace('/') por ti.
-    login(usuario, area);
+    login(usuario, 'Area de prueba');
   };
 
   return (
@@ -61,30 +59,6 @@ export const FormLogin: FC = () => {
       </View>
 
       {/* Input 3: Lista */}
-      <View>
-        <Text style={styles.label}>Área:</Text>
-        <View style={styles.pickerContainer}>
-          <Picker
-            selectedValue={area}
-            onValueChange={(itemValue) => setArea(itemValue)}
-            style={styles.picker}
-            dropdownIconColor='#333'
-          >
-            <Picker.Item
-              label='Selecciona una planta...'
-              value=''
-              style={{ display: 'none' }}
-            />
-            <Picker.Item label='Planta Calidad' value='plantacalidad' />
-            <Picker.Item label='Distribución' value='distribución' />
-            <Picker.Item label='Ventas' value='ventas' />
-            <Picker.Item
-              label='Servicio concesionario'
-              value='sconcesionario'
-            />
-          </Picker>
-        </View>
-      </View>
 
       {/* Boton de ingreso */}
       <View>
