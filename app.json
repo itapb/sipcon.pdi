@@ -40,6 +40,17 @@
             "backgroundColor": "#000000"
           }
         }
+      ], // <--- Aquí termina el plugin de splash-screen
+      [
+        "expo-build-properties", // <--- Este es un plugin NUEVO e INDEPENDIENTE
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          },
+          "ios": {
+            "flipper": true
+          }
+        }
       ]
     ],
     "experiments": {
