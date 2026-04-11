@@ -44,12 +44,12 @@ export const MenuHeader: FC = () => {
           <View style={styles.userInfoSection}>
             <Avatar.Text
               size={60}
-              label={user?.substring(0, 2).toUpperCase() || 'PDI'}
+              label={user?.login?.substring(0, 2).toUpperCase() || 'PDI'}
               style={styles.avatar}
               labelStyle={{ fontSize: 24, fontWeight: '700' }}
             />
             <View style={styles.userDetails}>
-              <Text style={styles.userName}>{user || 'Usuario'}</Text>
+              <Text style={styles.userName}>{user?.login || 'Usuario'}</Text>
               <Text style={styles.userRole}>{area || 'Area'}</Text>
             </View>
           </View>
