@@ -1,6 +1,8 @@
 import { useAuthStore } from '@/store/useAuthStore';
+import { HandleLogin } from '@/utils/handles/forms/login/HandleLogin';
 import React, { useState, type FC } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   StyleSheet,
@@ -13,21 +15,11 @@ import {
 const { width, height } = Dimensions.get('window');
 
 export const FormLogin: FC = () => {
-  const [usuario, setUsuario] = useState('');
+  const [username, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const { login } = useAuthStore();
-
-  const handleLogin = () => {
-    if (!usuario || !password) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
-    }
-
-    // Al ejecutar esto, el isLoggedIn del Store cambia a true.
-    // El _layout.tsx detectará el cambio y hará el router.replace('/') por ti.
-    login(usuario, 'Area de prueba');
-  };
 
   return (
     <View style={styles.formContainer}>
@@ -40,8 +32,10 @@ export const FormLogin: FC = () => {
           style={styles.input}
           placeholder='Ingrese el usuario...'
           placeholderTextColor={'#999'}
-          value={usuario}
-          onChangeText={setUsuario}
+          value={username}
+          onChangeText={setUserName}
+          autoCapitalize='none'
+          autoCorrect={false}
         />
       </View>
 
@@ -52,28 +46,38 @@ export const FormLogin: FC = () => {
           style={styles.input}
           placeholder='Ingrese su contraseña...'
           placeholderTextColor={'#999'}
-          secureTextEntry={true} // Oculta el texto
+          secureTextEntry={true}
           value={password}
           onChangeText={setPassword}
         />
       </View>
 
-      {/* Input 3: Lista */}
-
       {/* Boton de ingreso */}
       <View>
         <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={() => HandleLogin({ login, password, setLoading, username })}
           activeOpacity={0.7}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>INGRESAR</Text>
+          {loading ? (
+            <View style={styles.containerButton}>
+              <Text style={styles.buttonText}>Validando</Text>
+              <ActivityIndicator size='small' color='#FFFFFF' />
+            </View>
+          ) : (
+            <Text style={styles.buttonText}>INGRESAR</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       {/* Opción en casos de olvidar la contraseña */}
       <View>
-        <Text style={styles.labelPasword}>Olvidé mi contraseña</Text>
+        <TouchableOpacity
+          onPress={() => Alert.alert('Aviso', 'Contacte a soporte.')}
+        >
+          <Text style={styles.labelPasword}>Olvidé mi contraseña</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -81,8 +85,8 @@ export const FormLogin: FC = () => {
 
 const styles = StyleSheet.create({
   formContainer: {
-    width: width * 0.9, // 90% del ancho real del dispositivo
-    height: height * 0.7, // 60% del alto real del dispositivo
+    width: width * 0.9,
+    height: height * 0.7,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 15,
@@ -114,31 +118,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
     color: '#333',
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 15,
-    backgroundColor: '#fafafa',
-    overflow: 'hidden',
-    fontSize: 12,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    color: '#333',
-  },
   labelPasword: {
     fontSize: 16,
     color: '#007AFF',
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#007AFF', // Azul estándar, puedes cambiarlo al color de tu logo
+    backgroundColor: '#007AFF',
     height: 55,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#A0C4FF',
+  },
+  containerButton: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 5,
   },
   buttonText: {
     color: 'white',

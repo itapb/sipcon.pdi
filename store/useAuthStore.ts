@@ -2,29 +2,29 @@ import { create } from 'zustand';
 
 interface AuthState {
   user: string | null;
-  area: string | null;
+  token: string | null;
   isLoggedIn: boolean;
   // Acciones (Funciones para cambiar el estado)
-  login: (name: string, area: string) => void;
+  login: (name: string, token: string) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  area: null,
+  token: null,
   isLoggedIn: false,
 
-  login: (user, area) =>
+  login: (user, token) =>
     set({
       user,
-      area,
+      token,
       isLoggedIn: true,
     }),
 
   logout: () =>
     set({
       user: null,
-      area: null,
+      token: null,
       isLoggedIn: false,
     }),
 }));
