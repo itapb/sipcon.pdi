@@ -5,63 +5,21 @@ type Props = {
   password: string;
 };
 
-export type UserAPI = {
-  status: number;
-  processed: boolean;
-  message: string;
-  total: number;
-  data: Data;
-};
-
-export type Data = {
-  token: string;
-  refreshToken: string;
-  users: Users;
-  suppliers: Dealer[];
-  dealers: Dealer[];
-  modules: Module[];
-};
-
 export type Dealer = {
   name: string;
-  type: Type;
   supplierId: null | string;
   id: number;
   isActive: boolean;
 };
 
-export enum Type {
-  Dealer = 'DEALER',
-  Supplier = 'SUPPLIER',
-}
-
-export type Module = {
-  id: number;
-  name: string;
-  actionName: null;
-  actionDisplay: null;
-  actions: Action[];
-};
-
-export type Action = {
-  moduleId: number;
-  actionId: number;
-  actionName: ActionName;
-};
-
-export enum ActionName {
-  Create = 'CREATE',
-  Edit = 'EDIT',
-  Get = 'GET',
-}
-
-export type Users = {
+export type DataUser = {
+  userId: number;
   login: string;
   name: string;
-  lastName: string;
-  vat: string;
-  id: number;
-  isActive: boolean;
+  lastname: string;
+  token: string;
+  suppliers: Dealer[];
+  dealers: Dealer[];
 };
 
 export const POST_Login = async (props: Props) => {
@@ -83,7 +41,8 @@ export const POST_Login = async (props: Props) => {
       return null;
     }
 
-    const { data } = (await result.json()) as UserAPI;
+    const { data } = await result.json();
+
     const data_user = {
       userId: data.users.id,
       login: data.users.login,
@@ -92,7 +51,7 @@ export const POST_Login = async (props: Props) => {
       token: data.token,
       suppliers: data.suppliers,
       dealers: data.dealers,
-    };
+    } as DataUser;
 
     return data_user;
   } catch (error) {

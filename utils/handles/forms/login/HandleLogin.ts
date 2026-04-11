@@ -1,13 +1,13 @@
 import { GET_Encrypt } from '@/utils/fetchs/login/GET_Encrypt';
 import { GET_Salt } from '@/utils/fetchs/login/GET_Salt';
-import { POST_Login } from '@/utils/fetchs/login/POST_Login';
+import { DataUser, POST_Login } from '@/utils/fetchs/login/POST_Login';
 import { Alert } from 'react-native';
 
 type Props = {
   username: string;
   password: string;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  login: (name: string, token: string) => void;
+  login: (user: DataUser, area: number) => void;
 };
 
 export const HandleLogin = async (props: Props) => {
@@ -61,7 +61,7 @@ export const HandleLogin = async (props: Props) => {
       return;
     }
 
-    props.login(data_user.name, data_user.token);
+    props.login(data_user, 1); // Area por defecto 1
   } catch (error) {
     console.log('Login Error:', error);
     Alert.alert('Error', 'No se pudo conectar con el servidor.');
