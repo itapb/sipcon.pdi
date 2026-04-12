@@ -6,13 +6,17 @@ import { DATAFASES } from '@/constants/DataFases';
 import { INSPECTIONGROUPS } from '@/constants/DataInspectionDetail';
 import { FooterInspections } from '@/layout/FooterInspections';
 import { MenuHeader } from '@/layout/MenuHeader';
-import { useLocalSearchParams } from 'expo-router';
+import { useInspectionStore } from '@/store/useInspectionStore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
   const { id } = useLocalSearchParams();
+
+  const router = useRouter();
+  const setNeedsRefresh = useInspectionStore((state) => state.setNeedsRefresh);
 
   const [activePhase, setActivePhase] = useState(DATAFASES[0].id);
   const [observation, setObservation] = useState('');
@@ -24,6 +28,14 @@ export default function InspectionScreen() {
     (group) => group.phaseId === activePhase,
   ).filter((g) => g !== null);
 
+  const handleUpdateAndGoBack = () => {
+    // 1. Levantamos la bandera
+    setNeedsRefresh(true);
+
+    // 2. Regresamos al Home (la navegación es inmediata y sin errores)
+    router.back();
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -31,6 +43,12 @@ export default function InspectionScreen() {
         {/* BreadCrumbs fijos */}
         <View style={styles.mainContent}>
           <BreadCrumbInspection />
+
+          <TouchableOpacity onPress={handleUpdateAndGoBack}>
+            <Text style={{ color: '#2196F3', fontWeight: 'bold' }}>
+              ACTUALIZAR Y VOLVER
+            </Text>
+          </TouchableOpacity>
 
           {/* Información rápida de la unidad */}
           <CardCar
