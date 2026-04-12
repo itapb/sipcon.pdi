@@ -1,7 +1,7 @@
 import { FC, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
-import { DatatableInspection } from './DatatableInspection';
+import { DatatableInspection } from './inspection/DatatableInspection';
 
 const { width } = Dimensions.get('window');
 
