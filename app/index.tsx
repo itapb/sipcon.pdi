@@ -1,4 +1,5 @@
 import { CardFase } from '@/components/card/CardFase';
+import { LoadingScreen } from '@/components/loading/LoadingScreen';
 import { TableInspection } from '@/components/tables/TableInspection';
 import { HookInspections } from '@/hooks/HookInspections';
 import { FooterMain } from '@/layout/FooterMain';
@@ -13,7 +14,7 @@ export default function HomeScreen() {
   const { isLoggedIn } = useAuthStore();
 
   // TODO: Falta el manejo de los errores y la carga
-  const { fases, inspections, GetInfoPage } = HookInspections();
+  const { fases, inspections, loading, GetInfoPage } = HookInspections();
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -26,6 +27,12 @@ export default function HomeScreen() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+        {/* Componente de carga */}
+        <LoadingScreen
+          visible={loading}
+          message='Actualizando Inspecciones...'
+        />
+
         {/* Cabecera del menú */}
         <MenuHeader />
 
@@ -36,7 +43,6 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* // TODO: Traer esta información de la BD */}
             {fases.map((item, index) => (
               <CardFase
                 key={index + item.name_fase}
