@@ -13,13 +13,13 @@ export default function HomeScreen() {
   const { isLoggedIn } = useAuthStore();
 
   // TODO: Falta el manejo de los errores y la carga
-  const { fases, GetFasesByArea } = HookInspections();
+  const { fases, inspections, GetInfoPage } = HookInspections();
 
   useEffect(() => {
     if (isLoggedIn) {
-      GetFasesByArea(1); // Llamamos a la función con el areaId
+      GetInfoPage({ areaId: 1 }); // TODO: Esto está pendiente de obtener por la API
     }
-  }, [isLoggedIn, GetFasesByArea]);
+  }, [isLoggedIn, GetInfoPage]);
 
   if (!isLoggedIn) return null;
 
@@ -51,7 +51,7 @@ export default function HomeScreen() {
           </ScrollView>
 
           {/* Datatable */}
-          <TableInspection />
+          <TableInspection Inspections={inspections} />
         </View>
 
         <FooterMain />

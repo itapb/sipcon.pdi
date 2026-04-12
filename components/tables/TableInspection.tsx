@@ -1,3 +1,4 @@
+import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
 import { FC, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
@@ -5,7 +6,11 @@ import { DatatableInspection } from './inspection/DatatableInspection';
 
 const { width } = Dimensions.get('window');
 
-export const TableInspection: FC = () => {
+type Props = {
+  Inspections: DataInspection[];
+};
+
+export const TableInspection: FC<Props> = ({ Inspections }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
@@ -18,7 +23,7 @@ export const TableInspection: FC = () => {
         inputStyle={styles.searchInput}
       />
 
-      <DatatableInspection />
+      <DatatableInspection Inspections={Inspections} />
     </View>
   );
 };

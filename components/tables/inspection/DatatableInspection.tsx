@@ -1,20 +1,22 @@
+import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
 import { GroupLoteModel } from '@/utils/GroupLoteModel';
 import { useRouter } from 'expo-router';
 import * as React from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { DataTable, Divider, List, Text } from 'react-native-paper';
-import { GetItems } from '../../../constants/data';
 import { VehicleItem } from './VehicleRow';
 
 const { height } = Dimensions.get('window');
 
-export const DatatableInspection = () => {
+type Props = {
+  Inspections: DataInspection[];
+};
+
+export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
 
-  const items = GetItems() || [];
-
-  const DataLoteModels = GroupLoteModel({ items });
+  const DataLoteModels = GroupLoteModel({ items: Inspections });
 
   const allLotes = React.useMemo(
     () => Object.keys(DataLoteModels),
@@ -73,16 +75,12 @@ export const DatatableInspection = () => {
                     style={styles.modelAccordion}
                   >
                     {DataLoteModels[loteName][modelName].map((vehicle) => (
-                      <View key={vehicle.idInspection}>
+                      <View key={vehicle.id}>
                         <VehicleItem
                           vehicle={vehicle}
-                          isSelected={selectedIds.includes(
-                            vehicle.idInspection,
-                          )}
+                          isSelected={selectedIds.includes(vehicle.id)}
                           onSelect={SelectVehicle}
-                          onPressVim={() =>
-                            GoToInspection(vehicle.idInspection)
-                          }
+                          onPressVim={() => GoToInspection(vehicle.id)}
                         />
                         <Divider />
                       </View>

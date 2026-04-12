@@ -3,9 +3,9 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Checkbox, Text } from 'react-native-paper';
 
 export type VehicleData = {
-  idInspection: number;
+  id: number;
   vin: string;
-  plate: string;
+  vehiclePlate: string;
   cumplimiento: string | number;
 };
 
@@ -24,7 +24,7 @@ export const VehicleItem = React.memo(
         <View style={styles.checkCell}>
           <Checkbox
             status={isSelected ? 'checked' : 'unchecked'}
-            onPress={() => onSelect(vehicle.idInspection)}
+            onPress={() => onSelect(vehicle.id)}
             color='#2196F3'
           />
         </View>
@@ -32,15 +32,12 @@ export const VehicleItem = React.memo(
         {/* Contenedor de Información */}
         <View style={styles.vehicleInfoContainer}>
           <View style={styles.textColumn}>
-            <Pressable
-              onPress={() => onPressVim(vehicle.idInspection)}
-              hitSlop={10}
-            >
+            <Pressable onPress={() => onPressVim(vehicle.id)} hitSlop={10}>
               <Text style={[styles.vinText, styles.linkText]}>
-                {vehicle.vin || 'SIN VIN'}
+                VIN: {vehicle.vin || 'SIN VIN'}
               </Text>
             </Pressable>
-            <Text style={styles.plateText}>Placa: {vehicle.plate}</Text>
+            <Text style={styles.plateText}>Placa: {vehicle.vehiclePlate}</Text>
           </View>
 
           {/* Porcentaje de cumplimiento */}
