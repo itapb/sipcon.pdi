@@ -1,4 +1,4 @@
-import { CameraScanner } from '@/utils/handles/camera/OpenCamera';
+import { CameraScanner } from '@/hooks/handles/camera/OpenCamera';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState, type FC } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';

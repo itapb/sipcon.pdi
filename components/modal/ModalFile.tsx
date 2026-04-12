@@ -1,4 +1,4 @@
-import { OpenGallery } from '@/utils/handles/OpenGallery';
+import { OpenGallery } from '@/hooks/handles/OpenGallery';
 import { Entypo, Feather } from '@expo/vector-icons';
 import type { FC, ReactNode } from 'react';
 import {

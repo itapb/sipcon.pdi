@@ -1,5 +1,5 @@
+import { HandleLogin } from '@/hooks/handles/forms/login/HandleLogin';
 import { useAuthStore } from '@/store/useAuthStore';
-import { HandleLogin } from '@/utils/handles/forms/login/HandleLogin';
 import React, { useState, type FC } from 'react';
 import {
   ActivityIndicator,
