@@ -1,14 +1,25 @@
 import { CardFase } from '@/components/card/CardFase';
 import { TableInspection } from '@/components/tables/TableInspection';
-import { FASES } from '@/constants/DataFase';
+import { HookInspections } from '@/hooks/HookInspections';
 import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { useAuthStore } from '@/store/useAuthStore';
+import { AntDesign } from '@expo/vector-icons';
+import { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { isLoggedIn } = useAuthStore();
+
+  // TODO: Falta el manejo de los errores y la carga
+  const { fases, GetFasesByArea } = HookInspections();
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      GetFasesByArea(1); // Llamamos a la función con el areaId
+    }
+  }, [isLoggedIn, GetFasesByArea]);
 
   if (!isLoggedIn) return null;
 
@@ -25,15 +36,16 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* TODO: Traer esta información de la BD */}
-            {FASES.map((item, index) => (
+            {/* // TODO: Traer esta información de la BD */}
+            {fases.map((item, index) => (
               <CardFase
-                key={item.name_fase + index}
-                color={item.color}
+                key={index + item.name_fase}
+                color={'green'}
                 name_fase={item.name_fase}
                 completed={item.completed}
                 total={item.total}
-                icon={item.iconName}
+                // TODO: Mejorar esto
+                icon={<AntDesign name='check' size={24} color='#16A34A' />}
               />
             ))}
           </ScrollView>
