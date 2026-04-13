@@ -25,7 +25,7 @@ export default function RootLayout() {
     } else if (isLoggedIn && inAuthGroup) {
       router.replace('/');
     }
-  }, [isLoggedIn, segments, isReady]);
+  }, [isLoggedIn, segments, isReady, router]);
 
   const lightTheme = {
     ...DefaultTheme,
@@ -49,4 +49,3 @@ export default function RootLayout() {
     </PaperProvider>
   );
 }
-

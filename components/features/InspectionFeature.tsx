@@ -6,11 +6,13 @@ import { MediaActions } from '../media/MediaActions';
 type Props = {
   feature: string;
   fileCount: number;
+  observation: string;
+  status: boolean | null;
 };
 
 export const InspectionFeature: FC<Props> = (props) => {
-  const [status, setStatus] = useState<'Sí' | 'No' | null>(null);
-  const [observation, setObservation] = useState('');
+  const [status, setStatus] = useState<false | true | null>(props.status);
+  const [observation, setObservation] = useState(props.observation);
 
   return (
     <Card style={styles.qCard}>
@@ -30,15 +32,15 @@ export const InspectionFeature: FC<Props> = (props) => {
         <OptionButton
           label='Sí'
           type='success'
-          isActive={status === 'Sí'}
-          onPress={() => setStatus('Sí')}
+          isActive={status === true}
+          onPress={() => setStatus(true)}
         />
         <View style={{ width: 10 }} />
         <OptionButton
           label='No'
           type='danger'
-          isActive={status === 'No'}
-          onPress={() => setStatus('No')}
+          isActive={status === false}
+          onPress={() => setStatus(false)}
         />
       </View>
 

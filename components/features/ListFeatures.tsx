@@ -4,13 +4,18 @@ import { InspectionFeature } from './InspectionFeature';
 
 type Props = {
   Groups: {
-    questions: {
-      id: number;
-      text: string;
-      files: number;
-    }[];
+    questions: Questions[];
     featureType: string;
   }[];
+};
+
+export type Questions = {
+  fileUrl: string | null;
+  id: number;
+  inspectionId: number;
+  observation: string;
+  text: string;
+  value: boolean;
 };
 
 export const ListFeatures: FC<Props> = (props) => {
@@ -29,7 +34,9 @@ export const ListFeatures: FC<Props> = (props) => {
             <InspectionFeature
               key={q.id}
               feature={q.text}
-              fileCount={q.files}
+              fileCount={0} // TODO: Pendiente por traer
+              observation={q.observation}
+              status={q.value}
             />
           ))}
         </View>

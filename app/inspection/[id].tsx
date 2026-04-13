@@ -18,7 +18,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
   const { id, model, vin, plate } = useLocalSearchParams();
-  const { user } = useAuthStore();
+  const { user, isLoggedIn } = useAuthStore();
 
   const router = useRouter();
   const setNeedsRefresh = useInspectionStore((state) => state.setNeedsRefresh);
@@ -39,11 +39,12 @@ export default function InspectionScreen() {
     router.back();
   };
 
-  useEffect(() => {
-    GetInspectionData(+id, user!.token, setinspectionDetail, setInspectionFase);
-  }, [id, user]);
-
   const inspectionGroup = GroupFeaturesByType(inspectionDetail);
+
+  useEffect(() => {
+    if (!user?.token || !isLoggedIn) return;
+    GetInspectionData(+id, user.token, setinspectionDetail, setInspectionFase);
+  }, [id, user?.token, isLoggedIn]);
 
   useEffect(() => {
     if (inspectionGroup.length > 0 && activeFase === 0) {
@@ -53,7 +54,7 @@ export default function InspectionScreen() {
         setActiveFase(initialFaseId);
       }
     }
-  }, [inspectionGroup]);
+  }, [inspectionGroup, activeFase]);
 
   const filteredGroups = inspectionGroup
     .filter((group) => group.faseId === inspectionGroup[0].faseId)
