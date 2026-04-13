@@ -9,7 +9,7 @@ type Props = {
       text: string;
       files: number;
     }[];
-    title: string;
+    featureType: string;
   }[];
 };
 
@@ -24,7 +24,7 @@ export const ListFeatures: FC<Props> = (props) => {
       {/* Mapeo de grupos filtrados */}
       {props.Groups.map((group, index) => (
         <View key={index} style={styles.groupContainer}>
-          <Text style={styles.groupTitle}>{group?.title}</Text>
+          <Text style={styles.groupTitle}>{group?.featureType}</Text>
           {group?.questions.map((q) => (
             <InspectionFeature
               key={q.id}

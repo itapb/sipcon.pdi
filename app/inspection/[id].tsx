@@ -2,39 +2,65 @@ import { AccordionObservation } from '@/components/Accordion/AccordionObservatio
 import { BreadCrumbInspection } from '@/components/breadcrumb/BreadCrumbInspection';
 import { CardCar } from '@/components/card/CardCar';
 import { ListFeatures } from '@/components/features/ListFeatures';
-import { DATAFASES } from '@/constants/DataFases';
-import { INSPECTIONGROUPS } from '@/constants/DataInspectionDetail';
+import { LoadingScreen } from '@/components/loading/LoadingScreen';
+import { GetInspectionData } from '@/hooks/HookGetInspectionDetail';
 import { FooterInspections } from '@/layout/FooterInspections';
 import { MenuHeader } from '@/layout/MenuHeader';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useInspectionStore } from '@/store/useInspectionStore';
+import { DataInspectionDetail } from '@/utils/fetchs/inspections/GET_InspectionDetailt';
+import { DataInspectionFase } from '@/utils/fetchs/inspections/GET_InspectionFase';
+import { GroupFeaturesByType } from '@/utils/GroupFeaturesByType';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
   const { id } = useLocalSearchParams();
+  const { user } = useAuthStore();
 
   const router = useRouter();
   const setNeedsRefresh = useInspectionStore((state) => state.setNeedsRefresh);
 
-  const [activePhase, setActivePhase] = useState(DATAFASES[0].id);
+  const [activeFase, setActiveFase] = useState(0);
   const [observation, setObservation] = useState('');
-
-  // Estado para controlar la visibilidad del acordeón
+  const [inspectionDetail, setinspectionDetail] = useState<
+    DataInspectionDetail[]
+  >([]);
+  const [inspectionFase, setInspectionFase] = useState<DataInspectionFase[]>(
+    [],
+  );
   const [showObservation, setShowObservation] = useState(false);
 
-  const filteredGroups = INSPECTIONGROUPS.filter(
-    (group) => group.phaseId === activePhase,
-  ).filter((g) => g !== null);
-
-  const handleUpdateAndGoBack = () => {
-    // 1. Levantamos la bandera
+  // TODO: Esto está pendiente por aplicar
+  const UpdateAndGoBack = () => {
     setNeedsRefresh(true);
-
-    // 2. Regresamos al Home (la navegación es inmediata y sin errores)
     router.back();
   };
+
+  useEffect(() => {
+    GetInspectionData(+id, user!.token, setinspectionDetail, setInspectionFase);
+  }, [id, user]);
+
+  const inspectionGroup = GroupFeaturesByType(inspectionDetail);
+
+  useEffect(() => {
+    if (inspectionGroup.length > 0 && activeFase === 0) {
+      // Seteamos la primera fase disponible como activa
+      const initialFaseId = inspectionGroup[0].faseId;
+      if (initialFaseId !== undefined) {
+        setActiveFase(initialFaseId);
+      }
+    }
+  }, [inspectionGroup]);
+
+  const filteredGroups = inspectionGroup
+    .filter((group) => group.faseId === inspectionGroup[0].faseId)
+    .filter((g) => g !== null);
+
+  if (!inspectionDetail.length)
+    return <LoadingScreen visible={true} message='Obteniendo información' />;
 
   return (
     <SafeAreaProvider>
@@ -43,12 +69,6 @@ export default function InspectionScreen() {
         {/* BreadCrumbs fijos */}
         <View style={styles.mainContent}>
           <BreadCrumbInspection />
-
-          <TouchableOpacity onPress={handleUpdateAndGoBack}>
-            <Text style={{ color: '#2196F3', fontWeight: 'bold' }}>
-              ACTUALIZAR Y VOLVER
-            </Text>
-          </TouchableOpacity>
 
           {/* Información rápida de la unidad */}
           <CardCar
@@ -71,9 +91,9 @@ export default function InspectionScreen() {
 
           {/* Footer con Carrusel Horizontal */}
           <FooterInspections
-            phases={DATAFASES}
-            activePhase={activePhase}
-            onPhaseChange={setActivePhase}
+            fases={inspectionFase}
+            activePhase={activeFase}
+            onPhaseChange={setActiveFase}
           />
         </View>
       </SafeAreaView>

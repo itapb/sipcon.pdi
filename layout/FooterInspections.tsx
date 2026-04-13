@@ -1,3 +1,4 @@
+import { DataInspectionFase } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { type FC } from 'react';
 import {
@@ -9,23 +10,19 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export interface PhaseItem {
-  id: string;
-  label: string;
-  isCompleted: boolean;
-}
-
 interface Props {
-  phases: PhaseItem[];
-  activePhase: string;
-  onPhaseChange: (phaseId: string) => void;
+  fases: DataInspectionFase[];
+  activePhase: number;
+  onPhaseChange: (faseId: number) => void;
 }
 
 export const FooterInspections: FC<Props> = ({
-  phases,
+  fases,
   activePhase,
   onPhaseChange,
 }) => {
+  console.log({ activePhase });
+
   const insets = useSafeAreaInsets();
 
   const getStatusColor = (isDone: boolean, isActive: boolean) => {
@@ -45,12 +42,12 @@ export const FooterInspections: FC<Props> = ({
     >
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false} //
         contentContainerStyle={styles.scrollContainer}
       >
-        {phases.map((phase) => {
-          const isActive = activePhase === phase.id;
-          const isDone = phase.isCompleted;
+        {fases.map((phase) => {
+          const isActive = +activePhase === phase.faseId;
+          const isDone = !!phase.isCompleted;
 
           getStatusColor(isDone, isActive);
 
@@ -58,7 +55,7 @@ export const FooterInspections: FC<Props> = ({
             <TouchableOpacity
               key={phase.id}
               style={styles.footerButton}
-              onPress={() => onPhaseChange(phase.id)}
+              onPress={() => onPhaseChange(phase.faseId)}
               activeOpacity={0.7}
             >
               <View style={styles.contentWrapper}>
@@ -80,7 +77,7 @@ export const FooterInspections: FC<Props> = ({
                     !isDone && !isActive && { color: '#EF4444' }, // Opcional: Rojo si no está listo
                   ]}
                 >
-                  {phase.label.toUpperCase()}
+                  {phase.fase.toUpperCase()}
                 </Text>
               </View>
 

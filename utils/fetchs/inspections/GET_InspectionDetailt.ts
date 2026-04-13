@@ -1,26 +1,35 @@
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type Props = {
+  inspectionId?: number;
   areaId?: number;
   faseId?: number;
-  inspectionId?: number;
-  IsCompleted?: boolean;
+  featureTypeId?: boolean;
   token: string;
 };
 
-export type DataInspectionFase = {
+export type DataInspectionDetail = {
+  value: boolean;
+  observation: string;
+  fileUrl: null | string;
   inspectionId: number;
-  faseId: number;
+  featureId: number;
+  feature: string;
+  featureTypeId: number;
+  featureType: string;
+  faseId: string;
   fase: string;
-  completedDate: Date | null;
-  isCompleted: number;
   areaId: number;
   area: string;
+  color: string;
+  model: string;
+  vin: string;
+  plate: string;
   id: number;
   isActive: boolean;
 };
 
-export const GET_InspectionsFases = async (props: Props) => {
+export const GET_InspectionDetails = async (props: Props) => {
   try {
     const params = new URLSearchParams();
 
@@ -31,11 +40,11 @@ export const GET_InspectionsFases = async (props: Props) => {
       params.append('faseId', props.faseId.toString());
     if (props.inspectionId !== undefined)
       params.append('inspectionId', props.inspectionId.toString());
-    if (props.IsCompleted !== undefined)
-      params.append('IsCompleted', props.IsCompleted.toString());
+    if (props.featureTypeId !== undefined)
+      params.append('featureTypeId', props.featureTypeId.toString());
 
     const queryString = params.toString();
-    const url = `${API_BASE}/Inspection/GetAllInspectionFase${queryString ? `?${queryString}` : ''}`;
+    const url = `${API_BASE}/InspectionDetail/GetAll${queryString ? `?${queryString}` : ''}`;
 
     const result = await fetch(url, {
       method: 'GET',
@@ -52,7 +61,7 @@ export const GET_InspectionsFases = async (props: Props) => {
     }
 
     const data_json = await result.json();
-    const data = data_json.data as DataInspectionFase[];
+    const data = data_json.data as DataInspectionDetail[];
 
     return data;
   } catch (error) {
