@@ -12,6 +12,13 @@ type Props = {
   Inspections: DataInspection[];
 };
 
+type GoInspection = {
+  id: number;
+  model: string;
+  vin: string;
+  plate: string;
+};
+
 export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
   const router = useRouter();
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
@@ -23,10 +30,15 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
     [DataLoteModels],
   );
 
-  const GoToInspection = (id: number) => {
+  const GoToInspection = (props: GoInspection) => {
     router.push({
       pathname: '/inspection/[id]',
-      params: { id: id.toString() },
+      params: {
+        id: props.id.toString(),
+        model: props.model,
+        vin: props.vin,
+        plate: props.plate,
+      },
     });
   };
 
@@ -80,7 +92,14 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
                           vehicle={vehicle}
                           isSelected={selectedIds.includes(vehicle.id)}
                           onSelect={SelectVehicle}
-                          onPressVim={() => GoToInspection(vehicle.id)}
+                          onPressVim={() =>
+                            GoToInspection({
+                              id: vehicle.id,
+                              vin: vehicle.vin,
+                              model: modelName,
+                              plate: vehicle.vehiclePlate,
+                            })
+                          }
                         />
                         <Divider />
                       </View>

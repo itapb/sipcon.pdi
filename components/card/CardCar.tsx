@@ -55,7 +55,7 @@ export const CardCar: FC<Props> = (props) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
-    marginHorizontal: 15,
+    marginHorizontal: 10,
     marginTop: 5,
     borderRadius: 0,
   },
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: '#1E293B',
     marginBottom: 1,
@@ -84,13 +84,13 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   label: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
     color: '#94A3B8',
     lineHeight: 19,
   },
   value: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#475569',
     lineHeight: 14,

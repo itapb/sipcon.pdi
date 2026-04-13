@@ -17,7 +17,7 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, model, vin, plate } = useLocalSearchParams();
   const { user } = useAuthStore();
 
   const router = useRouter();
@@ -72,9 +72,9 @@ export default function InspectionScreen() {
 
           {/* Información rápida de la unidad */}
           <CardCar
-            model_name='Changan CS15'
-            vin={1234567890}
-            plate='ABC-123'
+            model_name={model as string}
+            vin={vin as string}
+            plate={plate as string}
             imageSource={require('../../assets/images/carros/FotoAuto.png')}
           />
 

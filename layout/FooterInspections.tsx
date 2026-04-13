@@ -21,8 +21,6 @@ export const FooterInspections: FC<Props> = ({
   activePhase,
   onPhaseChange,
 }) => {
-  console.log({ activePhase });
-
   const insets = useSafeAreaInsets();
 
   const getStatusColor = (isDone: boolean, isActive: boolean) => {
