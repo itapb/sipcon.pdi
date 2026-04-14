@@ -88,7 +88,7 @@ export default function InspectionScreen() {
           />
 
           {/* Lista de features */}
-          <ListFeatures Groups={filteredGroups} />
+          <ListFeatures Groups={filteredGroups} token={user!.token} />
 
           {/* Footer con Carrusel Horizontal */}
           <FooterInspections

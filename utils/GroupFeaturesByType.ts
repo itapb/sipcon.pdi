@@ -21,7 +21,8 @@ export const GroupFeaturesByType = (data: DataInspectionDetail[]) => {
 
     // 2. Mapeamos toda la información relacionada al "question"
     group.questions.push({
-      id: item.featureId,
+      id: item.id,
+      featureId: item.featureId,
       text: item.feature,
       value: item.value,
       observation: item.observation,

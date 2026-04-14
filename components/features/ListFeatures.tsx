@@ -7,15 +7,17 @@ type Props = {
     questions: Questions[];
     featureType: string;
   }[];
+  token: string;
 };
 
 export type Questions = {
-  fileUrl: string | null;
   id: number;
-  inspectionId: number;
-  observation: string;
+  featureId: number;
   text: string;
-  value: boolean;
+  value: boolean | null;
+  observation: string;
+  fileUrl: string | null;
+  inspectionId: number;
 };
 
 export const ListFeatures: FC<Props> = (props) => {
@@ -30,13 +32,17 @@ export const ListFeatures: FC<Props> = (props) => {
       {props.Groups.map((group, index) => (
         <View key={index} style={styles.groupContainer}>
           <Text style={styles.groupTitle}>{group?.featureType}</Text>
-          {group?.questions.map((q) => (
+          {group?.questions.map((q, index) => (
             <InspectionFeature
-              key={q.id}
+              key={q.id + index + q.text + group?.featureType}
               feature={q.text}
               fileCount={0} // TODO: Pendiente por traer
               observation={q.observation}
-              status={q.value}
+              value={q.value}
+              featureId={q.featureId}
+              id={q.id}
+              inspectionId={q.inspectionId}
+              token={props.token}
             />
           ))}
         </View>

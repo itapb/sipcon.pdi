@@ -1,50 +1,85 @@
-import { useState, type FC } from 'react';
+import { POST_InspectionDetail } from '@/utils/fetchs/inspections/POST_InspectionDetail';
+import { useEffect, useState, type FC } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MediaActions } from '../media/MediaActions';
+import { InspectionSkeleton } from '../skeleton/skeletonFeature';
 
 type Props = {
+  id: number;
   feature: string;
   fileCount: number;
   observation: string;
-  status: boolean | null;
+  value: boolean | null;
+  featureId: number;
+  inspectionId: number;
+  token: string;
 };
 
 export const InspectionFeature: FC<Props> = (props) => {
-  const [status, setStatus] = useState<false | true | null>(props.status);
+  const [value, setvalue] = useState<false | true | null>(props.value);
   const [observation, setObservation] = useState(props.observation);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const OnSaveInfor = async () => {
+    if (observation === props.observation && value === props.value) return;
+
+    setIsSaving(true);
+    try {
+      await POST_InspectionDetail({
+        id: props.id,
+        value,
+        observation,
+        featureId: props.featureId,
+        inspectionId: props.inspectionId,
+        token: props.token,
+      });
+      console.log(`Guardado exitoso: ${props.feature}`);
+    } catch (error) {
+      console.error('Error al guardar la inspección:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Efecto de Debounce: Espera 900ms de inactividad para guardar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      OnSaveInfor();
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [observation, value]);
+
+  if (isSaving) {
+    return <InspectionSkeleton />;
+  }
 
   return (
     <Card style={styles.qCard}>
       <View style={styles.qHeader}>
-        {/* Pregunta */}
         <Text style={styles.qText}>{props.feature}</Text>
-
-        {/* Iconos de acción */}
         <View style={styles.qIcons}>
-          {/* Cámara más grande para facilitar el tap */}
           <MediaActions fileCount={props.fileCount} />
         </View>
       </View>
 
-      {/* Selección de las respuestas */}
       <View style={styles.qButtons}>
         <OptionButton
           label='Sí'
           type='success'
-          isActive={status === true}
-          onPress={() => setStatus(true)}
+          isActive={value === true}
+          onPress={() => setvalue(true)}
         />
         <View style={{ width: 10 }} />
         <OptionButton
           label='No'
           type='danger'
-          isActive={status === false}
-          onPress={() => setStatus(false)}
+          isActive={value === false}
+          onPress={() => setvalue(false)}
         />
       </View>
 
-      {/* Observaciones */}
       <TextInput
         style={styles.obsInput}
         placeholder='Observaciones...'
@@ -102,7 +137,7 @@ const styles = StyleSheet.create({
   qHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center', // Alineado al centro para que la cámara grande no desfase el texto
+    alignItems: 'center',
     marginBottom: 12,
   },
   qText: {
@@ -116,28 +151,6 @@ const styles = StyleSheet.create({
   qIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  folderWrapper: {
-    position: 'relative',
-    marginLeft: 15, // Aumentado un poco el espacio por el tamaño de la cámara
-  },
-  badge: {
-    position: 'absolute',
-    top: -6,
-    right: -7,
-    backgroundColor: '#2196F3',
-    borderRadius: 8.5,
-    width: 17,
-    height: 17,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#fff',
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: '800',
   },
   qButtons: {
     flexDirection: 'row',
@@ -187,5 +200,9 @@ const styles = StyleSheet.create({
     minHeight: 45,
     textAlignVertical: 'top',
     fontSize: 13,
+  },
+  skeletonLine: {
+    backgroundColor: '#E2E8F0',
+    borderRadius: 6,
   },
 });
