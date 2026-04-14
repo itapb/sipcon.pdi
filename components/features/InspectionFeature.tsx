@@ -1,6 +1,12 @@
 import { POST_InspectionDetail } from '@/utils/fetchs/inspections/POST_InspectionDetail';
 import { useEffect, useState, type FC } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MediaActions } from '../media/MediaActions';
 import { InspectionSkeleton } from '../skeleton/skeletonFeature';
@@ -26,7 +32,7 @@ export const InspectionFeature: FC<Props> = (props) => {
 
     setIsSaving(true);
     try {
-      await POST_InspectionDetail({
+      const result = await POST_InspectionDetail({
         id: props.id,
         value,
         observation,
@@ -34,9 +40,12 @@ export const InspectionFeature: FC<Props> = (props) => {
         inspectionId: props.inspectionId,
         token: props.token,
       });
-      console.log(`Guardado exitoso: ${props.feature}`);
-    } catch (error) {
-      console.error('Error al guardar la inspección:', error);
+
+      if (result) {
+        console.log(`Guardado exitoso: ${props.feature}`);
+      }
+    } catch (error: any) {
+      Alert.alert('Error al guarda la inspección', error.message);
     } finally {
       setIsSaving(false);
     }
