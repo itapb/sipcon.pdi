@@ -2,7 +2,11 @@ import { Link } from 'expo-router';
 import { type FC } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export const BreadCrumbInspection: FC = () => {
+type Props = {
+  isItStarted: boolean;
+};
+
+export const BreadCrumbInspection: FC<Props> = ({ isItStarted }) => {
   return (
     <View style={styles.breadCrumbs}>
       <View style={styles.breadCrumbsTexts}>
@@ -14,9 +18,21 @@ export const BreadCrumbInspection: FC = () => {
         <Text style={[styles.text, styles.text_fase]}>Fase</Text>
       </View>
 
-      <TouchableOpacity style={[styles.button, styles.red]} activeOpacity={0.7}>
-        <Text style={styles.buttonText}>Cerrar inspección</Text>
-      </TouchableOpacity>
+      {isItStarted ? (
+        <TouchableOpacity
+          style={[styles.button, styles.red]}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.buttonText}>Cerrar Fase</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={[styles.button, styles.green]}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.buttonText}>Iniciar Inspección</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -59,5 +75,8 @@ const styles = StyleSheet.create({
   },
   red: {
     backgroundColor: '#FF383C',
+  },
+  green: {
+    backgroundColor: '#22C55E',
   },
 });

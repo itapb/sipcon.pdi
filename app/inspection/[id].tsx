@@ -8,12 +8,13 @@ import { FooterInspections } from '@/layout/FooterInspections';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useInspectionStore } from '@/store/useInspectionStore';
+import { DataInspectionById } from '@/utils/fetchs/inspections/GET_InspectionById';
 import { DataInspectionDetail } from '@/utils/fetchs/inspections/GET_InspectionDetailt';
 import { DataInspectionFase } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GroupFeaturesByType } from '@/utils/GroupFeaturesByType';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
@@ -23,14 +24,17 @@ export default function InspectionScreen() {
   const router = useRouter();
   const setNeedsRefresh = useInspectionStore((state) => state.setNeedsRefresh);
 
+  const [hasError, setHasError] = useState(false);
   const [activeFase, setActiveFase] = useState(0);
   const [observation, setObservation] = useState('');
+  const [inspection, setInspection] = useState<DataInspectionById>();
   const [inspectionDetail, setinspectionDetail] = useState<
     DataInspectionDetail[]
   >([]);
   const [inspectionFase, setInspectionFase] = useState<DataInspectionFase[]>(
     [],
   );
+
   const [showObservation, setShowObservation] = useState(false);
 
   // TODO: Esto está pendiente por aplicar
@@ -40,10 +44,30 @@ export default function InspectionScreen() {
   };
 
   const inspectionGroup = GroupFeaturesByType(inspectionDetail);
-
   useEffect(() => {
     if (!user?.token || !isLoggedIn) return;
-    GetInspectionData(+id, user.token, setinspectionDetail, setInspectionFase);
+
+    const loadData = async () => {
+      try {
+        await GetInspectionData(
+          +id,
+          user.token,
+          setinspectionDetail,
+          setInspectionFase,
+          setInspection,
+        );
+      } catch (error: any) {
+        setHasError(true);
+        Alert.alert(
+          'Error de Carga',
+          error.message ||
+            'No se pudo obtener la información de la inspección.',
+          [{ text: 'OK', onPress: () => router.back() }],
+        );
+      }
+    };
+
+    loadData();
   }, [id, user?.token, isLoggedIn]);
 
   useEffect(() => {
@@ -60,8 +84,11 @@ export default function InspectionScreen() {
     .filter((group) => group.faseId === inspectionGroup[0].faseId)
     .filter((g) => g !== null);
 
-  if (!inspectionDetail.length)
+  if (hasError) return <Text> Errro</Text>; // Un componente simple para reintentar
+  if (!inspectionDetail.length || !inspection || !inspectionFase.length)
     return <LoadingScreen visible={true} message='Obteniendo información' />;
+
+  const isItStarted = inspection.dInit !== null;
 
   return (
     <SafeAreaProvider>
@@ -69,7 +96,7 @@ export default function InspectionScreen() {
         <MenuHeader />
         {/* BreadCrumbs fijos */}
         <View style={styles.mainContent}>
-          <BreadCrumbInspection />
+          <BreadCrumbInspection isItStarted={isItStarted} />
 
           {/* Información rápida de la unidad */}
           <CardCar

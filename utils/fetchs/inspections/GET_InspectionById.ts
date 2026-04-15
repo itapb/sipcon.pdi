@@ -1,11 +1,11 @@
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type Props = {
-  areaId?: number;
+  inspectionId: number;
   token: string;
 };
 
-export type DataInspection = {
+export type DataInspectionById = {
   createdBy: number;
   vehicleId: number;
   areaId: number;
@@ -24,7 +24,7 @@ export type DataInspection = {
   vin: string;
   nameArea: string;
   created: Date;
-  dInit: Date;
+  dInit: Date | null;
   dClose: null | Date;
   dReception: Date;
   isCompleted: number;
@@ -32,16 +32,9 @@ export type DataInspection = {
   isActive: boolean;
 };
 
-export const GET_Inspections = async (props: Props) => {
+export const GET_InspectionById = async (props: Props) => {
   try {
-    const params = new URLSearchParams();
-
-    // Modificamos para que el endpoint reciba parametros dinámicos
-    if (props.areaId !== undefined)
-      params.append('areaId', props.areaId.toString());
-
-    const queryString = params.toString();
-    const url = `${API_BASE}/Inspection/GetAll${queryString ? `?${queryString}` : ''}`;
+    const url = `${API_BASE}/Inspection/GetOne?InspectionId=${props.inspectionId}`;
 
     const result = await fetch(url, {
       method: 'GET',
@@ -59,7 +52,12 @@ export const GET_Inspections = async (props: Props) => {
 
     const data_json = await result.json();
 
-    const data = data_json.data as DataInspection[];
+    if (data_json.processed === false) {
+      console.log('No se encontraron resultados');
+      return null;
+    }
+
+    const data = data_json.data as DataInspectionById;
 
     return data;
   } catch (error) {
