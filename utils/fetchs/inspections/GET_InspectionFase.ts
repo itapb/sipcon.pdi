@@ -35,7 +35,7 @@ export const GET_InspectionsFases = async (props: Props) => {
       params.append('IsCompleted', props.IsCompleted.toString());
 
     const queryString = params.toString();
-    const url = `${API_BASE}/Inspection/GetAllInspectionFase${queryString ? `?${queryString}` : ''}`;
+    const url = `${API_BASE}/InspectionFase/GetAll${queryString ? `?${queryString}` : ''}`;
 
     const result = await fetch(url, {
       method: 'GET',

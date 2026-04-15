@@ -16,14 +16,15 @@ type Props = {
   feature: string;
   fileCount: number;
   observation: string;
-  value: boolean | null;
+  value: number | null;
   featureId: number;
   inspectionId: number;
   token: string;
+  readOnly: boolean; // Propiedad para controlar el modo lectura
 };
 
 export const InspectionFeature: FC<Props> = (props) => {
-  const [value, setvalue] = useState<false | true | null>(props.value);
+  const [value, setvalue] = useState<number | null>(props.value);
   const [observation, setObservation] = useState(props.observation);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -51,8 +52,9 @@ export const InspectionFeature: FC<Props> = (props) => {
     }
   };
 
-  // Efecto de Debounce: Espera 900ms de inactividad para guardar
   useEffect(() => {
+    if (props.readOnly) return;
+
     const timer = setTimeout(() => {
       OnSaveInfor();
     }, 900);
@@ -77,31 +79,37 @@ export const InspectionFeature: FC<Props> = (props) => {
         <OptionButton
           label='Sí'
           type='success'
-          isActive={value === true}
-          onPress={() => setvalue(true)}
+          isActive={value === 1}
+          onPress={() => setvalue(1)}
+          disabled={props.readOnly}
         />
         <View style={{ width: 10 }} />
         <OptionButton
           label='No'
           type='danger'
-          isActive={value === false}
-          onPress={() => setvalue(false)}
+          isActive={value === 0}
+          onPress={() => setvalue(0)}
+          disabled={props.readOnly}
         />
       </View>
 
       <TextInput
-        style={styles.obsInput}
+        style={[
+          styles.obsInput,
+          props.readOnly && { backgroundColor: '#F1F5F9' },
+        ]} // Cambio visual sutil en lectura
         placeholder='Observaciones...'
         placeholderTextColor='#94A3B8'
         multiline
         value={observation}
         onChangeText={setObservation}
+        editable={!props.readOnly} // Bloquear entrada de texto
       />
     </Card>
   );
 };
 
-const OptionButton = ({ label, isActive, type, onPress }: any) => {
+const OptionButton = ({ label, isActive, type, onPress, disabled }: any) => {
   const isGreen = type === 'success' && isActive;
   const isRed = type === 'danger' && isActive;
 
@@ -113,8 +121,10 @@ const OptionButton = ({ label, isActive, type, onPress }: any) => {
         isGreen && styles.btnActiveGreen,
         isRed && styles.btnActiveRed,
         !isActive && styles.btnInactive,
+        disabled && { opacity: 0.7 }, // Feedback visual de deshabilitado
       ]}
       onPress={onPress}
+      disabled={disabled} // Propiedad nativa para bloquear el toque
     >
       <Text
         style={[

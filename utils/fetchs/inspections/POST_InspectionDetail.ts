@@ -4,7 +4,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 export type Props = {
   id: number;
-  value: boolean | null;
+  value: number | null;
   observation: string;
   inspectionId: number;
   featureId: number;
@@ -32,7 +32,7 @@ export const POST_InspectionDetail = async (props: Props) => {
 
   try {
     const result = await fetch(
-      `${API_BASE}/InspectionDetail/Post_InspectionsDetail`,
+      `${API_BASE}/InspectionsDetails/Post_InspectionsDetail`,
       {
         method: 'POST',
         signal: controller.signal,

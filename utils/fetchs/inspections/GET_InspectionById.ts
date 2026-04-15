@@ -34,7 +34,7 @@ export type DataInspectionById = {
 
 export const GET_InspectionById = async (props: Props) => {
   try {
-    const url = `${API_BASE}/Inspection/GetOne?InspectionId=${props.inspectionId}`;
+    const url = `${API_BASE}/Inspections/GetOne?InspectionId=${props.inspectionId}`;
 
     const result = await fetch(url, {
       method: 'GET',

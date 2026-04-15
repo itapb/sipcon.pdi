@@ -41,7 +41,7 @@ export const GET_Inspections = async (props: Props) => {
       params.append('areaId', props.areaId.toString());
 
     const queryString = params.toString();
-    const url = `${API_BASE}/Inspection/GetAll${queryString ? `?${queryString}` : ''}`;
+    const url = `${API_BASE}/Inspections/GetAll${queryString ? `?${queryString}` : ''}`;
 
     const result = await fetch(url, {
       method: 'GET',

@@ -7,6 +7,7 @@ type Props = {
     questions: Questions[];
     featureType: string;
   }[];
+  readOnly: boolean;
   token: string;
 };
 
@@ -14,7 +15,7 @@ export type Questions = {
   id: number;
   featureId: number;
   text: string;
-  value: boolean | null;
+  value: number | null;
   observation: string;
   fileUrl: string | null;
   inspectionId: number;
@@ -43,6 +44,7 @@ export const ListFeatures: FC<Props> = (props) => {
               id={q.id}
               inspectionId={q.inspectionId}
               token={props.token}
+              readOnly={props.readOnly}
             />
           ))}
         </View>

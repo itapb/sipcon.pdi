@@ -28,7 +28,7 @@ export default function HomeScreen() {
     if (isLoggedIn) {
       // Cargamos si es la primera vez O si alguien activó el refresh global
       if (!inspections.length || needsRefresh) {
-        GetInfoPage({ areaId: 1, forceRefresh: !!needsRefresh });
+        GetInfoPage({ areaId: 13, forceRefresh: !!needsRefresh });
 
         // Importante: Bajamos la bandera una vez que iniciamos la carga
         if (needsRefresh) setNeedsRefresh(false);
@@ -37,7 +37,7 @@ export default function HomeScreen() {
   }, [isLoggedIn, needsRefresh, GetInfoPage]);
 
   const ManualRefresh = () => {
-    GetInfoPage({ areaId: 1, forceRefresh: true });
+    GetInfoPage({ areaId: 13, forceRefresh: true });
   };
 
   if (!isLoggedIn) return null;

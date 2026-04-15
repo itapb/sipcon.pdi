@@ -115,7 +115,11 @@ export default function InspectionScreen() {
           />
 
           {/* Lista de features */}
-          <ListFeatures Groups={filteredGroups} token={user!.token} />
+          <ListFeatures
+            Groups={filteredGroups}
+            token={user!.token}
+            readOnly={!isItStarted}
+          />
 
           {/* Footer con Carrusel Horizontal */}
           <FooterInspections
