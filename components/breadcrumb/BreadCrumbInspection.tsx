@@ -1,6 +1,7 @@
 import { POST_Inspection } from '@/utils/fetchs/inspections/POST_Inspection';
+import { POST_InspectionFase } from '@/utils/fetchs/inspections/POST_InspectionFase';
 import { GetTime } from '@/utils/GetTime';
-import { Link } from 'expo-router';
+import { Link, usePathname, useRouter } from 'expo-router';
 import { useState, type FC } from 'react';
 import {
   ActivityIndicator,
@@ -14,26 +15,34 @@ import {
 
 type Props = {
   inspectionId: number;
+  InspectionFaseId: number;
   isItStarted: boolean;
   token: string;
   areaId: number;
   vehicleId: number;
   createdBy: number;
+  faseId: number;
   UpdateMenu: () => void;
   setIsItStarted: React.Dispatch<React.SetStateAction<boolean>>;
+  faseCompleted: number;
 };
 
 export const BreadCrumbInspection: FC<Props> = ({
   isItStarted,
+  InspectionFaseId,
   token,
   inspectionId,
   areaId,
   vehicleId,
   createdBy,
+  faseId,
+  faseCompleted,
   UpdateMenu,
   setIsItStarted,
 }) => {
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   const handleInitInspection = () => {
     Alert.alert(
@@ -46,7 +55,6 @@ export const BreadCrumbInspection: FC<Props> = ({
           onPress: async () => {
             try {
               setLoading(true);
-
               await POST_Inspection({
                 Id: inspectionId,
                 DInit: GetTime(),
@@ -55,11 +63,11 @@ export const BreadCrumbInspection: FC<Props> = ({
                 VehicleId: vehicleId,
                 CreatedBy: createdBy,
               });
-              setIsItStarted(true);
-              UpdateMenu();
-            } catch (error) {
-              console.log({ error });
 
+              UpdateMenu();
+
+              router.replace(pathname as any);
+            } catch (error) {
               Alert.alert('Error', 'No se pudo iniciar la inspección.');
             } finally {
               setLoading(false);
@@ -70,14 +78,75 @@ export const BreadCrumbInspection: FC<Props> = ({
     );
   };
 
+  const handleCompletedFase = () => {
+    Alert.alert(
+      'Confirmación',
+      '¿Estás seguro de que desea completar esta fase?',
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Sí',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              await POST_InspectionFase({
+                Id: InspectionFaseId,
+                FaseId: faseId,
+                InspectionId: inspectionId,
+                token,
+                CompletedDate: GetTime(),
+              });
+
+              UpdateMenu();
+
+              router.replace(pathname as any);
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo completar la fase.');
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const renderActionButton = () => {
+    if (!isItStarted) {
+      return (
+        <TouchableOpacity
+          style={[styles.button, styles.green]}
+          activeOpacity={0.7}
+          onPress={handleInitInspection}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>Iniciar Inspección</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (!faseCompleted) {
+      return (
+        <TouchableOpacity
+          style={[styles.button, styles.red]}
+          activeOpacity={0.7}
+          onPress={handleCompletedFase}
+        >
+          <Text style={styles.buttonText}>Cerrar Fase</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <View style={styles.breadCrumbs}>
-      {/* Pantalla de Carga (Overlay) */}
-      <Modal transparent visible={loading}>
+      <Modal transparent visible={loading} animationType='fade'>
         <View style={styles.loadingContainer}>
           <View style={styles.loadingCard}>
             <ActivityIndicator size='large' color='#0C8CE9' />
-            <Text style={styles.loadingText}>Iniciando...</Text>
+            <Text style={styles.loadingText}>Procesando...</Text>
           </View>
         </View>
       </Modal>
@@ -91,23 +160,7 @@ export const BreadCrumbInspection: FC<Props> = ({
         <Text style={[styles.text, styles.text_fase]}>Fase</Text>
       </View>
 
-      {isItStarted ? (
-        <TouchableOpacity
-          style={[styles.button, styles.red]}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.buttonText}>Cerrar Fase</Text>
-        </TouchableOpacity>
-      ) : (
-        <TouchableOpacity
-          style={[styles.button, styles.green]}
-          activeOpacity={0.7}
-          onPress={handleInitInspection}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>Iniciar Inspección</Text>
-        </TouchableOpacity>
-      )}
+      {renderActionButton()}
     </View>
   );
 };

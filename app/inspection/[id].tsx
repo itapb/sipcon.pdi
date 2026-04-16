@@ -18,7 +18,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export default function InspectionScreen() {
-  const { id, model, vin, plate } = useLocalSearchParams();
+  const { id } = useLocalSearchParams();
   const { user, isLoggedIn } = useAuthStore();
 
   const router = useRouter();
@@ -38,7 +38,6 @@ export default function InspectionScreen() {
   const [showObservation, setShowObservation] = useState(false);
   const [isItStarted, setIsItStarted] = useState(false);
 
-  // TODO: Esto está pendiente por aplicar
   const UpdateMenu = () => {
     setNeedsRefresh(true);
   };
@@ -85,9 +84,13 @@ export default function InspectionScreen() {
     .filter((group) => group.faseId === inspectionGroup[0].faseId)
     .filter((g) => g !== null);
 
-  if (hasError) return <Text> Errro</Text>; // Un componente simple para reintentar
+  if (hasError) return <Text> Error</Text>; // Un componente simple para reintentar
   if (!inspectionDetail.length || !inspection || !inspectionFase.length)
     return <LoadingScreen visible={true} message='Obteniendo información' />;
+
+  const InspectionFaseActived = inspectionFase.find(
+    (item) => item.faseId == activeFase,
+  );
 
   return (
     <SafeAreaProvider>
@@ -104,6 +107,9 @@ export default function InspectionScreen() {
             createdBy={inspection.createdBy}
             UpdateMenu={UpdateMenu}
             setIsItStarted={setIsItStarted}
+            InspectionFaseId={InspectionFaseActived?.id ?? 0}
+            faseId={activeFase}
+            faseCompleted={InspectionFaseActived?.isCompleted ?? 0}
           />
 
           {/* Información rápida de la unidad */}
@@ -126,7 +132,7 @@ export default function InspectionScreen() {
           <ListFeatures
             Groups={filteredGroups}
             token={user!.token}
-            readOnly={!isItStarted}
+            readOnly={!isItStarted || !!InspectionFaseActived?.isCompleted}
           />
 
           {/* Footer con Carrusel Horizontal */}
