@@ -58,15 +58,15 @@ export const HandleAction = async (props: Props) => {
 
         if (video) {
           const result = await POST_Attachment({
-            recordId: 1,
-            userId: 1,
-            moduleName: 'INSPECCION-TIPOS-CARACTERISTICAS',
+            recordId: props.recordId,
+            userId: props.userId,
+            moduleName: props.moduleName,
             file: {
               name: `video_${GetTime()}.mp4`,
               type: 'video/mp4',
               uri: video.uri,
             },
-            token: '',
+            token: props.token,
           });
 
           console.log('✅ VIDEO GRABADO:', video.uri);
