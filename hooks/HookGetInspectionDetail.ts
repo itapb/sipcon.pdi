@@ -13,6 +13,7 @@ export const GetInspectionData = async (
   setInspection: React.Dispatch<
     React.SetStateAction<DataInspectionById | undefined>
   >,
+  setIsItStarted: React.Dispatch<React.SetStateAction<boolean>>,
 ) => {
   try {
     // 1. Ejecutamos ambas peticiones en paralelo para ganar velocidad
@@ -44,6 +45,7 @@ export const GetInspectionData = async (
     setInspection(rawInspection);
     setInspectionDetail(rawInspectionDetail);
     setInspectionFase(rawFases);
+    setIsItStarted(rawInspection.dInit !== null);
   } catch (error) {
     console.error('Error al cargar datos de inspección:', error);
     throw error;

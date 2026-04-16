@@ -36,11 +36,11 @@ export default function InspectionScreen() {
   );
 
   const [showObservation, setShowObservation] = useState(false);
+  const [isItStarted, setIsItStarted] = useState(false);
 
   // TODO: Esto está pendiente por aplicar
-  const UpdateAndGoBack = () => {
+  const UpdateMenu = () => {
     setNeedsRefresh(true);
-    router.back();
   };
 
   const inspectionGroup = GroupFeaturesByType(inspectionDetail);
@@ -55,6 +55,7 @@ export default function InspectionScreen() {
           setinspectionDetail,
           setInspectionFase,
           setInspection,
+          setIsItStarted,
         );
       } catch (error: any) {
         setHasError(true);
@@ -88,21 +89,28 @@ export default function InspectionScreen() {
   if (!inspectionDetail.length || !inspection || !inspectionFase.length)
     return <LoadingScreen visible={true} message='Obteniendo información' />;
 
-  const isItStarted = inspection.dInit !== null;
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <MenuHeader />
         {/* BreadCrumbs fijos */}
         <View style={styles.mainContent}>
-          <BreadCrumbInspection isItStarted={isItStarted} />
+          <BreadCrumbInspection
+            isItStarted={isItStarted}
+            token={user!.token}
+            inspectionId={+id}
+            areaId={inspection.areaId}
+            vehicleId={inspection.vehicleId}
+            createdBy={inspection.createdBy}
+            UpdateMenu={UpdateMenu}
+            setIsItStarted={setIsItStarted}
+          />
 
           {/* Información rápida de la unidad */}
           <CardCar
-            model_name={model as string}
-            vin={vin as string}
-            plate={plate as string}
+            model_name={inspection.model}
+            vin={inspection.vin}
+            plate={inspection.vehiclePlate}
             imageSource={require('../../assets/images/carros/FotoAuto.png')}
           />
 
