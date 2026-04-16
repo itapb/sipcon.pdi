@@ -9,6 +9,7 @@ type Props = {
   }[];
   readOnly: boolean;
   token: string;
+  userId: number;
 };
 
 export type Questions = {
@@ -45,6 +46,7 @@ export const ListFeatures: FC<Props> = (props) => {
               inspectionId={q.inspectionId}
               token={props.token}
               readOnly={props.readOnly}
+              userId={props.userId}
             />
           ))}
         </View>

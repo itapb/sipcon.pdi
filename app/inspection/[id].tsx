@@ -118,6 +118,9 @@ export default function InspectionScreen() {
             vin={inspection.vin}
             plate={inspection.vehiclePlate}
             imageSource={require('../../assets/images/carros/FotoAuto.png')}
+            inspectionId={+id}
+            token={user!.token}
+            userId={user!.userId}
           />
 
           {/* Observaciones Generales */}
@@ -130,6 +133,7 @@ export default function InspectionScreen() {
 
           {/* Lista de features */}
           <ListFeatures
+            userId={user!.userId}
             Groups={filteredGroups}
             token={user!.token}
             readOnly={!isItStarted || !!InspectionFaseActived?.isCompleted}

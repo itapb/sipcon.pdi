@@ -16,28 +16,34 @@ import { HandleAction } from './HandleAction';
 import { Permission } from './Permission';
 
 type Props = {
+  token: string;
+  moduleName: string;
+  recordId: number;
+  userId: number;
   onClose: () => void;
   onCapture: (uri: string, type: 'picture' | 'video') => void;
 };
 
-export const CameraScanner: FC<Props> = ({ onClose, onCapture }) => {
-  // Aquí defino los estados para obtener los permisos de la cámara
+export const CameraScanner: FC<Props> = ({
+  token,
+  recordId,
+  userId,
+  moduleName,
+  onClose,
+  onCapture,
+}) => {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [micPermission, requestMicPermission] = useMicrophonePermissions();
 
-  // Los modos o configuraciones que tiene la cámara
   const [mode, setMode] = useState<'picture' | 'video'>('picture');
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [flash, setFlash] = useState<'off' | 'on' | 'auto'>('off');
   const [isRecording, setIsRecording] = useState(false);
 
-  // Instancia de la cámara
+  const [zoom, setZoom] = useState(0);
   const cameraRef = useRef<CameraView>(null);
-
-  // Animación para el parpadeo del punto rojo
   const blinkAnim = useRef(new Animated.Value(1)).current;
 
-  // Efecto para iniciar la animacíon de la grabación
   useEffect(() => {
     if (isRecording) {
       Animated.loop(
@@ -59,11 +65,17 @@ export const CameraScanner: FC<Props> = ({ onClose, onCapture }) => {
     }
   }, [isRecording]);
 
-  // Si no tengo los permisos de la cámara, lo imito
+  const toggleZoom = () => {
+    setZoom((prev) => {
+      if (prev === 0) return 0.3; // Simula un 2x
+      if (prev === 0.3) return 0.7; // Simula un 3x
+      return 0; // Vuelve a 1x
+    });
+  };
+
   if (!cameraPermission || !micPermission)
     return <View style={styles.container} />;
 
-  // Vetana para solicitar los permisos de la cámara
   if (!cameraPermission.granted || !micPermission.granted) {
     return (
       <Permission
@@ -73,19 +85,19 @@ export const CameraScanner: FC<Props> = ({ onClose, onCapture }) => {
     );
   }
 
-  // Componente de la cámara
   return (
     <View style={styles.container}>
       <CameraView
+        videoQuality={'480p'}
         style={styles.camera}
         ref={cameraRef}
         mode={mode}
         facing={facing}
         enableTorch={mode === 'video' && flash === 'on'}
         flash={flash}
+        zoom={zoom}
       />
 
-      {/* Menú de opciones de la cámara (FLASH, CAMBIO DE CAMARA, RETROCEDER...) */}
       <View style={styles.overlay}>
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.iconBtn} onPress={onClose}>
@@ -93,6 +105,13 @@ export const CameraScanner: FC<Props> = ({ onClose, onCapture }) => {
           </TouchableOpacity>
 
           <View style={styles.rightIcons}>
+            {/* Botón de Zoom */}
+            <TouchableOpacity style={styles.iconBtn} onPress={toggleZoom}>
+              <Text style={styles.zoomText}>
+                {zoom === 0 ? '1x' : zoom === 0.3 ? '2x' : '3x'}
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.iconBtn}
               onPress={() => setFlash((f) => (f === 'off' ? 'on' : 'off'))}
@@ -163,6 +182,10 @@ export const CameraScanner: FC<Props> = ({ onClose, onCapture }) => {
                 mode,
                 onCapture,
                 setIsRecording,
+                recordId,
+                moduleName,
+                token,
+                userId,
               })
             }
           />
@@ -186,7 +209,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
   },
-  rightIcons: { flexDirection: 'row', gap: 15 },
+  rightIcons: { flexDirection: 'row', gap: 10 },
   iconBtn: {
     width: 44,
     height: 44,
@@ -195,8 +218,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Estilos del indicador REC
+  zoomText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
   recIndicator: {
     position: 'absolute',
     top: 110,
@@ -223,7 +249,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF0000',
     marginRight: 10,
   },
-
   bottomControls: { alignItems: 'center', width: '100%' },
   modeSelector: { flexDirection: 'row', marginBottom: 20, gap: 40 },
   modeText: { color: 'white', fontWeight: 'bold', opacity: 0.5, fontSize: 13 },

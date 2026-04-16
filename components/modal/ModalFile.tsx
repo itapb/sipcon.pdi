@@ -14,18 +14,22 @@ import { IconButton, Modal, Portal, Text } from 'react-native-paper';
 const { height } = Dimensions.get('window');
 
 type Props = {
+  userId: number;
+  moduleName: string;
+  recordId: number;
+  token: string;
   visible: boolean;
   onDismiss: React.Dispatch<React.SetStateAction<boolean>>;
   title?: string;
   children?: ReactNode;
 };
 
-export const ModalFiles: FC<Props> = ({ visible, onDismiss }) => {
+export const ModalFiles: FC<Props> = (props) => {
   return (
     <Portal>
       <Modal
-        visible={visible}
-        onDismiss={() => onDismiss(false)}
+        visible={props.visible}
+        onDismiss={() => props.onDismiss(false)}
         contentContainerStyle={styles.modalContainer}
       >
         {/* Cabecera del modal */}
@@ -34,7 +38,7 @@ export const ModalFiles: FC<Props> = ({ visible, onDismiss }) => {
           <IconButton
             icon='close'
             size={20}
-            onPress={() => onDismiss(false)}
+            onPress={() => props.onDismiss(false)}
             style={styles.closeButton}
           />
         </View>
@@ -57,14 +61,21 @@ export const ModalFiles: FC<Props> = ({ visible, onDismiss }) => {
           <TouchableOpacity
             style={[styles.button]}
             activeOpacity={0.7}
-            onPress={() => onDismiss(false)}
+            onPress={() => props.onDismiss(false)}
           >
             <Text style={styles.buttonText}>Cancelar</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.blue]}
             activeOpacity={0.7}
-            onPress={OpenGallery}
+            onPress={() =>
+              OpenGallery({
+                moduleName: props.moduleName,
+                recordId: props.recordId,
+                token: props.token,
+                userId: props.userId,
+              })
+            }
           >
             <Entypo name='attachment' size={24} color='white' />
 

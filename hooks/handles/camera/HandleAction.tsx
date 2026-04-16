@@ -1,6 +1,12 @@
+import { POST_Attachment } from '@/utils/fetchs/attachment/POST_Attachment';
+import { GetTime } from '@/utils/GetTime';
 import { CameraView } from 'expo-camera';
 
 type Props = {
+  userId: number;
+  moduleName: string;
+  recordId: number;
+  token: string;
   cameraRef: React.RefObject<CameraView | null>;
   isRecording: boolean;
   mode: 'picture' | 'video';
@@ -19,11 +25,22 @@ export const HandleAction = async (props: Props) => {
       console.log('📸 Capturando imagen...');
       const photo = await props.cameraRef.current.takePictureAsync({
         quality: 0.6,
-        shutterSound: false, // A veces el sonido del obturador causa conflictos de hilos
+        shutterSound: false,
       });
       if (photo) {
         console.log('✅ FOTO TOMADA:', photo.uri);
-        props.onCapture(photo.uri, 'picture');
+        // TODO: Ver que hago con este result
+        const result = await POST_Attachment({
+          recordId: props.recordId,
+          userId: props.userId,
+          moduleName: props.moduleName,
+          token: props.token,
+          file: {
+            name: `photo_${GetTime()}.jpg`,
+            type: 'image/jpeg',
+            uri: photo.uri,
+          },
+        });
       }
     } else {
       if (props.isRecording) {
@@ -33,11 +50,25 @@ export const HandleAction = async (props: Props) => {
       } else {
         props.setIsRecording(true);
         console.log('🎥 Iniciando grabación...');
+
         const video = await props.cameraRef.current.recordAsync({
           maxDuration: 60,
+          maxFileSize: 8 * 1024 * 1024,
         });
 
         if (video) {
+          const result = await POST_Attachment({
+            recordId: 1,
+            userId: 1,
+            moduleName: 'INSPECCION-TIPOS-CARACTERISTICAS',
+            file: {
+              name: `video_${GetTime()}.mp4`,
+              type: 'video/mp4',
+              uri: video.uri,
+            },
+            token: '',
+          });
+
           console.log('✅ VIDEO GRABADO:', video.uri);
           props.onCapture(video.uri, 'video');
         }

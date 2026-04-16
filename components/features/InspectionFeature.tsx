@@ -21,6 +21,7 @@ type Props = {
   inspectionId: number;
   token: string;
   readOnly: boolean; // Propiedad para controlar el modo lectura
+  userId: number;
 };
 
 export const InspectionFeature: FC<Props> = (props) => {
@@ -71,7 +72,13 @@ export const InspectionFeature: FC<Props> = (props) => {
       <View style={styles.qHeader}>
         <Text style={styles.qText}>{props.feature}</Text>
         <View style={styles.qIcons}>
-          <MediaActions fileCount={props.fileCount} />
+          <MediaActions
+            userId={props.userId}
+            token={props.token}
+            fileCount={props.fileCount}
+            recordID={props.id}
+            moduleName='INSPECCION-TIPOS-CARACTERISTICAS'
+          />
         </View>
       </View>
 

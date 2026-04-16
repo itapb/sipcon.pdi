@@ -6,6 +6,10 @@ import { ModalFiles } from '../modal/ModalFile';
 
 type Props = {
   fileCount: number;
+  recordID: number;
+  token: string;
+  userId: number;
+  moduleName: string;
   additional_styles?: object;
   onImageCaptured?: (uri: string) => void;
 };
@@ -57,11 +61,22 @@ export const MediaActions: FC<Props> = (props) => {
         <CameraScanner
           onClose={() => setOpenCamera(false)}
           onCapture={handleCapture}
+          recordId={props.recordID}
+          moduleName={props.moduleName}
+          token={props.token}
+          userId={props.userId}
         />
       </Modal>
 
       {/* Modal para los archivos */}
-      <ModalFiles visible={openFiles} onDismiss={() => setOpenFiles(false)} />
+      <ModalFiles
+        visible={openFiles}
+        onDismiss={() => setOpenFiles(false)}
+        moduleName={props.moduleName}
+        recordId={props.recordID}
+        token={props.token}
+        userId={props.userId}
+      />
     </View>
   );
 };

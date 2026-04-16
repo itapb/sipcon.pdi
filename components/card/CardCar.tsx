@@ -8,6 +8,9 @@ type Props = {
   vin: string | number;
   plate: string;
   imageSource: ImageSourcePropType;
+  inspectionId: number;
+  token: string;
+  userId: number;
 };
 
 export const CardCar: FC<Props> = (props) => {
@@ -37,6 +40,10 @@ export const CardCar: FC<Props> = (props) => {
             flexDirection: 'column-reverse',
             gap: 3,
           }}
+          recordID={props.inspectionId}
+          moduleName='INSPECCION-INSPECCION'
+          token={props.token}
+          userId={props.userId}
         />
 
         {/* Contenedor de imagen */}
