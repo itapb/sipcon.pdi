@@ -1,4 +1,5 @@
 import { OpenGallery } from '@/hooks/handles/OpenGallery';
+import { GET_AttachmentPreview } from '@/utils/fetchs/attachment/GET_AttachmentPreview';
 import {
   DataAttachment,
   GETALL_Attachment,
@@ -172,6 +173,22 @@ const CardFile: FC<PropsCardFile> = ({
     setIsDeleting(false);
   };
 
+  const downloadAttachment = async () => {
+    setIsDeleting(true);
+    try {
+      const data = await GET_AttachmentPreview({
+        attachmentId,
+        fileName: name,
+        token,
+        userId,
+      });
+    } catch (error) {
+      console.error('Error cargando adjuntos:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <View style={[styles.cardItem, isDeleting && { opacity: 0.5 }]}>
       <View style={{ flex: 1 }}>
@@ -179,7 +196,11 @@ const CardFile: FC<PropsCardFile> = ({
       </View>
 
       <View style={styles.cardActions}>
-        <TouchableOpacity style={styles.actionIcon}>
+        <TouchableOpacity
+          style={styles.actionIcon}
+          onPress={downloadAttachment}
+          disabled={isDeleting}
+        >
           <Feather name='download' size={22} color='#64748B' />
         </TouchableOpacity>
 
