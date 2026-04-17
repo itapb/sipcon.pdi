@@ -1,7 +1,14 @@
 import { OpenGallery } from '@/hooks/handles/OpenGallery';
-import { Entypo, Feather } from '@expo/vector-icons';
-import type { FC, ReactNode } from 'react';
 import {
+  DataAttachment,
+  GETALL_Attachment,
+} from '@/utils/fetchs/attachment/GETALL_Attachment';
+import { POST_DeleteAttachment } from '@/utils/fetchs/attachment/POST_DeleteAttachment';
+import { TruncateText } from '@/utils/TruncateText';
+import { Entypo, Feather } from '@expo/vector-icons';
+import { useEffect, useState, type FC, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -10,7 +17,6 @@ import {
 } from 'react-native';
 import { IconButton, Modal, Portal, Text } from 'react-native-paper';
 
-// Obtenemos la altura para calcular el 50%
 const { height } = Dimensions.get('window');
 
 type Props = {
@@ -25,6 +31,32 @@ type Props = {
 };
 
 export const ModalFiles: FC<Props> = (props) => {
+  const [attachment, setAttachment] = useState<DataAttachment[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Función para obtener/recargar los archivos
+  const loadAttachments = async () => {
+    setLoading(true);
+    try {
+      const data = await GETALL_Attachment({
+        moduleName: props.moduleName,
+        recordId: props.recordId,
+        token: props.token,
+      });
+      if (data) setAttachment(data);
+    } catch (error) {
+      console.error('Error cargando adjuntos:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (props.visible) {
+      loadAttachments();
+    }
+  }, [props.visible]);
+
   return (
     <Portal>
       <Modal
@@ -32,9 +64,8 @@ export const ModalFiles: FC<Props> = (props) => {
         onDismiss={() => props.onDismiss(false)}
         contentContainerStyle={styles.modalContainer}
       >
-        {/* Cabecera del modal */}
         <View style={styles.header}>
-          <Text style={styles.title}>Datos Adjuntos</Text>
+          <Text style={styles.title}>Datos Adjuntos ({attachment.length})</Text>
           <IconButton
             icon='close'
             size={20}
@@ -43,42 +74,64 @@ export const ModalFiles: FC<Props> = (props) => {
           />
         </View>
 
-        {/* Contenido del modal */}
-        <ScrollView
-          style={styles.scrollWrapper}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={true}
-        >
-          {Array(50)
-            .fill(0)
-            .map((_, _i) => (
-              <CardFile key={_i} />
-            ))}
-        </ScrollView>
+        <View style={styles.body}>
+          {loading ? (
+            <View style={styles.loaderArea}>
+              <ActivityIndicator size='large' color='#0C8CE9' />
+              <Text style={styles.loaderText}>Actualizando lista...</Text>
+            </View>
+          ) : (
+            <ScrollView
+              style={styles.scrollWrapper}
+              contentContainerStyle={styles.content}
+              showsVerticalScrollIndicator={true}
+            >
+              {attachment.length === 0 ? (
+                <Text style={styles.emptyText}>No hay archivos adjuntos.</Text>
+              ) : (
+                attachment.map((item, index) => (
+                  <CardFile
+                    key={`${item.id}-${index}`}
+                    name={item.fileName}
+                    attachmentId={item.id}
+                    userId={props.userId}
+                    token={props.token}
+                    onActionSuccess={loadAttachments} // Recargar tras borrar
+                  />
+                ))
+              )}
+            </ScrollView>
+          )}
+        </View>
 
-        {/* Botones de acción */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.button]}
-            activeOpacity={0.7}
+            style={styles.button}
             onPress={() => props.onDismiss(false)}
           >
-            <Text style={styles.buttonText}>Cancelar</Text>
+            <Text style={styles.buttonText}>Cerrar</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.blue]}
-            activeOpacity={0.7}
-            onPress={() =>
-              OpenGallery({
-                moduleName: props.moduleName,
-                recordId: props.recordId,
-                token: props.token,
-                userId: props.userId,
-              })
-            }
-          >
-            <Entypo name='attachment' size={24} color='white' />
 
+          <TouchableOpacity
+            style={[styles.button, styles.blue, loading && { opacity: 0.6 }]}
+            disabled={loading}
+            onPress={async () => {
+              setLoading(true);
+              try {
+                // OpenGallery debe realizar los POST internos
+                await OpenGallery({
+                  moduleName: props.moduleName,
+                  recordId: props.recordId,
+                  token: props.token,
+                  userId: props.userId,
+                });
+                await loadAttachments(); // Recarga después de subir
+              } catch (e) {
+                setLoading(false);
+              }
+            }}
+          >
+            <Entypo name='attachment' size={20} color='white' />
             <Text style={[styles.buttonText, styles.white]}>Adjuntar</Text>
           </TouchableOpacity>
         </View>
@@ -87,21 +140,60 @@ export const ModalFiles: FC<Props> = (props) => {
   );
 };
 
-const CardFile: FC = () => {
+// --- Sub-componente CardFile ---
+
+type PropsCardFile = {
+  name: string;
+  attachmentId: number;
+  userId: number;
+  token: string;
+  onActionSuccess: () => void;
+};
+
+const CardFile: FC<PropsCardFile> = ({
+  name,
+  attachmentId,
+  userId,
+  token,
+  onActionSuccess,
+}) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const success = await POST_DeleteAttachment({
+      token,
+      attachmentId,
+      userId,
+    });
+    if (success) {
+      onActionSuccess();
+    }
+    setIsDeleting(false);
+  };
+
   return (
-    <View style={styles.cardItem}>
-      {/* Detalles del archivo */}
-      <View>
-        <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
-          Nombre del archivo.jpg
-        </Text>
-        <Text style={{ fontSize: 13, color: '94A3B8' }}>12.2 MB</Text>
+    <View style={[styles.cardItem, isDeleting && { opacity: 0.5 }]}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.fileNameText}>{TruncateText(name)}</Text>
       </View>
 
-      {/* Barra de opciones */}
-      <View style={{ display: 'flex', flexDirection: 'row', gap: 10 }}>
-        <Feather name='download' size={27} color='#94A3B8' />
-        <Feather name='trash-2' size={27} color='#94A3B8' />
+      <View style={styles.cardActions}>
+        <TouchableOpacity style={styles.actionIcon}>
+          <Feather name='download' size={22} color='#64748B' />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.actionIcon}
+          onPress={handleDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? (
+            <ActivityIndicator size='small' color='#EF4444' />
+          ) : (
+            <Feather name='trash-2' size={22} color='#EF4444' />
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -114,85 +206,104 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    maxHeight: height * 0.7,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    maxHeight: height * 0.75,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingBottom: 20,
-    elevation: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
   title: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    color: '#1E293B',
+    color: '#0F172A',
   },
-  closeButton: {
-    margin: 0,
+  body: {
+    height: height * 0.4, // Altura fija para el área de contenido
+  },
+  loaderArea: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loaderText: {
+    marginTop: 10,
+    color: '#64748B',
+    fontSize: 14,
   },
   scrollWrapper: {
-    width: '100%',
+    flex: 1,
   },
   content: {
     padding: 20,
   },
+  emptyText: {
+    textAlign: 'center',
+    color: '#94A3B8',
+    marginTop: 20,
+  },
   cardItem: {
-    width: '98%',
-    height: 100,
     backgroundColor: '#F8FAFC',
-    marginBottom: 20,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
+    borderColor: '#E2E8F0',
     borderRadius: 12,
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 10,
+    padding: 16,
+  },
+  fileNameText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#334155',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    gap: 16,
+    marginLeft: 10,
+  },
+  actionIcon: {
+    padding: 4,
   },
   buttonContainer: {
-    display: 'flex',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 10,
-    paddingTop: 10,
+    gap: 12,
+    paddingTop: 16,
+    marginHorizontal: 20,
     borderTopWidth: 1,
-    borderColor: '#F1F5F9',
+    borderTopColor: '#F1F5F9',
   },
   button: {
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    borderRadius: 10,
+    height: 48,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 120,
-    height: 40,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
-  buttonText: {
-    color: '',
-    fontWeight: '700',
-    fontSize: 13,
-    borderRadius: 10,
-  },
   blue: {
     backgroundColor: '#0C8CE9',
-    display: 'flex',
+    borderColor: '#0C8CE9',
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 5,
+    gap: 8,
+  },
+  buttonText: {
+    fontWeight: '700',
+    fontSize: 14,
+    color: '#475569',
   },
   white: {
     color: 'white',
-    fontWeight: 'bold',
   },
+  closeButton: { margin: 0 },
 });
