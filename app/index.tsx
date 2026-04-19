@@ -12,8 +12,7 @@ import { FAB } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  const { isLoggedIn } = useAuthStore();
-
+  const { user, isLoggedIn } = useAuthStore();
   // TODO: Falta el manejo de los errores y la carga
   const {
     fases,
@@ -82,7 +81,7 @@ export default function HomeScreen() {
         color='white'
       />
 
-      <FooterMain />
+      <FooterMain areaId={13} token={user!.token} userId={user!.userId} />
     </SafeAreaView>
   );
 }

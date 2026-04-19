@@ -4,7 +4,13 @@ import { useState, type FC } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export const FooterMain: FC = () => {
+type Props = {
+  userId: number;
+  areaId: number;
+  token: string;
+};
+
+export const FooterMain: FC<Props> = (props) => {
   const insets = useSafeAreaInsets();
   const [openInpection, setOpenInpection] = useState(false);
 
@@ -61,7 +67,13 @@ export const FooterMain: FC = () => {
         <MaterialCommunityIcons name='car-side' size={26} color='#EF4444' />
         <Text style={[styles.footerButtonText, styles.textRed]}>SALIDA</Text>
       </TouchableOpacity>
-      <ModalInspection onDismiss={setOpenInpection} visible={openInpection} />
+      <ModalInspection
+        onDismiss={setOpenInpection}
+        visible={openInpection}
+        areaId={props.areaId}
+        token={props.token}
+        userId={props.userId}
+      />
     </View>
   );
 };

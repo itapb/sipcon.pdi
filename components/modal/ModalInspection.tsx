@@ -1,7 +1,11 @@
+import { useInspectionStore } from '@/store/useInspectionStore';
+import { POST_FullInspection } from '@/utils/fetchs/inspections/POST_FullInspection';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useState, type FC } from 'react';
 import {
-  Dimensions,
+  ActivityIndicator,
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -13,22 +17,61 @@ import {
 } from 'react-native';
 import { IconButton, Modal, Portal, Text } from 'react-native-paper';
 
-const { height } = Dimensions.get('window');
-
 type Props = {
+  userId: number;
   visible: boolean;
   onDismiss: (value: boolean) => void;
+  token: string;
+  areaId: number;
 };
 
-export const ModalInspection: FC<Props> = ({ visible, onDismiss }) => {
+export const ModalInspection: FC<Props> = (props) => {
+  const router = useRouter();
   const [value, setValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const setNeedsRefresh = useInspectionStore((state) => state.setNeedsRefresh);
+
+  const SubmitFullInspection = async () => {
+    if (!value.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const result = await POST_FullInspection({
+        Identifier: value,
+        AreaId: props.areaId,
+        token: props.token,
+        userId: props.userId,
+      });
+
+      if (result?.insertedRows === 0 && result?.lastId === 0) {
+        Alert.alert(
+          'Unidad no encontrada',
+          'El VIN/Placa no existe o no tiene una inspección pendiente en esta área.',
+          [{ text: 'Entendido', style: 'default' }],
+        );
+
+        setValue('');
+        props.onDismiss(false);
+        return;
+      }
+
+      setNeedsRefresh(true);
+      router.replace(`/inspection/${result?.lastId}`);
+
+      console.log({ result });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Portal>
       <Modal
-        visible={visible}
-        onDismiss={() => onDismiss(false)}
-        // El estilo del contenedor ahora lo centra automáticamente
+        visible={props.visible}
+        onDismiss={() => !isLoading && props.onDismiss(false)} // Evita cerrar mientras carga
         contentContainerStyle={styles.modalContainer}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -42,8 +85,9 @@ export const ModalInspection: FC<Props> = ({ visible, onDismiss }) => {
               <IconButton
                 icon='close'
                 size={20}
-                onPress={() => onDismiss(false)}
+                onPress={() => props.onDismiss(false)}
                 style={styles.closeButton}
+                disabled={isLoading} // Desactivar si está cargando
               />
             </View>
 
@@ -55,13 +99,14 @@ export const ModalInspection: FC<Props> = ({ visible, onDismiss }) => {
               </View>
 
               <TextInput
-                style={styles.input}
+                style={[styles.input, isLoading && { opacity: 0.5 }]}
                 placeholder='INGRESE VIN O PLACA...'
                 placeholderTextColor={'#999'}
                 value={value}
                 onChangeText={(text) => setValue(text.toUpperCase())}
                 autoCapitalize='characters'
                 autoCorrect={false}
+                editable={!isLoading} // Bloquear input durante la carga
               />
             </View>
 
@@ -70,17 +115,30 @@ export const ModalInspection: FC<Props> = ({ visible, onDismiss }) => {
               <TouchableOpacity
                 style={styles.button}
                 activeOpacity={0.7}
-                onPress={() => onDismiss(false)}
+                onPress={() => props.onDismiss(false)}
+                disabled={isLoading}
               >
                 <Text style={styles.buttonText}>Cancelar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.button, styles.green]}
+                style={[
+                  styles.button,
+                  styles.green,
+                  isLoading && styles.disabledButton,
+                ]}
                 activeOpacity={0.7}
+                onPress={SubmitFullInspection}
+                disabled={isLoading} // Evita múltiples clics
               >
-                <FontAwesome6 name='add' size={20} color='white' />
-                <Text style={[styles.buttonText, styles.white]}>Crear</Text>
+                {isLoading ? (
+                  <ActivityIndicator color='white' size='small' />
+                ) : (
+                  <>
+                    <FontAwesome6 name='add' size={20} color='white' />
+                    <Text style={[styles.buttonText, styles.white]}>Crear</Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
@@ -93,12 +151,11 @@ export const ModalInspection: FC<Props> = ({ visible, onDismiss }) => {
 const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: 'white',
-    // Centrado: Eliminamos position absolute bottom/left/right
     marginHorizontal: 20,
-    borderRadius: 20, // Bordes redondeados en todas las esquinas
+    borderRadius: 20,
     paddingBottom: 10,
     elevation: 10,
-    overflow: 'hidden', // Asegura que el contenido respete los bordes
+    overflow: 'hidden',
   },
   keyboardView: {
     width: '100%',
@@ -177,6 +234,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     borderColor: '#16A34A',
+  },
+  disabledButton: {
+    backgroundColor: '#86EFAC', // Un verde más claro cuando carga
+    borderColor: '#86EFAC',
   },
   white: {
     color: 'white',
