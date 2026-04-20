@@ -1,3 +1,4 @@
+import { useVehicleStore } from '@/store/useVehicleStore';
 import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
 import { GroupLoteModel } from '@/utils/GroupLoteModel';
 import { useRouter } from 'expo-router';
@@ -21,7 +22,15 @@ type GoInspection = {
 
 export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
   const router = useRouter();
-  const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
+
+  const selectedVehicles = useVehicleStore((state) => state.selectedVehicles);
+  const toggleVehicle = useVehicleStore((state) => state.toggleVehicle);
+  const clearSelection = useVehicleStore((state) => state.clearSelection);
+
+  // Ejemplo de uso en un renderizado
+  const SelectVehicle = (id: number) => {
+    toggleVehicle(id);
+  };
 
   const DataLoteModels = GroupLoteModel({ items: Inspections });
 
@@ -31,6 +40,8 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
   );
 
   const GoToInspection = (props: GoInspection) => {
+    clearSelection();
+
     router.push({
       pathname: '/inspection/[id]',
       params: {
@@ -41,14 +52,6 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
       },
     });
   };
-
-  const SelectVehicle = React.useCallback((id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((itemId) => itemId !== id)
-        : [...prev, id],
-    );
-  }, []);
 
   return (
     <View style={styles.container}>
@@ -90,7 +93,7 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
                       <View key={vehicle.id}>
                         <VehicleItem
                           vehicle={vehicle}
-                          isSelected={selectedIds.includes(vehicle.id)}
+                          isSelected={selectedVehicles.includes(vehicle.id)}
                           onSelect={SelectVehicle}
                           onPressVim={() =>
                             GoToInspection({
@@ -114,7 +117,7 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Total seleccionados:{' '}
-            <Text style={styles.boldText}>{selectedIds.length}</Text>
+            <Text style={styles.boldText}>{selectedVehicles.length}</Text>
           </Text>
         </View>
       </DataTable>

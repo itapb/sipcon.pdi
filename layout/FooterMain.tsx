@@ -1,7 +1,8 @@
+import { ModalEndInspection } from '@/components/modal/ModalEndInspection';
 import { ModalInspection } from '@/components/modal/ModalInspection';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useState, type FC } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
 export const FooterMain: FC<Props> = (props) => {
   const insets = useSafeAreaInsets();
   const [openInpection, setOpenInpection] = useState(false);
+  const [openEndInpection, setOpenEndInpection] = useState(false);
 
   // Acción para Nueva Inspección
   const handleNewInspection = () => {
@@ -21,18 +23,7 @@ export const FooterMain: FC<Props> = (props) => {
 
   // Acción para Salida
   const handleExit = () => {
-    Alert.alert(
-      'Salida de las unidades',
-      '¿Estás seguro que desea darle salida a las unidades seleccionadas?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Sí',
-          style: 'destructive',
-          onPress: () => console.log('Dando salida a las unidades'),
-        },
-      ],
-    );
+    setOpenEndInpection(true);
   };
 
   return (
@@ -67,9 +58,17 @@ export const FooterMain: FC<Props> = (props) => {
         <MaterialCommunityIcons name='car-side' size={26} color='#EF4444' />
         <Text style={[styles.footerButtonText, styles.textRed]}>SALIDA</Text>
       </TouchableOpacity>
+
       <ModalInspection
         onDismiss={setOpenInpection}
         visible={openInpection}
+        areaId={props.areaId}
+        token={props.token}
+        userId={props.userId}
+      />
+      <ModalEndInspection
+        onDismiss={setOpenEndInpection}
+        visible={openEndInpection}
         areaId={props.areaId}
         token={props.token}
         userId={props.userId}
