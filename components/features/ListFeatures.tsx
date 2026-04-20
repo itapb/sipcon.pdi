@@ -1,5 +1,12 @@
-import { type FC, useCallback, useMemo } from 'react';
-import { SectionList, StyleSheet, Text, View } from 'react-native';
+import React, { type FC, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Platform,
+  SectionList,
+  StyleSheet,
+  Text,
+  View,
+  ViewToken,
+} from 'react-native';
 import { InspectionFeature } from './InspectionFeature';
 
 type Props = {
@@ -29,35 +36,61 @@ export const ListFeatures: FC<Props> = ({
   token,
   userId,
 }) => {
-  // 1. Formateamos los datos para SectionList: requiere un array de objetos con 'title' y 'data'
+  // Estado para el FeatureType visible
+  const [currentFeatureType, setCurrentFeatureType] = useState<string>(
+    Groups[0]?.featureType || 'Cargando...',
+  );
+
+  // 1. Formateo seguro de secciones
   const sections = useMemo(() => {
+    if (!Groups) return [];
     return Groups.map((group) => ({
-      title: group.featureType,
-      data: group.questions,
+      title: group.featureType || 'Sin Categoría',
+      data: group.questions || [],
     }));
   }, [Groups]);
 
-  // 2. Usamos useCallback para que la función de renderizado no se recree en cada ciclo
+  // 2. Detección de sección visible con validación
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+      if (viewableItems && viewableItems.length > 0) {
+        const firstItem = viewableItems[0];
+        // Verificamos que exista la sección y el título antes de asignar
+        if (firstItem?.section?.title) {
+          setCurrentFeatureType(firstItem.section.title);
+        }
+      }
+    },
+  ).current;
+
+  const viewabilityConfig = useRef({
+    itemVisiblePercentThreshold: 50,
+  }).current;
+
+  // 3. RenderItem con validación de existencia del item
   const renderItem = useCallback(
-    ({ item }: { item: Questions }) => (
-      <InspectionFeature
-        feature={item.text}
-        fileCount={0} // TODO: Pendiente por traer
-        observation={item.observation}
-        value={item.value}
-        featureId={item.featureId}
-        id={item.id}
-        inspectionId={item.inspectionId}
-        token={token}
-        readOnly={readOnly}
-        userId={userId}
-        featureValueTypeId={item.featureValueTypeId}
-      />
-    ),
+    ({ item }: { item: Questions }) => {
+      if (!item) return null; // Evita renderizar si el item es undefined
+
+      return (
+        <InspectionFeature
+          feature={item.text || ''}
+          fileCount={0}
+          observation={item.observation || ''}
+          value={item.value}
+          featureId={item.featureId}
+          id={item.id}
+          inspectionId={item.inspectionId}
+          token={token}
+          readOnly={readOnly}
+          userId={userId}
+          featureValueTypeId={item.featureValueTypeId}
+        />
+      );
+    },
     [token, readOnly, userId],
   );
 
-  // 3. Renderizado del encabezado de cada sección (featureType)
   const renderSectionHeader = useCallback(
     ({ section: { title } }: { section: { title: string } }) => (
       <View style={styles.headerContainer}>
@@ -68,24 +101,37 @@ export const ListFeatures: FC<Props> = ({
   );
 
   return (
-    <SectionList
-      sections={sections}
-      keyExtractor={(item, index) => item.id.toString() + index}
-      renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      // OPTIMIZACIONES CLAVE:
-      stickySectionHeadersEnabled={false} // Mantener en false mejora el rendimiento de scroll
-      initialNumToRender={8} // Cuántos items cargar al principio
-      maxToRenderPerBatch={10} // Cuántos items cargar por cada "lote" al hacer scroll
-      windowSize={5} // Define cuánta área fuera de pantalla se mantiene renderizada
-      removeClippedSubviews={true} // Desmonta componentes que están fuera de la vista
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps='handled'
-      contentContainerStyle={styles.scrollContent}
-      style={styles.scrollContainer}
-      // Espaciado final
-      ListFooterComponent={<View style={{ height: 150 }} />}
-    />
+    <View style={{ flex: 1 }}>
+      {/* Indicador de Estación Actual */}
+      <View style={styles.floatingBadge}>
+        <Text style={styles.floatingBadgeText}>{currentFeatureType}</Text>
+      </View>
+
+      <SectionList
+        sections={sections}
+        // KEY EXTRACTOR SEGURO: Si id no existe, usa el index para evitar el crash
+        keyExtractor={(item, index) => {
+          if (item && item.id !== undefined) {
+            return item.id.toString();
+          }
+          return `fallback-key-${index}`;
+        }}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        stickySectionHeadersEnabled={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === 'android'}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps='handled'
+        contentContainerStyle={styles.scrollContent}
+        style={styles.scrollContainer}
+        ListFooterComponent={<View style={{ height: 150 }} />}
+      />
+    </View>
   );
 };
 
@@ -98,7 +144,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   headerContainer: {
-    backgroundColor: '#F8FAFC', // Mismo color de fondo para evitar saltos visuales
+    backgroundColor: '#F8FAFC',
     paddingVertical: 8,
   },
   groupTitle: {
@@ -110,5 +156,25 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginBottom: 4,
     marginTop: 10,
+  },
+  floatingBadge: {
+    position: 'absolute',
+    bottom: -10,
+    borderTopRightRadius: 5,
+    left: 0,
+    backgroundColor: '#94A3B8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    zIndex: 999,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  floatingBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
