@@ -140,28 +140,7 @@ export const InspectionFeature: FC<Props> = (props) => {
           </View>
         );
 
-      case 2: // NUMÉRICO (ENTERO ESTRICTO)
-        return (
-          <View style={styles.inputContainer}>
-            <Text style={styles.subLabel}>Valor numérico:</Text>
-            <TextInput
-              style={[
-                styles.numericInput,
-                props.readOnly && styles.readOnlyField,
-              ]}
-              keyboardType='number-pad'
-              placeholder='0'
-              value={value !== null ? String(value) : ''}
-              onChangeText={(txt) => {
-                const cleanText = txt.replace(/[^0-9]/g, '');
-                setvalue(cleanText === '' ? null : parseInt(cleanText, 10));
-              }}
-              editable={!props.readOnly}
-            />
-          </View>
-        );
-
-      case 3: // LISTA DINÁMICA
+      case 2: // LISTA DINÁMICA
         return (
           <View style={styles.inputContainer}>
             <Text style={styles.subLabel}>Seleccione una opción:</Text>
@@ -192,6 +171,27 @@ export const InspectionFeature: FC<Props> = (props) => {
           </View>
         );
 
+      case 3: // NUMÉRICO (ENTERO ESTRICTO)
+        return (
+          <View style={styles.inputContainer}>
+            <Text style={styles.subLabel}>Valor numérico:</Text>
+            <TextInput
+              style={[
+                styles.numericInput,
+                props.readOnly && styles.readOnlyField,
+              ]}
+              keyboardType='number-pad'
+              placeholder='0'
+              value={value !== null ? String(value) : ''}
+              onChangeText={(txt) => {
+                const cleanText = txt.replace(/[^0-9]/g, '');
+                setvalue(cleanText === '' ? null : parseInt(cleanText, 10));
+              }}
+              editable={!props.readOnly}
+            />
+          </View>
+        );
+
       default:
         return <Text style={styles.errorText}>Tipo de input no soportado</Text>;
     }
@@ -200,7 +200,9 @@ export const InspectionFeature: FC<Props> = (props) => {
   return (
     <Card style={styles.qCard}>
       <View style={styles.qHeader}>
-        <Text style={styles.qText}>{props.feature}</Text>
+        <Text style={styles.qText}>
+          {props.feature} {props.featureId}
+        </Text>
         <View style={styles.qIcons}>
           <MediaActions
             userId={props.userId}
