@@ -1,7 +1,17 @@
+import {
+  getCachedOptions,
+  setCachedOptions,
+} from '@/hooks/featureOptionsCache';
+import {
+  DataFeatureOptions,
+  GET_FeatureOptions,
+} from '@/utils/fetchs/features/GET_FeatureOptions';
 import { POST_InspectionDetail } from '@/utils/fetchs/inspections/POST_InspectionDetail';
-import { useEffect, useState, type FC } from 'react';
+import { Picker } from '@react-native-picker/picker';
+import { useEffect, useRef, useState, type FC } from 'react';
 import {
   Alert,
+  Platform,
   StyleSheet,
   TextInput,
   TouchableOpacity,
@@ -20,8 +30,9 @@ type Props = {
   featureId: number;
   inspectionId: number;
   token: string;
-  readOnly: boolean; // Propiedad para controlar el modo lectura
+  readOnly: boolean;
   userId: number;
+  featureValueTypeId: number;
 };
 
 export const InspectionFeature: FC<Props> = (props) => {
@@ -29,25 +40,63 @@ export const InspectionFeature: FC<Props> = (props) => {
   const [observation, setObservation] = useState(props.observation);
   const [isSaving, setIsSaving] = useState(false);
 
-  const OnSaveInfor = async () => {
-    if (observation === props.observation && value === props.value) return;
+  // Estados para la lista dinámica (Tipo 3)
+  const [options, setOptions] = useState<DataFeatureOptions[]>([]);
+  const [loadingOptions, setLoadingOptions] = useState(false);
+
+  const observationRef = useRef(observation);
+  const valueRef = useRef(value);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    observationRef.current = observation;
+    valueRef.current = value;
+  }, [observation, value]);
+
+  useEffect(() => {
+    if (+props.featureValueTypeId === 3) {
+      const cached = getCachedOptions(props.featureId);
+      if (cached) {
+        setOptions(cached);
+      } else {
+        loadOptions();
+      }
+    }
+  }, [props.featureId, props.featureValueTypeId]);
+
+  const loadOptions = async () => {
+    setLoadingOptions(true);
+    try {
+      const data = await GET_FeatureOptions({
+        featureId: props.featureId,
+        token: props.token,
+      });
+      if (data && Array.isArray(data)) {
+        setOptions(data);
+        setCachedOptions(props.featureId, data);
+      }
+    } catch (error) {
+      console.error('Error cargando opciones para feature ' + props.featureId);
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
+
+  const OnSaveInfor = async (obsToSave = observation, valToSave = value) => {
+    if (obsToSave === props.observation && valToSave === props.value) return;
 
     setIsSaving(true);
     try {
-      const result = await POST_InspectionDetail({
+      await POST_InspectionDetail({
         id: props.id,
-        value,
-        observation,
+        value: valToSave,
+        observation: obsToSave,
         featureId: props.featureId,
         inspectionId: props.inspectionId,
         token: props.token,
       });
-
-      if (result) {
-        console.log(`Guardado exitoso: ${props.feature}`);
-      }
     } catch (error: any) {
-      Alert.alert('Error al guarda la inspección', error.message);
+      Alert.alert('Error al guardar', error.message);
     } finally {
       setIsSaving(false);
     }
@@ -55,17 +104,98 @@ export const InspectionFeature: FC<Props> = (props) => {
 
   useEffect(() => {
     if (props.readOnly) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
 
-    const timer = setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       OnSaveInfor();
     }, 900);
 
-    return () => clearTimeout(timer);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [observation, value]);
 
-  if (isSaving) {
-    return <InspectionSkeleton />;
-  }
+  if (isSaving) return <InspectionSkeleton />;
+
+  const renderInputByTypeId = () => {
+    switch (+props.featureValueTypeId) {
+      case 1: // SI / NO
+        return (
+          <View style={styles.qButtons}>
+            <OptionButton
+              label='Sí'
+              type='success'
+              isActive={value === 1}
+              onPress={() => setvalue(1)}
+              disabled={props.readOnly}
+            />
+            <View style={{ width: 10 }} />
+            <OptionButton
+              label='No'
+              type='danger'
+              isActive={value === 0}
+              onPress={() => setvalue(0)}
+              disabled={props.readOnly}
+            />
+          </View>
+        );
+
+      case 2: // NUMÉRICO (ENTERO ESTRICTO)
+        return (
+          <View style={styles.inputContainer}>
+            <Text style={styles.subLabel}>Valor numérico:</Text>
+            <TextInput
+              style={[
+                styles.numericInput,
+                props.readOnly && styles.readOnlyField,
+              ]}
+              keyboardType='number-pad'
+              placeholder='0'
+              value={value !== null ? String(value) : ''}
+              onChangeText={(txt) => {
+                const cleanText = txt.replace(/[^0-9]/g, '');
+                setvalue(cleanText === '' ? null : parseInt(cleanText, 10));
+              }}
+              editable={!props.readOnly}
+            />
+          </View>
+        );
+
+      case 3: // LISTA DINÁMICA
+        return (
+          <View style={styles.inputContainer}>
+            <Text style={styles.subLabel}>Seleccione una opción:</Text>
+            <View
+              style={[
+                styles.listWrapper,
+                props.readOnly && styles.readOnlyField,
+              ]}
+            >
+              <Picker
+                selectedValue={value}
+                onValueChange={(itemValue) => setvalue(itemValue)}
+                enabled={!props.readOnly && !loadingOptions}
+                style={styles.picker}
+                mode='dropdown'
+                dropdownIconColor='#64748B'
+              >
+                <Picker.Item
+                  label={loadingOptions ? 'Cargando...' : 'Seleccione...'}
+                  value={null}
+                  color='#94A3B8'
+                />
+                {options.map((opt) => (
+                  <Picker.Item key={opt.id} label={opt.name} value={opt.id} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+        );
+
+      default:
+        return <Text style={styles.errorText}>Tipo de input no soportado</Text>;
+    }
+  };
 
   return (
     <Card style={styles.qCard}>
@@ -82,35 +212,17 @@ export const InspectionFeature: FC<Props> = (props) => {
         </View>
       </View>
 
-      <View style={styles.qButtons}>
-        <OptionButton
-          label='Sí'
-          type='success'
-          isActive={value === 1}
-          onPress={() => setvalue(1)}
-          disabled={props.readOnly}
-        />
-        <View style={{ width: 10 }} />
-        <OptionButton
-          label='No'
-          type='danger'
-          isActive={value === 0}
-          onPress={() => setvalue(0)}
-          disabled={props.readOnly}
-        />
-      </View>
+      {renderInputByTypeId()}
 
       <TextInput
-        style={[
-          styles.obsInput,
-          props.readOnly && { backgroundColor: '#F1F5F9' },
-        ]} // Cambio visual sutil en lectura
+        style={[styles.obsInput, props.readOnly && styles.readOnlyField]}
         placeholder='Observaciones...'
         placeholderTextColor='#94A3B8'
         multiline
         value={observation}
         onChangeText={setObservation}
-        editable={!props.readOnly} // Bloquear entrada de texto
+        editable={!props.readOnly}
+        maxLength={500}
       />
     </Card>
   );
@@ -128,10 +240,10 @@ const OptionButton = ({ label, isActive, type, onPress, disabled }: any) => {
         isGreen && styles.btnActiveGreen,
         isRed && styles.btnActiveRed,
         !isActive && styles.btnInactive,
-        disabled && { opacity: 0.7 }, // Feedback visual de deshabilitado
+        disabled && { opacity: 0.5 },
       ]}
       onPress={onPress}
-      disabled={disabled} // Propiedad nativa para bloquear el toque
+      disabled={disabled}
     >
       <Text
         style={[
@@ -155,10 +267,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
   },
   qHeader: {
     flexDirection: 'row',
@@ -171,16 +279,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#334155',
     fontWeight: '600',
-    lineHeight: 18,
-    marginRight: 10,
   },
-  qIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  qButtons: {
-    flexDirection: 'row',
-  },
+  qIcons: { flexDirection: 'row', alignItems: 'center' },
+  qButtons: { flexDirection: 'row' },
   optButton: {
     flex: 1,
     height: 38,
@@ -189,33 +290,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1.5,
   },
-  optButtonText: {
-    fontSize: 14,
+  optButtonText: { fontSize: 14, fontWeight: '700' },
+  btnInactive: { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' },
+  textInactive: { color: '#94A3B8' },
+  btnActiveGreen: { backgroundColor: '#F0FDF4', borderColor: '#22C55E' },
+  textActiveGreen: { color: '#166534' },
+  btnActiveRed: { backgroundColor: '#FEF2F2', borderColor: '#EF4444' },
+  textActiveRed: { color: '#991B1B' },
+  inputContainer: { marginVertical: 5 },
+  subLabel: {
+    fontSize: 12,
+    color: '#64748B',
     fontWeight: '700',
+    marginBottom: 6,
   },
-  btnInactive: {
+  numericInput: {
     backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
     borderColor: '#E2E8F0',
+    height: 42,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: '#334155',
   },
-  textInactive: {
-    color: '#94A3B8',
+  listWrapper: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    height: 48, // Ajustado para evitar cortes
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  btnActiveGreen: {
-    backgroundColor: '#F0FDF4',
-    borderColor: '#22C55E',
-  },
-  textActiveGreen: {
-    color: '#166534',
-  },
-  btnActiveRed: {
-    backgroundColor: '#FEF2F2',
-    borderColor: '#EF4444',
-  },
-  textActiveRed: {
-    color: '#991B1B',
+  picker: {
+    height: Platform.OS === 'android' ? 50 : 45,
+    width: '100%',
+    color: '#334155',
+    ...Platform.select({
+      android: { marginLeft: -8 },
+    }),
   },
   obsInput: {
-    marginTop: 10,
+    marginTop: 12,
     backgroundColor: '#F8FAFC',
     borderRadius: 8,
     paddingHorizontal: 10,
@@ -227,8 +344,6 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 13,
   },
-  skeletonLine: {
-    backgroundColor: '#E2E8F0',
-    borderRadius: 6,
-  },
+  readOnlyField: { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' },
+  errorText: { color: '#EF4444', fontSize: 12, fontStyle: 'italic' },
 });

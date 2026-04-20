@@ -16,6 +16,7 @@ export type DataInspectionDetail = {
   featureId: number;
   feature: string;
   featureTypeId: number;
+  featureValueTypeId: number;
   featureType: string;
   faseId: string;
   fase: string;

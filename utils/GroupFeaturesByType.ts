@@ -28,6 +28,7 @@ export const GroupFeaturesByType = (data: DataInspectionDetail[]) => {
       observation: item.observation,
       fileUrl: item.fileUrl,
       inspectionId: item.inspectionId,
+      featureValueTypeId: item.featureValueTypeId,
     });
 
     return acc;

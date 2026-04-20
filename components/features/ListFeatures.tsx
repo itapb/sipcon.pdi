@@ -20,6 +20,7 @@ export type Questions = {
   observation: string;
   fileUrl: string | null;
   inspectionId: number;
+  featureValueTypeId: number;
 };
 
 export const ListFeatures: FC<Props> = ({
@@ -50,6 +51,7 @@ export const ListFeatures: FC<Props> = ({
         token={token}
         readOnly={readOnly}
         userId={userId}
+        featureValueTypeId={item.featureValueTypeId}
       />
     ),
     [token, readOnly, userId],
