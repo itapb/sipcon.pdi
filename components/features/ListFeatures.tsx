@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
   floatingBadge: {
     position: 'absolute',
-    bottom: -10,
-    borderTopRightRadius: 5,
+    top: 0,
+    width: '100%',
     left: 0,
     backgroundColor: '#94A3B8',
     paddingHorizontal: 12,
@@ -176,5 +176,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700',
+    textAlign: 'center',
   },
 });

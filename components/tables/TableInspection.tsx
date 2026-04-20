@@ -1,5 +1,5 @@
 import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
 import { DatatableInspection } from './inspection/DatatableInspection';
@@ -13,17 +13,38 @@ type Props = {
 export const TableInspection: FC<Props> = ({ Inspections }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Memorizamos el filtrado para evitar cálculos innecesarios en cada render
+  const filteredInspections = useMemo(() => {
+    if (!searchQuery.trim()) return Inspections;
+
+    const query = searchQuery.toLowerCase();
+
+    return Inspections.filter((item) => {
+      const model = item.model?.toLowerCase() || '';
+      const vin = item.vin?.toLowerCase() || '';
+      const plate = item.vehiclePlate?.toLowerCase() || '';
+      const lote = item.lote?.toLocaleLowerCase() || '';
+
+      return (
+        model.includes(query) ||
+        vin.includes(query) ||
+        plate.includes(query) ||
+        lote.includes(query)
+      );
+    });
+  }, [searchQuery, Inspections]);
+
   return (
     <View style={styles.container}>
       <Searchbar
-        placeholder='Buscar Modelo o VIN'
+        placeholder='Buscar Modelo, VIN o Placa'
         onChangeText={setSearchQuery}
         value={searchQuery}
         style={styles.searchBar}
         inputStyle={styles.searchInput}
       />
 
-      <DatatableInspection Inspections={Inspections} />
+      <DatatableInspection Inspections={filteredInspections} />
     </View>
   );
 };
@@ -34,33 +55,6 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  container_input: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    backgroundColor: '#fafafa',
-    width: width * 0.9,
-    gap: 5,
-  },
-  input: {
-    height: 50,
-    width: width * 0.7,
-    color: '#333',
-  },
-  scroll: {
-    width: '100%',
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-    flexGrow: 1,
   },
   searchBar: {
     backgroundColor: '#F8FAFC',
