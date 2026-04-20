@@ -1,10 +1,12 @@
 import { useAuthStore } from '@/store/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { FC, useState } from 'react';
 import {
   Dimensions,
   Image,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -16,12 +18,28 @@ const { width, height } = Dimensions.get('window');
 export const MenuHeader: FC = () => {
   const [visible, setVisible] = useState(false);
 
-  const { user, area, logout } = useAuthStore((state) => state);
+  const {
+    user,
+    area,
+    selectedSupplier,
+    selectedDealer,
+    setSelectedDealer,
+    setSelectedSupplier,
+    logout,
+  } = useAuthStore((state) => state);
+  const router = useRouter();
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
 
-  const router = useRouter();
+  // Función para manejar el cambio (aquí llamarías a tu store)
+  const HandleOnChange = (itemValue: number, type: 'dealer' | 'supplier') => {
+    if (type === 'dealer') {
+      setSelectedDealer(itemValue);
+    } else {
+      setSelectedSupplier(itemValue);
+    }
+  };
 
   return (
     <View style={styles.header}>
@@ -40,58 +58,96 @@ export const MenuHeader: FC = () => {
           onDismiss={closeMenu}
           contentContainerStyle={styles.drawerContainer}
         >
-          {/* SECCIÓN DE PERFIL DE USUARIO */}
+          {/* HEADER DEL DRAWER */}
           <View style={styles.userInfoSection}>
             <Avatar.Text
               size={60}
               label={user?.login?.substring(0, 2).toUpperCase() || 'PDI'}
               style={styles.avatar}
-              labelStyle={{ fontSize: 24, fontWeight: '700' }}
             />
             <View style={styles.userDetails}>
               <Text style={styles.userName}>{user?.login || 'Usuario'}</Text>
-              <Text style={styles.userRole}>{area || 'Area'}</Text>
+              <Text style={styles.userRole}>{area || 'Área'}</Text>
             </View>
           </View>
 
-          <Divider />
-
-          {/* CUERPO DEL MENÚ */}
           <View style={styles.menuItems}>
             <List.Item
               title='Inicio'
-              titleStyle={styles.itemTitle}
-              left={(props) => (
-                <List.Icon {...props} icon='home' color='#475569' />
-              )}
+              left={(p) => <List.Icon {...p} icon='home' color='#475569' />}
               onPress={() => {
                 closeMenu();
                 router.replace('/');
               }}
             />
 
-            <List.Item
-              title='Cambiar de área'
-              titleStyle={styles.itemTitle}
-              left={(props) => (
-                <List.Icon {...props} icon='swap-horizontal' color='#475569' />
-              )}
-              onPress={() => {
-                console.log('Cambiando de área...');
-                closeMenu();
-              }}
-            />
+            {/* SECCIÓN DEL PICKER COMO INPUT SELECT */}
+            <View style={styles.pickerSection}>
+              <Text style={styles.label}>Planta</Text>
+              <View style={styles.pickerWrapper}>
+                <Ionicons
+                  name={'business'}
+                  size={20}
+                  color='#2563EB'
+                  style={styles.pickerIcon}
+                />
+                <Picker
+                  selectedValue={selectedSupplier}
+                  onValueChange={(itemValue) =>
+                    HandleOnChange(itemValue!, 'supplier')
+                  }
+                  style={styles.picker}
+                  mode='dropdown' // Solo afecta a Android
+                  dropdownIconColor='#64748B'
+                >
+                  {user?.suppliers.map((item, index) => (
+                    <Picker.Item
+                      key={item.id + index}
+                      label={item.name}
+                      value={item.id}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
 
-            {/* BOTÓN CAMBIAR DE ÁREA */}
+            <View style={styles.pickerSection}>
+              <Text style={styles.label}>Concesionario</Text>
+              <View style={styles.pickerWrapper}>
+                <Ionicons
+                  name={'business'}
+                  size={20}
+                  color='#2563EB'
+                  style={styles.pickerIcon}
+                />
+                <Picker
+                  selectedValue={selectedDealer}
+                  onValueChange={(itemValue) =>
+                    HandleOnChange(itemValue!, 'dealer')
+                  }
+                  style={styles.picker}
+                  mode='dropdown' // Solo afecta a Android
+                  dropdownIconColor='#64748B'
+                >
+                  {user?.dealers
+                    .filter((item) => item.supplierId == selectedSupplier)
+                    .map((item, index) => (
+                      <Picker.Item
+                        key={item.id + index}
+                        label={item.name}
+                        value={item.id}
+                      />
+                    ))}
+                </Picker>
+              </View>
+            </View>
+
             <Divider style={styles.dividerSpace} />
 
-            {/* BOTÓN CERRAR SESIÓN */}
             <List.Item
               title='Cerrar Sesión'
-              titleStyle={[styles.itemTitle, { color: '#EF4444' }]}
-              left={(props) => (
-                <List.Icon {...props} icon='logout' color='#EF4444' />
-              )}
+              titleStyle={{ color: '#EF4444' }}
+              left={(p) => <List.Icon {...p} icon='logout' color='#EF4444' />}
               onPress={() => {
                 closeMenu();
                 logout();
@@ -99,7 +155,6 @@ export const MenuHeader: FC = () => {
             />
           </View>
 
-          {/* FOOTER DEL MENÚ */}
           <View style={styles.drawerFooter}>
             <Image
               source={require('../assets/images/logos/LogoAPB.png')}
@@ -115,23 +170,15 @@ export const MenuHeader: FC = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 60,
+    height: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
     backgroundColor: '#fff',
   },
-  menuButton: {
-    padding: 5,
-  },
-  logo: {
-    width: 90,
-    height: 60,
-    resizeMode: 'contain',
-  },
+  menuButton: { padding: 5 },
+  logo: { width: 90, height: 60, resizeMode: 'contain' },
   drawerContainer: {
     backgroundColor: 'white',
     width: width * 0.8,
@@ -139,8 +186,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     top: 0,
-    bottom: 0,
-    justifyContent: 'flex-start',
   },
   userInfoSection: {
     padding: 25,
@@ -149,66 +194,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 60,
   },
-  avatar: {
-    backgroundColor: '#3B82F6',
+  avatar: { backgroundColor: '#3B82F6' },
+  userDetails: { marginLeft: 15, flex: 1 },
+  userName: { color: 'white', fontSize: 18, fontWeight: '800' },
+  userRole: { color: '#94A3B8', fontSize: 13 },
+  menuItems: { flex: 1, paddingTop: 10 },
+  pickerSection: {
+    paddingHorizontal: 15,
+    marginTop: 15,
   },
-  userDetails: {
-    marginLeft: 15,
-    flex: 1,
-  },
-  userName: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-  userRole: {
+  label: {
+    fontSize: 11,
+    fontWeight: '700',
     color: '#94A3B8',
-    fontSize: 13,
+    marginBottom: 5,
+    textTransform: 'uppercase',
   },
-  menuItems: {
-    flex: 1,
-    paddingTop: 10,
-  },
-  itemTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#334155',
-  },
-  changeAreaButton: {
+  pickerWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
-    marginHorizontal: 15,
-    marginVertical: 10,
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#DBEAFE',
+    borderColor: '#E2E8F0',
+    height: 50,
+    overflow: 'hidden', // Importante para que el picker no se salga del radio
   },
-  changeAreaText: {
-    marginLeft: 10,
-    color: '#2563EB',
-    fontWeight: '700',
-    fontSize: 14,
+  pickerIcon: {
+    marginLeft: 12,
   },
-  dividerSpace: {
-    marginVertical: 10,
+  picker: {
+    flex: 1,
+    color: '#334155',
+    ...Platform.select({
+      android: {
+        marginLeft: -5, // Ajuste fino para Android
+      },
+    }),
   },
+
+  dividerSpace: { marginVertical: 10 },
   drawerFooter: {
     padding: 20,
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
-  logoFooter: {
-    width: 80,
-    height: 40,
-    resizeMode: 'contain',
-    opacity: 0.5,
-  },
-  versionText: {
-    fontSize: 11,
-    color: '#CBD5E1',
-    marginTop: 5,
-  },
+  logoFooter: { width: 80, height: 40, resizeMode: 'contain', opacity: 0.5 },
+  versionText: { fontSize: 11, color: '#CBD5E1', marginTop: 5 },
 });
