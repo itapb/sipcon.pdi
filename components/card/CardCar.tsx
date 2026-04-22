@@ -11,6 +11,7 @@ type Props = {
   inspectionId: number;
   token: string;
   userId: number;
+  readOnly: boolean;
 };
 
 export const CardCar: FC<Props> = (props) => {
@@ -44,6 +45,7 @@ export const CardCar: FC<Props> = (props) => {
           moduleName='INSPECCION-INSPECCION'
           token={props.token}
           userId={props.userId}
+          readOnly={props.readOnly}
         />
 
         {/* Contenedor de imagen */}

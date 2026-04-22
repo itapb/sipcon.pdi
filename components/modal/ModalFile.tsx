@@ -26,6 +26,7 @@ type Props = {
   recordId: number;
   token: string;
   visible: boolean;
+  readOnly: boolean;
   onDismiss: React.Dispatch<React.SetStateAction<boolean>>;
   title?: string;
   children?: ReactNode;
@@ -98,6 +99,7 @@ export const ModalFiles: FC<Props> = (props) => {
                     userId={props.userId}
                     token={props.token}
                     onActionSuccess={loadAttachments} // Recargar tras borrar
+                    readonly={props.readOnly}
                   />
                 ))
               )}
@@ -113,28 +115,30 @@ export const ModalFiles: FC<Props> = (props) => {
             <Text style={styles.buttonText}>Cerrar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.button, styles.blue, loading && { opacity: 0.6 }]}
-            disabled={loading}
-            onPress={async () => {
-              setLoading(true);
-              try {
-                // OpenGallery debe realizar los POST internos
-                await OpenGallery({
-                  moduleName: props.moduleName,
-                  recordId: props.recordId,
-                  token: props.token,
-                  userId: props.userId,
-                });
-                await loadAttachments(); // Recarga después de subir
-              } catch (e) {
-                setLoading(false);
-              }
-            }}
-          >
-            <Entypo name='attachment' size={20} color='white' />
-            <Text style={[styles.buttonText, styles.white]}>Adjuntar</Text>
-          </TouchableOpacity>
+          {!props.readOnly && (
+            <TouchableOpacity
+              style={[styles.button, styles.blue, loading && { opacity: 0.6 }]}
+              disabled={loading}
+              onPress={async () => {
+                setLoading(true);
+                try {
+                  // OpenGallery debe realizar los POST internos
+                  await OpenGallery({
+                    moduleName: props.moduleName,
+                    recordId: props.recordId,
+                    token: props.token,
+                    userId: props.userId,
+                  });
+                  await loadAttachments(); // Recarga después de subir
+                } catch (e) {
+                  setLoading(false);
+                }
+              }}
+            >
+              <Entypo name='attachment' size={20} color='white' />
+              <Text style={[styles.buttonText, styles.white]}>Adjuntar</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Modal>
     </Portal>
@@ -148,27 +152,22 @@ type PropsCardFile = {
   attachmentId: number;
   userId: number;
   token: string;
+  readonly: boolean;
   onActionSuccess: () => void;
 };
 
-const CardFile: FC<PropsCardFile> = ({
-  name,
-  attachmentId,
-  userId,
-  token,
-  onActionSuccess,
-}) => {
+const CardFile: FC<PropsCardFile> = (props) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
     const success = await POST_DeleteAttachment({
-      token,
-      attachmentId,
-      userId,
+      token: props.token,
+      attachmentId: props.attachmentId,
+      userId: props.userId,
     });
     if (success) {
-      onActionSuccess();
+      props.onActionSuccess();
     }
     setIsDeleting(false);
   };
@@ -177,10 +176,10 @@ const CardFile: FC<PropsCardFile> = ({
     setIsDeleting(true);
     try {
       const data = await GET_AttachmentPreview({
-        attachmentId,
-        fileName: name,
-        token,
-        userId,
+        attachmentId: props.attachmentId,
+        fileName: props.name,
+        token: props.token,
+        userId: props.userId,
       });
     } catch (error) {
       console.error('Error cargando adjuntos:', error);
@@ -192,7 +191,7 @@ const CardFile: FC<PropsCardFile> = ({
   return (
     <View style={[styles.cardItem, isDeleting && { opacity: 0.5 }]}>
       <View style={{ flex: 1 }}>
-        <Text style={styles.fileNameText}>{TruncateText(name)}</Text>
+        <Text style={styles.fileNameText}>{TruncateText(props.name)}</Text>
       </View>
 
       <View style={styles.cardActions}>
@@ -204,17 +203,19 @@ const CardFile: FC<PropsCardFile> = ({
           <Feather name='download' size={22} color='#64748B' />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionIcon}
-          onPress={handleDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? (
-            <ActivityIndicator size='small' color='#EF4444' />
-          ) : (
-            <Feather name='trash-2' size={22} color='#EF4444' />
-          )}
-        </TouchableOpacity>
+        {!props.readonly && (
+          <TouchableOpacity
+            style={styles.actionIcon}
+            onPress={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <ActivityIndicator size='small' color='#EF4444' />
+            ) : (
+              <Feather name='trash-2' size={22} color='#EF4444' />
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );

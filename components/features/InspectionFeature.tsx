@@ -54,7 +54,7 @@ export const InspectionFeature: FC<Props> = (props) => {
   }, [observation, value]);
 
   useEffect(() => {
-    if (+props.featureValueTypeId === 3) {
+    if (+props.featureValueTypeId === 2) {
       const cached = getCachedOptions(props.featureId);
       if (cached) {
         setOptions(cached);
@@ -164,7 +164,7 @@ export const InspectionFeature: FC<Props> = (props) => {
                   color='#94A3B8'
                 />
                 {options.map((opt) => (
-                  <Picker.Item key={opt.id} label={opt.name} value={opt.id} />
+                  <Picker.Item key={opt.id} label={opt.name} value={+opt.id} />
                 ))}
               </Picker>
             </View>
@@ -208,6 +208,7 @@ export const InspectionFeature: FC<Props> = (props) => {
             userId={props.userId}
             token={props.token}
             fileCount={props.fileCount}
+            readOnly={props.readOnly}
             recordID={props.id}
             moduleName='INSPECCION-TIPOS-CARACTERISTICAS'
           />

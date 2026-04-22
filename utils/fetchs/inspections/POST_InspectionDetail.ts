@@ -24,7 +24,7 @@ export const POST_InspectionDetail = async (props: Props) => {
     Observation: props.observation.trim() ? props.observation : 'S/O',
     InspectionId: props.inspectionId,
     FeatureId: props.featureId,
-    ...(props.value !== null && { Value: props.value }),
+    ...(props.value !== null && { Value: +props.value }),
   };
 
   const controller = new AbortController();

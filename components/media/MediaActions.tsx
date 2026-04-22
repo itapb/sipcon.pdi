@@ -9,6 +9,7 @@ type Props = {
   recordID: number;
   token: string;
   userId: number;
+  readOnly: boolean;
   moduleName: string;
   additional_styles?: object;
   onImageCaptured?: (uri: string) => void;
@@ -28,14 +29,19 @@ export const MediaActions: FC<Props> = (props) => {
   return (
     <View style={[styles.iconsRow, props.additional_styles]}>
       {/* Botón de la cámara */}
-      <TouchableOpacity onPress={() => setOpenCamera(true)} activeOpacity={0.6}>
-        <MaterialCommunityIcons
-          name='camera-outline'
-          size={30}
-          color='#B0BEC5'
-          style={styles.iconCamera}
-        />
-      </TouchableOpacity>
+      {!props.readOnly && (
+        <TouchableOpacity
+          onPress={() => setOpenCamera(true)}
+          activeOpacity={0.6}
+        >
+          <MaterialCommunityIcons
+            name='camera-outline'
+            size={30}
+            color='#B0BEC5'
+            style={styles.iconCamera}
+          />
+        </TouchableOpacity>
+      )}
 
       {/* Icono de la carpeta */}
       <TouchableOpacity
@@ -76,6 +82,7 @@ export const MediaActions: FC<Props> = (props) => {
         recordId={props.recordID}
         token={props.token}
         userId={props.userId}
+        readOnly={props.readOnly}
       />
     </View>
   );

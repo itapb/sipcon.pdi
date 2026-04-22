@@ -79,7 +79,7 @@ export default function InspectionScreen() {
   }, [inspectionGroup, activeFase]);
 
   const filteredGroups = inspectionGroup
-    .filter((group) => group.faseId === inspectionGroup[0].faseId)
+    .filter((group) => group.faseId == activeFase)
     .filter((g) => g !== null);
 
   if (hasError) return <Text> Error</Text>; // Un componente simple para reintentar
@@ -87,7 +87,7 @@ export default function InspectionScreen() {
     return <LoadingScreen visible={true} message='Obteniendo información' />;
 
   const InspectionFaseActived = inspectionFase.find(
-    (item) => item.faseId == activeFase,
+    (item) => item.faseId === activeFase,
   );
 
   const isItStarted = InspectionFaseActived?.initDate !== null;
@@ -117,6 +117,7 @@ export default function InspectionScreen() {
             inspectionId={+id}
             token={user!.token}
             userId={user!.userId}
+            readOnly={!isItStarted || !!InspectionFaseActived?.isCompleted}
           />
 
           {/* Observaciones Generales */}
