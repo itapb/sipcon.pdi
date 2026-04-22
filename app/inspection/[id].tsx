@@ -36,7 +36,6 @@ export default function InspectionScreen() {
   );
 
   const [showObservation, setShowObservation] = useState(false);
-  const [isItStarted, setIsItStarted] = useState(false);
 
   const UpdateMenu = () => {
     setNeedsRefresh(true);
@@ -54,7 +53,6 @@ export default function InspectionScreen() {
           setinspectionDetail,
           setInspectionFase,
           setInspection,
-          setIsItStarted,
         );
       } catch (error: any) {
         setHasError(true);
@@ -92,6 +90,8 @@ export default function InspectionScreen() {
     (item) => item.faseId == activeFase,
   );
 
+  const isItStarted = InspectionFaseActived?.initDate !== null;
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -102,11 +102,7 @@ export default function InspectionScreen() {
             isItStarted={isItStarted}
             token={user!.token}
             inspectionId={+id}
-            areaId={inspection.areaId}
-            vehicleId={inspection.vehicleId}
-            createdBy={inspection.createdBy}
             UpdateMenu={UpdateMenu}
-            setIsItStarted={setIsItStarted}
             InspectionFaseId={InspectionFaseActived?.id ?? 0}
             faseId={activeFase}
             faseCompleted={InspectionFaseActived?.isCompleted ?? 0}

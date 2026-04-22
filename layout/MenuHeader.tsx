@@ -170,7 +170,7 @@ export const MenuHeader: FC = () => {
 
 const styles = StyleSheet.create({
   header: {
-    height: 100,
+    height: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

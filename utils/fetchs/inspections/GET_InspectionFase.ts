@@ -14,6 +14,7 @@ export type DataInspectionFase = {
   fase: string;
   completedDate: Date | null;
   isCompleted: number;
+  initDate: Date | null;
   areaId: number;
   area: string;
   id: number;

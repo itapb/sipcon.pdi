@@ -4,7 +4,8 @@ export type Props = {
   Id: number;
   FaseId: number;
   InspectionId: number;
-  CompletedDate: Date;
+  CompletedDate?: Date;
+  InitDate?: Date;
   token: string;
 };
 
@@ -17,12 +18,19 @@ type Result = {
 
 export const POST_InspectionFase = async (props: Props) => {
   try {
-    const data_body = {
+    const data_body: any = {
       Id: props.Id,
       FaseId: props.FaseId,
       InspectionId: props.InspectionId,
-      CompletedDate: props.CompletedDate,
     };
+
+    if (props.CompletedDate) {
+      data_body.CompletedDate = props.CompletedDate;
+    }
+
+    if (props.InitDate) {
+      data_body.InitDate = props.InitDate;
+    }
 
     const result = await fetch(
       `${API_BASE}/InspectionFase/Post_InspectionFase`,

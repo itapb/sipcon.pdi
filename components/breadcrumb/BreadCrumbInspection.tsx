@@ -1,4 +1,3 @@
-import { POST_Inspection } from '@/utils/fetchs/inspections/POST_Inspection';
 import { POST_InspectionFase } from '@/utils/fetchs/inspections/POST_InspectionFase';
 import { GetTime } from '@/utils/GetTime';
 import { Link, usePathname, useRouter } from 'expo-router';
@@ -18,12 +17,8 @@ type Props = {
   InspectionFaseId: number;
   isItStarted: boolean;
   token: string;
-  areaId: number;
-  vehicleId: number;
-  createdBy: number;
   faseId: number;
   UpdateMenu: () => void;
-  setIsItStarted: React.Dispatch<React.SetStateAction<boolean>>;
   faseCompleted: number;
 };
 
@@ -32,13 +27,9 @@ export const BreadCrumbInspection: FC<Props> = ({
   InspectionFaseId,
   token,
   inspectionId,
-  areaId,
-  vehicleId,
-  createdBy,
   faseId,
   faseCompleted,
   UpdateMenu,
-  setIsItStarted,
 }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -55,13 +46,12 @@ export const BreadCrumbInspection: FC<Props> = ({
           onPress: async () => {
             try {
               setLoading(true);
-              await POST_Inspection({
-                Id: inspectionId,
-                DInit: GetTime(),
+              await POST_InspectionFase({
+                Id: InspectionFaseId,
+                FaseId: faseId,
+                InspectionId: inspectionId,
                 token,
-                AreaId: areaId,
-                VehicleId: vehicleId,
-                CreatedBy: createdBy,
+                InitDate: GetTime(),
               });
 
               UpdateMenu();
@@ -120,7 +110,7 @@ export const BreadCrumbInspection: FC<Props> = ({
           onPress={handleInitInspection}
           disabled={loading}
         >
-          <Text style={styles.buttonText}>Iniciar Inspección</Text>
+          <Text style={styles.buttonText}>Iniciar Fase</Text>
         </TouchableOpacity>
       );
     }
