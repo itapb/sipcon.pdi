@@ -13,30 +13,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { user, isLoggedIn } = useAuthStore();
+
   // TODO: Falta el manejo de los errores y la carga
-  const {
-    fases,
-    inspections,
-    loading,
-    GetInfoPage,
-    setNeedsRefresh,
-    needsRefresh,
-  } = HookInspections();
+  const { fases, inspections, loading, GetInfoPage } = HookInspections();
 
   useEffect(() => {
     if (isLoggedIn) {
       // Cargamos si es la primera vez O si alguien activó el refresh global
-      if (!inspections.length || needsRefresh) {
-        GetInfoPage({ areaId: 13, forceRefresh: !!needsRefresh });
+      if (!inspections.length) {
+        GetInfoPage({ areaId: 13 });
 
         // Importante: Bajamos la bandera una vez que iniciamos la carga
-        if (needsRefresh) setNeedsRefresh(false);
       }
     }
-  }, [isLoggedIn, needsRefresh, GetInfoPage]);
+  }, [isLoggedIn, GetInfoPage]);
 
   const ManualRefresh = () => {
-    GetInfoPage({ areaId: 13, forceRefresh: true });
+    GetInfoPage({ areaId: 13 });
   };
 
   if (!isLoggedIn) return null;
@@ -70,7 +63,7 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* Datatable */}
-        <TableInspection Inspections={inspections} />
+        <TableInspection Inspections={inspections} fases={fases} />
       </View>
 
       <FAB

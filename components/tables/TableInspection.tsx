@@ -1,4 +1,5 @@
 import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
+import { T_GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
 import { FC, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { Searchbar } from 'react-native-paper';
@@ -8,9 +9,10 @@ const { width } = Dimensions.get('window');
 
 type Props = {
   Inspections: DataInspection[];
+  fases: T_GroupInspectionsFase[];
 };
 
-export const TableInspection: FC<Props> = ({ Inspections }) => {
+export const TableInspection: FC<Props> = ({ Inspections, fases }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Memorizamos el filtrado para evitar cálculos innecesarios en cada render
@@ -44,7 +46,7 @@ export const TableInspection: FC<Props> = ({ Inspections }) => {
         inputStyle={styles.searchInput}
       />
 
-      <DatatableInspection Inspections={filteredInspections} />
+      <DatatableInspection Inspections={filteredInspections} fases={fases} />
     </View>
   );
 };

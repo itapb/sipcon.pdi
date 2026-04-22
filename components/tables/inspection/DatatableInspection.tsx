@@ -1,6 +1,6 @@
-import { useInspectionStore } from '@/store/useInspectionStore';
 import { useVehicleStore } from '@/store/useVehicleStore';
 import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
+import { T_GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
 import { GroupLoteModel } from '@/utils/GroupLoteModel';
 import { useRouter } from 'expo-router';
 import * as React from 'react';
@@ -12,6 +12,7 @@ const { height } = Dimensions.get('window');
 
 type Props = {
   Inspections: DataInspection[];
+  fases: T_GroupInspectionsFase[];
 };
 
 type GoInspection = {
@@ -21,13 +22,15 @@ type GoInspection = {
   plate: string;
 };
 
-export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
+export const DatatableInspection: React.FC<Props> = ({
+  Inspections,
+  fases,
+}) => {
   const router = useRouter();
 
   const selectedVehicles = useVehicleStore((state) => state.selectedVehicles);
   const toggleVehicle = useVehicleStore((state) => state.toggleVehicle);
   const clearSelection = useVehicleStore((state) => state.clearSelection);
-  const fase = useInspectionStore((state) => state.fases);
 
   // Ejemplo de uso en un renderizado
   const SelectVehicle = (id: number) => {
@@ -97,7 +100,7 @@ export const DatatableInspection: React.FC<Props> = ({ Inspections }) => {
                           vehicle={vehicle}
                           isSelected={selectedVehicles.includes(vehicle.id)}
                           onSelect={SelectVehicle}
-                          fase={fase}
+                          fase={fases}
                           onPressVim={() =>
                             GoToInspection({
                               id: vehicle.id,

@@ -2,7 +2,10 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useInspectionStore } from '@/store/useInspectionStore'; // Importamos el nuevo store
 import { GET_InspectionsFases } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GET_Inspections } from '@/utils/fetchs/inspections/GET_Inspections';
-import { GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
+import {
+  GroupInspectionsFase,
+  T_GroupInspectionsFase,
+} from '@/utils/GroupInspectionsByFase';
 import { useCallback, useState } from 'react';
 
 type Props = {
@@ -12,24 +15,20 @@ type Props = {
 
 export const HookInspections = () => {
   const { user } = useAuthStore();
-  const {
-    fases,
-    inspections,
-    isLoaded,
-    setInspectionsData,
-    needsRefresh,
-    setNeedsRefresh,
-  } = useInspectionStore();
+  const { isLoaded, setInspectionsData, needsRefresh, setNeedsRefresh } =
+    useInspectionStore();
 
+  const [fases, setFases] = useState<T_GroupInspectionsFase[]>([]);
+  const [inspections, setInspections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const GetInfoPage = useCallback(
-    async ({ areaId, forceRefresh = false }: Props) => {
+    async ({ areaId }: Props) => {
       if (!user?.token) return;
 
       // Si ya tenemos datos y no estamos obligando a refrescar, salimos discretamente
-      if (isLoaded && !forceRefresh) return;
+      if (isLoaded) return;
 
       setLoading(true);
       setError(null);
@@ -53,8 +52,9 @@ export const HookInspections = () => {
           finalInspections = resInspections;
         }
 
+        setFases(finalFases);
+        setInspections(finalInspections);
         // Guardamos todo en el Store Global
-        setInspectionsData(finalFases, finalInspections);
       } catch (err) {
         console.error('Error obteniendo datos:', err);
         setError('No se pudieron cargar los datos de inspección');
