@@ -1,7 +1,8 @@
+import { T_GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
 import { create } from 'zustand';
 
 interface InspectionState {
-  fases: any[];
+  fases: T_GroupInspectionsFase[];
   inspections: any[];
   isLoaded: boolean; // Flag para saber si ya cargamos la primera vez
   needsRefresh: boolean;
