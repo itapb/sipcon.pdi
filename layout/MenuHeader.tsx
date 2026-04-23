@@ -20,9 +20,11 @@ export const MenuHeader: FC = () => {
 
   const {
     user,
-    area,
+    areas,
     selectedSupplier,
     selectedDealer,
+    selectedArea,
+    setSelectedArea,
     setSelectedDealer,
     setSelectedSupplier,
     logout,
@@ -32,14 +34,29 @@ export const MenuHeader: FC = () => {
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
 
-  // Función para manejar el cambio (aquí llamarías a tu store)
-  const HandleOnChange = (itemValue: number, type: 'dealer' | 'supplier') => {
+  const uniqueAreas = Array.from(
+    new Map(
+      areas?.map((item) => [
+        item.areaId,
+        { id: item.areaId, name: item.areaName },
+      ]),
+    ).values(),
+  );
+
+  const HandleOnChange = (
+    itemValue: number,
+    type: 'dealer' | 'supplier' | 'area',
+  ) => {
     if (type === 'dealer') {
       setSelectedDealer(itemValue);
+    } else if (type === 'area') {
+      setSelectedArea(itemValue);
     } else {
       setSelectedSupplier(itemValue);
     }
   };
+
+  const hasCeroDealer = user?.dealers.some((item) => item.id === 0);
 
   return (
     <View style={styles.header}>
@@ -47,6 +64,9 @@ export const MenuHeader: FC = () => {
         <Ionicons name='menu' size={30} color='#333' />
       </TouchableOpacity>
 
+      <Text style={styles.label_header}>
+        {areas?.find((item) => item.areaId === selectedArea)?.areaName}
+      </Text>
       <Image
         source={require('../assets/images/logos/LogoAPB.png')}
         style={styles.logo}
@@ -67,7 +87,10 @@ export const MenuHeader: FC = () => {
             />
             <View style={styles.userDetails}>
               <Text style={styles.userName}>{user?.login || 'Usuario'}</Text>
-              <Text style={styles.userRole}>{area || 'Área'}</Text>
+              <Text style={styles.userRole}>
+                {areas?.find((item) => item.areaId === selectedArea)
+                  ?.areaName || 'Área'}
+              </Text>
             </View>
           </View>
 
@@ -111,11 +134,44 @@ export const MenuHeader: FC = () => {
               </View>
             </View>
 
+            {!hasCeroDealer && (
+              <View style={styles.pickerSection}>
+                <Text style={styles.label}>Concesionario</Text>
+                <View style={styles.pickerWrapper}>
+                  <Ionicons
+                    name={'business'}
+                    size={20}
+                    color='#2563EB'
+                    style={styles.pickerIcon}
+                  />
+                  <Picker
+                    selectedValue={selectedDealer}
+                    onValueChange={(itemValue) =>
+                      HandleOnChange(itemValue!, 'dealer')
+                    }
+                    style={styles.picker}
+                    mode='dropdown' // Solo afecta a Android
+                    dropdownIconColor='#64748B'
+                  >
+                    {user?.dealers
+                      .filter((item) => item.supplierId == selectedSupplier)
+                      .map((item, index) => (
+                        <Picker.Item
+                          key={item.id + index}
+                          label={item.name}
+                          value={item.id}
+                        />
+                      ))}
+                  </Picker>
+                </View>
+              </View>
+            )}
+
             <View style={styles.pickerSection}>
-              <Text style={styles.label}>Concesionario</Text>
+              <Text style={styles.label}>Areas</Text>
               <View style={styles.pickerWrapper}>
                 <Ionicons
-                  name={'business'}
+                  name={'grid-outline'}
                   size={20}
                   color='#2563EB'
                   style={styles.pickerIcon}
@@ -123,21 +179,19 @@ export const MenuHeader: FC = () => {
                 <Picker
                   selectedValue={selectedDealer}
                   onValueChange={(itemValue) =>
-                    HandleOnChange(itemValue!, 'dealer')
+                    HandleOnChange(itemValue!, 'area')
                   }
                   style={styles.picker}
                   mode='dropdown' // Solo afecta a Android
                   dropdownIconColor='#64748B'
                 >
-                  {user?.dealers
-                    .filter((item) => item.supplierId == selectedSupplier)
-                    .map((item, index) => (
-                      <Picker.Item
-                        key={item.id + index}
-                        label={item.name}
-                        value={item.id}
-                      />
-                    ))}
+                  {uniqueAreas?.map((item, index) => (
+                    <Picker.Item
+                      key={item.id + index}
+                      label={item.name}
+                      value={item.id}
+                    />
+                  ))}
                 </Picker>
               </View>
             </View>
@@ -207,6 +261,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#94A3B8',
+    marginBottom: 5,
+    textTransform: 'uppercase',
+  },
+  label_header: {
+    fontSize: 17,
+    fontWeight: '700',
     marginBottom: 5,
     textTransform: 'uppercase',
   },
