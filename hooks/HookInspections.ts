@@ -1,5 +1,4 @@
 import { useAuthStore } from '@/store/useAuthStore';
-import { useInspectionStore } from '@/store/useInspectionStore'; // Importamos el nuevo store
 import { GET_InspectionsFases } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GET_Inspections } from '@/utils/fetchs/inspections/GET_Inspections';
 import {
@@ -14,21 +13,16 @@ type Props = {
 };
 
 export const HookInspections = () => {
-  const { user } = useAuthStore();
-  const { isLoaded, setInspectionsData, needsRefresh, setNeedsRefresh } =
-    useInspectionStore();
+  const { user, isLoggedIn } = useAuthStore();
 
-  const [fases, setFases] = useState<T_GroupInspectionsFase[]>([]);
-  const [inspections, setInspections] = useState<any[]>([]);
+  const [fases, setFases] = useState<T_GroupInspectionsFase[] | null>(null);
+  const [inspections, setInspections] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const GetInfoPage = useCallback(
     async ({ areaId }: Props) => {
       if (!user?.token) return;
-
-      // Si ya tenemos datos y no estamos obligando a refrescar, salimos discretamente
-      if (isLoaded) return;
 
       setLoading(true);
       setError(null);
@@ -62,7 +56,7 @@ export const HookInspections = () => {
         setLoading(false);
       }
     },
-    [user, isLoaded, setInspectionsData, fases, inspections],
+    [user, fases, inspections],
   );
 
   return {
@@ -70,8 +64,8 @@ export const HookInspections = () => {
     inspections,
     loading,
     error,
+    isLoggedIn,
+    user,
     GetInfoPage,
-    needsRefresh,
-    setNeedsRefresh,
   };
 };

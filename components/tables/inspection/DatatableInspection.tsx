@@ -17,9 +17,7 @@ type Props = {
 
 type GoInspection = {
   id: number;
-  model: string;
-  vin: string;
-  plate: string;
+  faseId: number;
 };
 
 export const DatatableInspection: React.FC<Props> = ({
@@ -51,9 +49,7 @@ export const DatatableInspection: React.FC<Props> = ({
       pathname: '/inspection/[id]',
       params: {
         id: props.id.toString(),
-        model: props.model,
-        vin: props.vin,
-        plate: props.plate,
+        faseId: props.faseId.toString(),
       },
     });
   };
@@ -104,9 +100,7 @@ export const DatatableInspection: React.FC<Props> = ({
                           onPressVim={() =>
                             GoToInspection({
                               id: vehicle.id,
-                              vin: vehicle.vin,
-                              model: modelName,
-                              plate: vehicle.vehiclePlate,
+                              faseId: fases[0].faseId,
                             })
                           }
                         />

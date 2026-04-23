@@ -1,6 +1,7 @@
 import { DataInspectionFase } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { type FC } from 'react';
+import { usePathname, useRouter } from 'expo-router';
+import { type FC, useCallback } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -13,51 +14,51 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 interface Props {
   fases: DataInspectionFase[];
   activePhase: number;
-  onPhaseChange: (faseId: number) => void;
 }
 
-export const FooterInspections: FC<Props> = ({
-  fases,
-  activePhase,
-  onPhaseChange,
-}) => {
+export const FooterInspections: FC<Props> = ({ fases, activePhase }) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const insets = useSafeAreaInsets();
 
-  const getStatusColor = (isDone: boolean, isActive: boolean) => {
-    if (isDone) return '#22C55E'; // Verde Esmeralda
-    if (isActive) return '#3B82F6'; // Azul
-    return '#94A3B8'; // Gris Slate
-  };
-
+  // Memorizamos la función de color para evitar cálculos en el render
+  const getStatusColor = useCallback((isDone: boolean, isActive: boolean) => {
+    if (isDone) return '#22C55E';
+    if (isActive) return '#3B82F6';
+    return '#94A3B8';
+  }, []);
   return (
     <View
       style={[
         styles.fixedFooter,
-        {
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
-        },
+        { paddingBottom: insets.bottom > 0 ? insets.bottom : 10 },
       ]}
     >
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={false} //
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
       >
         {fases.map((phase) => {
-          const isActive = +activePhase === phase.faseId;
+          // Aseguramos comparación numérica
+          const isActive = Number(activePhase) === Number(phase.faseId);
           const isDone = !!phase.isCompleted;
-
-          getStatusColor(isDone, isActive);
+          const currentColor = getStatusColor(isDone, isActive);
 
           return (
             <TouchableOpacity
-              key={phase.id}
+              key={`fase-${phase.faseId}-${phase.id}`} // Key más único
               style={styles.footerButton}
-              onPress={() => onPhaseChange(phase.faseId)}
+              onPress={() =>
+                router.replace({
+                  pathname: pathname as any, // o el 'pathname' que ya tienes
+                  params: { faseId: phase.faseId }, // Aquí agregas tus parámetros
+                })
+              }
               activeOpacity={0.7}
             >
               <View style={styles.contentWrapper}>
-                {/* Icono de check si está completo */}
                 {isDone && (
                   <MaterialCommunityIcons
                     name='check-circle'
@@ -70,21 +71,19 @@ export const FooterInspections: FC<Props> = ({
                 <Text
                   style={[
                     styles.footerButtonText,
-                    { color: getStatusColor(isDone, isActive) },
+                    { color: currentColor },
                     isActive && styles.textActive,
-                    !isDone && !isActive && { color: '#EF4444' }, // Opcional: Rojo si no está listo
                   ]}
                 >
                   {phase.fase.toUpperCase()}
                 </Text>
               </View>
 
-              {/* Indicador inferior dinámico */}
               {isActive && (
                 <View
                   style={[
                     styles.activeIndicator,
-                    { backgroundColor: getStatusColor(isDone, isActive) },
+                    { backgroundColor: currentColor },
                   ]}
                 />
               )}

@@ -4,6 +4,7 @@ export type T_GroupInspectionsFase = {
   completed: number;
   name_fase: string;
   total: number;
+  faseId: number;
   inpectionsId: [
     {
       id: number;
@@ -17,12 +18,14 @@ export const GroupInspectionsFase = (
 ): T_GroupInspectionsFase[] => {
   const grouped = data.reduce((acc: any, item: DataInspectionFase) => {
     const name = item.fase;
+    const faseId = item.faseId;
 
     if (!acc[name]) {
       acc[name] = {
         name_fase: name,
         total: 0,
         completed: 0,
+        faseId,
         inpectionsId: [],
       };
     }

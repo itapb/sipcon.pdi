@@ -4,35 +4,31 @@ import { TableInspection } from '@/components/tables/TableInspection';
 import { HookInspections } from '@/hooks/HookInspections';
 import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
-import { useAuthStore } from '@/store/useAuthStore';
 import { AntDesign } from '@expo/vector-icons';
 import { useEffect } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FAB } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  const { user, isLoggedIn } = useAuthStore();
-
   // TODO: Falta el manejo de los errores y la carga
-  const { fases, inspections, loading, GetInfoPage } = HookInspections();
+  const { fases, inspections, loading, isLoggedIn, GetInfoPage, user } =
+    HookInspections();
 
   useEffect(() => {
     if (isLoggedIn) {
-      // Cargamos si es la primera vez O si alguien activó el refresh global
-      if (!inspections.length) {
+      if (!inspections) {
         GetInfoPage({ areaId: 13 });
-
-        // Importante: Bajamos la bandera una vez que iniciamos la carga
       }
     }
-  }, [isLoggedIn, GetInfoPage]);
+  }, [isLoggedIn, GetInfoPage, inspections]);
+
+  if (!isLoggedIn) return null;
+  if (!inspections || !fases) return <Text>No hay datos</Text>;
 
   const ManualRefresh = () => {
     GetInfoPage({ areaId: 13 });
   };
-
-  if (!isLoggedIn) return null;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>

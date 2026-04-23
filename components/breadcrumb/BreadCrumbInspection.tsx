@@ -18,8 +18,7 @@ type Props = {
   isItStarted: boolean;
   token: string;
   faseId: number;
-  UpdateMenu: () => void;
-  faseCompleted: number;
+  faseCompleted: boolean;
 };
 
 export const BreadCrumbInspection: FC<Props> = ({
@@ -29,7 +28,6 @@ export const BreadCrumbInspection: FC<Props> = ({
   inspectionId,
   faseId,
   faseCompleted,
-  UpdateMenu,
 }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -54,9 +52,10 @@ export const BreadCrumbInspection: FC<Props> = ({
                 InitDate: GetTime(),
               });
 
-              UpdateMenu();
-
-              router.replace(pathname as any);
+              router.replace({
+                pathname: pathname as any,
+                params: { faseId: faseId },
+              });
             } catch (error) {
               Alert.alert('Error', 'No se pudo iniciar la inspección.');
             } finally {
@@ -87,9 +86,10 @@ export const BreadCrumbInspection: FC<Props> = ({
                 CompletedDate: GetTime(),
               });
 
-              UpdateMenu();
-
-              router.replace(pathname as any);
+              router.replace({
+                pathname: pathname as any,
+                params: { faseId },
+              });
             } catch (error) {
               Alert.alert('Error', 'No se pudo completar la fase.');
             } finally {

@@ -1,4 +1,11 @@
-import React, { type FC, useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  type FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Platform,
   SectionList,
@@ -13,6 +20,7 @@ type Props = {
   Groups: {
     questions: Questions[];
     featureType: string;
+    faseId: number;
   }[];
   readOnly: boolean;
   token: string;
@@ -37,9 +45,16 @@ export const ListFeatures: FC<Props> = ({
   userId,
 }) => {
   // Estado para el FeatureType visible
-  const [currentFeatureType, setCurrentFeatureType] = useState<string>(
-    Groups[0]?.featureType || 'Cargando...',
-  );
+  const [currentFeatureType, setCurrentFeatureType] = useState<string>('');
+
+  // Sincronizar el badge cuando cambian los grupos (evita desfase en UI)
+  useEffect(() => {
+    if (Groups && Groups.length > 0) {
+      setCurrentFeatureType(Groups[0].featureType || 'Cargando...');
+    } else {
+      setCurrentFeatureType('');
+    }
+  }, [Groups]);
 
   // 1. Formateo seguro de secciones
   const sections = useMemo(() => {
@@ -50,12 +65,12 @@ export const ListFeatures: FC<Props> = ({
     }));
   }, [Groups]);
 
-  // 2. Detección de sección visible con validación
+  // 2. Detección de sección visible con validación para evitar crashes al cambiar de datos
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems && viewableItems.length > 0) {
         const firstItem = viewableItems[0];
-        // Verificamos que exista la sección y el título antes de asignar
+        // Validamos la existencia de la sección para evitar el error de "undefined"
         if (firstItem?.section?.title) {
           setCurrentFeatureType(firstItem.section.title);
         }
@@ -65,12 +80,13 @@ export const ListFeatures: FC<Props> = ({
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,
+    minimumViewTime: 100,
   }).current;
 
-  // 3. RenderItem con validación de existencia del item
+  // 3. RenderItem optimizado
   const renderItem = useCallback(
     ({ item }: { item: Questions }) => {
-      if (!item) return null; // Evita renderizar si el item es undefined
+      if (!item) return null;
 
       return (
         <InspectionFeature
@@ -102,26 +118,16 @@ export const ListFeatures: FC<Props> = ({
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Indicador de Estación Actual */}
-      <View style={styles.floatingBadge}>
-        <Text style={styles.floatingBadgeText}>{currentFeatureType}</Text>
-      </View>
-
       <SectionList
         sections={sections}
-        // KEY EXTRACTOR SEGURO: Si id no existe, usa el index para evitar el crash
-        keyExtractor={(item, index) => {
-          if (item && item.id !== undefined) {
-            return item.id.toString();
-          }
-          return `fallback-key-${index}`;
-        }}
+        // Key mejorada para evitar colisiones de ID entre fases
+        keyExtractor={(item, index) => `${item.id}-${item.featureId}-${index}`}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         stickySectionHeadersEnabled={false}
-        initialNumToRender={10}
+        initialNumToRender={10} // Aumentado para mejor respuesta visual
         maxToRenderPerBatch={10}
         windowSize={5}
         removeClippedSubviews={Platform.OS === 'android'}
@@ -129,7 +135,8 @@ export const ListFeatures: FC<Props> = ({
         keyboardShouldPersistTaps='handled'
         contentContainerStyle={styles.scrollContent}
         style={styles.scrollContainer}
-        ListFooterComponent={<View style={{ height: 150 }} />}
+        // Espacio al final para que el último item no quede tapado por botones
+        ListFooterComponent={<View style={{ height: 120 }} />}
       />
     </View>
   );
