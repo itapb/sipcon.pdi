@@ -66,6 +66,7 @@ export default function InspectionScreen() {
         GET_InspectionsFases({
           inspectionId: props.inspectionId,
           token: user.token,
+          Completed: false,
         }),
         GET_InspectionById({
           inspectionId: props.inspectionId,

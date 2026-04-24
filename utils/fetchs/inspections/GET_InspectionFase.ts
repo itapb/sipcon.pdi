@@ -6,6 +6,7 @@ type Props = {
   inspectionId?: number;
   IsCompleted?: boolean;
   token: string;
+  Completed: boolean;
 };
 
 export type DataInspectionFase = {
@@ -21,6 +22,7 @@ export type DataInspectionFase = {
   isActive: boolean;
   userInitId: number | null;
   login: string;
+  Completed: number;
 };
 
 export const GET_InspectionsFases = async (props: Props) => {
@@ -36,6 +38,8 @@ export const GET_InspectionsFases = async (props: Props) => {
       params.append('inspectionId', props.inspectionId.toString());
     if (props.IsCompleted !== undefined)
       params.append('IsCompleted', props.IsCompleted.toString());
+    if (props.Completed !== undefined)
+      params.append('IsCompletedInspection', props.Completed.toString());
 
     const queryString = params.toString();
     const url = `${API_BASE}/InspectionFase/GetAll${queryString ? `?${queryString}` : ''}`;

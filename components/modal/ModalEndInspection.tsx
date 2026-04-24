@@ -9,6 +9,7 @@ import {
 import { GetTime } from '@/utils/GetTime';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { useRouter } from 'expo-router';
 import { useEffect, useState, type FC } from 'react';
 import {
   ActivityIndicator,
@@ -33,6 +34,8 @@ type Props = {
 
 // TODO: Separar logica, está muy complejo
 export const ModalEndInspection: FC<Props> = (props) => {
+  const router = useRouter();
+
   // --- Estados locales ---
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,7 +129,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
       // 3. Limpieza de estados y refresco de vista principal
       clearSelection();
-      props.onDismiss(false);
+      router.replace('/');
     } catch (error) {
       console.error('Error en proceso masivo:', error);
       Alert.alert(
