@@ -19,6 +19,7 @@ type Props = {
   token: string;
   faseId: number;
   faseCompleted: boolean;
+  userId: number;
 };
 
 export const BreadCrumbInspection: FC<Props> = ({
@@ -28,6 +29,7 @@ export const BreadCrumbInspection: FC<Props> = ({
   inspectionId,
   faseId,
   faseCompleted,
+  userId,
 }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -50,6 +52,7 @@ export const BreadCrumbInspection: FC<Props> = ({
                 InspectionId: inspectionId,
                 token,
                 InitDate: GetTime(),
+                UserInitId: userId,
               });
 
               router.replace({

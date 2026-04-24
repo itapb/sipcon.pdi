@@ -19,6 +19,8 @@ export type DataInspectionFase = {
   area: string;
   id: number;
   isActive: boolean;
+  userInitId: number | null;
+  login: string;
 };
 
 export const GET_InspectionsFases = async (props: Props) => {

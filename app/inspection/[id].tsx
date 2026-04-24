@@ -114,6 +114,11 @@ export default function InspectionScreen() {
 
   const hasPermission = areas?.some((item) => item.id == activedFase.faseId);
 
+  // Falta esos permisos
+  const canEditFase = inspectionFase.some(
+    (item) => item.faseId === activedFase.faseId && !item.initDate,
+  );
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -123,6 +128,7 @@ export default function InspectionScreen() {
           <BreadCrumbInspection
             isItStarted={!!activedFase.initDate || !hasPermission}
             token={user!.token}
+            userId={user!.userId}
             inspectionId={+id}
             InspectionFaseId={activedFase.id} // traer la fase la cual estoy posicionado
             faseId={+faseId}

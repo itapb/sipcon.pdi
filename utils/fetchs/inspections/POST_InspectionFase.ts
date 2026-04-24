@@ -7,6 +7,7 @@ export type Props = {
   CompletedDate?: Date;
   InitDate?: Date;
   token: string;
+  UserInitId?: number;
 };
 
 type Result = {
@@ -30,6 +31,10 @@ export const POST_InspectionFase = async (props: Props) => {
 
     if (props.InitDate) {
       data_body.InitDate = props.InitDate;
+    }
+
+    if (props.UserInitId) {
+      data_body.UserInitId = props.UserInitId;
     }
 
     const result = await fetch(
