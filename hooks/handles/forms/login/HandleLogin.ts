@@ -1,3 +1,4 @@
+import { DataAreas, GETALL_Areas } from '@/utils/fetchs/Areas/Get_Areas';
 import { GET_Encrypt } from '@/utils/fetchs/login/GET_Encrypt';
 import { GET_Salt } from '@/utils/fetchs/login/GET_Salt';
 import { DataUser, POST_Login } from '@/utils/fetchs/login/POST_Login';
@@ -7,7 +8,7 @@ type Props = {
   username: string;
   password: string;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  login: (user: DataUser, area: number) => void;
+  login: (user: DataUser, area: DataAreas[]) => void;
 };
 
 export const HandleLogin = async (props: Props) => {
@@ -61,7 +62,22 @@ export const HandleLogin = async (props: Props) => {
       return;
     }
 
-    props.login(data_user, 1); // Area por defecto 1
+    const areas = await GETALL_Areas({
+      dealerId: data_user.dealers[0].id,
+      supplierId: data_user.suppliers[0].id,
+      token: data_user.token,
+      userId: data_user.userId,
+    });
+
+    if (!areas || areas.length === 0) {
+      Alert.alert(
+        'Error',
+        'El usuario no tiene su rol configurado, por favor contactar con su supervisor',
+      );
+      return;
+    }
+
+    props.login(data_user, areas);
   } catch (error) {
     console.log('Login Error:', error);
     Alert.alert('Error', 'No se pudo conectar con el servidor.');

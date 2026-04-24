@@ -1,4 +1,4 @@
-import { DataAreas, GETALL_Areas } from '@/utils/fetchs/Areas/Get_Areas';
+import { DataAreas } from '@/utils/fetchs/Areas/Get_Areas';
 import type { DataUser } from '@/utils/fetchs/login/POST_Login';
 import { create } from 'zustand';
 
@@ -10,7 +10,7 @@ interface AuthState {
   selectedArea: number | null;
   isLoggedIn: boolean;
   // Acciones (Funciones para cambiar el estado)
-  login: (user: DataUser, area: number) => void;
+  login: (user: DataUser, areas: DataAreas[]) => void;
   logout: () => void;
   setSelectedDealer: (dealerId: number) => void;
   setSelectedSupplier: (supplierId: number) => void;
@@ -25,18 +25,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   selectedSupplier: null,
   isLoggedIn: false,
 
-  login: async (user) => {
-    let areas = await GETALL_Areas({
-      dealerId: user.dealers[0].id,
-      supplierId: user.suppliers[0].id,
-      token: user.token,
-      userId: user.userId,
-    });
-
-    if (areas === null) {
-      areas = [];
-    }
-
+  login: async (user, areas) => {
     set({
       user,
       areas,
@@ -47,7 +36,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     });
   },
 
-  // A mi me pasó, y me senti malito o achicopaldo, mis amigos estaban muy tristes :C
   logout: () =>
     set({
       user: null,
