@@ -35,11 +35,13 @@ export const VehicleItem = React.memo((props: VehicleItemProps) => {
     <View style={styles.vehicleRow}>
       {/* Celda del Checkbox */}
       <View style={styles.checkCell}>
-        <Checkbox
-          status={props.isSelected ? 'checked' : 'unchecked'}
-          onPress={() => props.onSelect(props.vehicle.id)}
-          color='#2196F3'
-        />
+        {compliance === 100 && (
+          <Checkbox
+            status={props.isSelected ? 'checked' : 'unchecked'}
+            onPress={() => props.onSelect(props.vehicle.id)}
+            color='#2196F3'
+          />
+        )}
       </View>
 
       {/* Contenedor de Información */}
