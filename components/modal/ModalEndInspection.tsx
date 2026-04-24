@@ -1,4 +1,3 @@
-import { useInspectionStore } from '@/store/useInspectionStore';
 import { useVehicleStore } from '@/store/useVehicleStore';
 import { DataDealer, GET_Dealer } from '@/utils/fetchs/dealer/GET_Dealer';
 import { GET_InspectionById } from '@/utils/fetchs/inspections/GET_InspectionById';
@@ -43,7 +42,6 @@ export const ModalEndInspection: FC<Props> = (props) => {
   const [valueDealer, setValueDealer] = useState<number>(0);
 
   // --- Store (Zustand) ---
-  const setNeedsRefresh = useInspectionStore((state) => state.setNeedsRefresh);
   const selectedVehicles = useVehicleStore((state) => state.selectedVehicles);
   const clearSelection = useVehicleStore((state) => state.clearSelection);
 
@@ -128,7 +126,6 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
       // 3. Limpieza de estados y refresco de vista principal
       clearSelection();
-      setNeedsRefresh(true);
       props.onDismiss(false);
     } catch (error) {
       console.error('Error en proceso masivo:', error);
@@ -193,6 +190,8 @@ export const ModalEndInspection: FC<Props> = (props) => {
                     selectedValue={valueTransporter}
                     onValueChange={(val) => setValueTransporter(val)}
                     enabled={!isSubmitting}
+                    style={{ width: '100%', color: '#000' }}
+                    dropdownIconColor='#FFF'
                   >
                     <Picker.Item
                       label='Seleccione transportista...'
@@ -201,6 +200,10 @@ export const ModalEndInspection: FC<Props> = (props) => {
                     />
                     {transporter.map((item) => (
                       <Picker.Item
+                        style={{
+                          color: '#000',
+                          backgroundColor: 'transparent',
+                        }}
                         key={item.id}
                         label={item.firstName}
                         value={item.id}
@@ -219,6 +222,8 @@ export const ModalEndInspection: FC<Props> = (props) => {
                     selectedValue={valueDealer}
                     onValueChange={(val) => setValueDealer(val)}
                     enabled={!isSubmitting}
+                    style={{ width: '100%', color: '#000' }}
+                    dropdownIconColor='#FFF'
                   >
                     <Picker.Item
                       label='Seleccione concesionario...'
@@ -227,6 +232,10 @@ export const ModalEndInspection: FC<Props> = (props) => {
                     />
                     {dealer.map((item) => (
                       <Picker.Item
+                        style={{
+                          color: '#000',
+                          backgroundColor: 'transparent',
+                        }}
                         key={item.id}
                         label={`${item.reference} - ${item.name}`}
                         value={item.id}

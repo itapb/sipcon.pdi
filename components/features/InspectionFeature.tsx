@@ -182,6 +182,7 @@ export const InspectionFeature: FC<Props> = (props) => {
               ]}
               keyboardType='number-pad'
               placeholder='0'
+              placeholderTextColor={'#000'}
               value={value !== null ? String(value) : ''}
               onChangeText={(txt) => {
                 const cleanText = txt.replace(/[^0-9]/g, '');

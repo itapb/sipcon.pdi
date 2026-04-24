@@ -15,13 +15,21 @@ export default function HomeScreen() {
   const { faseId = 0 as any } = useLocalSearchParams();
 
   // TODO: Falta el manejo de los errores y la carga
-  const { fases, inspections, loading, isLoggedIn, GetInfoPage, user, areas } =
-    HookInspections();
+  const {
+    fases,
+    inspections,
+    loading,
+    isLoggedIn,
+    GetInfoPage,
+    user,
+    areas,
+    selectedArea,
+  } = HookInspections();
 
   useEffect(() => {
     if (isLoggedIn) {
       if (!inspections) {
-        GetInfoPage({ areaId: 13 });
+        GetInfoPage({ areaId: selectedArea! });
       }
     }
   }, [isLoggedIn, GetInfoPage, inspections]);
@@ -30,7 +38,7 @@ export default function HomeScreen() {
   if (!inspections || !fases) return <Text>No hay datos</Text>;
 
   const ManualRefresh = () => {
-    GetInfoPage({ areaId: 13 });
+    GetInfoPage({ areaId: selectedArea! });
   };
 
   return (
@@ -81,7 +89,11 @@ export default function HomeScreen() {
         color='white'
       />
 
-      <FooterMain areaId={13} token={user!.token} userId={user!.userId} />
+      <FooterMain
+        areaId={selectedArea!}
+        token={user!.token}
+        userId={user!.userId}
+      />
     </SafeAreaView>
   );
 }
