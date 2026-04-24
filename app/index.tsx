@@ -5,12 +5,15 @@ import { HookInspections } from '@/hooks/HookInspections';
 import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
 import { AntDesign } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FAB } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
+  const { faseId = 0 as any } = useLocalSearchParams();
+
   // TODO: Falta el manejo de los errores y la carga
   const { fases, inspections, loading, isLoggedIn, GetInfoPage, user } =
     HookInspections();
@@ -52,14 +55,19 @@ export default function HomeScreen() {
               name_fase={item.name_fase}
               completed={item.completed}
               total={item.total}
-              // TODO: Mejorar esto
+              faseId={item.faseId}
+              selectedFaseId={faseId}
               icon={<AntDesign name='check' size={24} color='#16A34A' />}
             />
           ))}
         </ScrollView>
 
         {/* Datatable */}
-        <TableInspection Inspections={inspections} fases={fases} />
+        <TableInspection
+          Inspections={inspections}
+          fases={fases}
+          filterFaseId={faseId}
+        />
       </View>
 
       <FAB

@@ -10,22 +10,40 @@ const { width } = Dimensions.get('window');
 type Props = {
   Inspections: DataInspection[];
   fases: T_GroupInspectionsFase[];
+  filterFaseId: number;
 };
 
-export const TableInspection: FC<Props> = ({ Inspections, fases }) => {
+export const TableInspection: FC<Props> = ({
+  Inspections,
+  fases,
+  filterFaseId,
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Memorizamos el filtrado para evitar cálculos innecesarios en cada render
   const filteredInspections = useMemo(() => {
-    if (!searchQuery.trim()) return Inspections;
+    const query = searchQuery.toLowerCase().trim();
 
-    const query = searchQuery.toLowerCase();
+    const inspectionsInFase = Inspections.filter((inspection) => {
+      if (filterFaseId == 0) return true;
 
-    return Inspections.filter((item) => {
+      return fases.some(
+        (fase) =>
+          fase.faseId == filterFaseId &&
+          fase.inpectionsId.some(
+            (item) => item.id == inspection.id && !item.completed,
+          ),
+      );
+    });
+
+    if (query === '') {
+      return inspectionsInFase;
+    }
+
+    return inspectionsInFase.filter((item) => {
       const model = item.model?.toLowerCase() || '';
       const vin = item.vin?.toLowerCase() || '';
       const plate = item.vehiclePlate?.toLowerCase() || '';
-      const lote = item.lote?.toLocaleLowerCase() || '';
+      const lote = item.lote?.toLowerCase() || '';
 
       return (
         model.includes(query) ||
@@ -34,7 +52,7 @@ export const TableInspection: FC<Props> = ({ Inspections, fases }) => {
         lote.includes(query)
       );
     });
-  }, [searchQuery, Inspections]);
+  }, [searchQuery, Inspections, filterFaseId, fases]);
 
   return (
     <View style={styles.container}>
@@ -44,6 +62,7 @@ export const TableInspection: FC<Props> = ({ Inspections, fases }) => {
         value={searchQuery}
         style={styles.searchBar}
         inputStyle={styles.searchInput}
+        onIconPress={() => setSearchQuery('')}
       />
 
       <DatatableInspection Inspections={filteredInspections} fases={fases} />
@@ -53,9 +72,7 @@ export const TableInspection: FC<Props> = ({ Inspections, fases }) => {
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
+    width: '100%',
     alignItems: 'center',
   },
   searchBar: {
@@ -71,5 +88,6 @@ const styles = StyleSheet.create({
   searchInput: {
     fontSize: 14,
     minHeight: 0,
+    alignSelf: 'center',
   },
 });
