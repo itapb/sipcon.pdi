@@ -19,6 +19,7 @@ import {
   GET_InspectionsFases,
 } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GroupFeaturesByType } from '@/utils/GroupFeaturesByType';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -31,7 +32,7 @@ type Props = {
 
 export default function InspectionScreen() {
   const { id, faseId } = useLocalSearchParams();
-  const { user, isLoggedIn } = useAuthStore();
+  const { user, isLoggedIn, areas } = useAuthStore();
 
   // --- Estados de Control ---
   const [load, setLoad] = useState(false);
@@ -111,6 +112,8 @@ export default function InspectionScreen() {
 
   if (!activedFase) return <Text>No hay Fases</Text>;
 
+  const hasPermission = areas?.some((item) => item.id == activedFase.faseId);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -118,41 +121,63 @@ export default function InspectionScreen() {
         {/* BreadCrumbs fijos */}
         <View style={styles.mainContent}>
           <BreadCrumbInspection
-            isItStarted={!!activedFase.initDate}
+            isItStarted={!!activedFase.initDate || !hasPermission}
             token={user!.token}
             inspectionId={+id}
             InspectionFaseId={activedFase.id} // traer la fase la cual estoy posicionado
             faseId={+faseId}
-            faseCompleted={!!activedFase.isCompleted} // traer si esa fase está completada
-          />
-
-          {/* Información rápida de la unidad */}
-          <CardCar
-            model_name={inspection.model}
-            vin={inspection.vin}
-            plate={inspection.vehiclePlate}
-            imageSource={require('../../assets/images/carros/FotoAuto.png')}
-            inspectionId={+id}
-            token={user!.token}
-            userId={user!.userId}
-            readOnly={!activedFase.initDate || !!activedFase.isCompleted} // Ver si esta inspección se puede iniciar
-          />
-
-          {/* Observaciones Generales */}
-          <AccordionObservation
-            observation={observation}
-            setObservation={setObservation}
-            showObservation={showObservation}
-            setShowObservation={setShowObservation}
+            faseCompleted={!!activedFase.isCompleted || !hasPermission} // traer si esa fase está completada
           />
 
           {/* Lista de features */}
-          <ListFeatures
-            userId={user!.userId}
-            Groups={groups} // traer los grupos
-            token={user!.token}
-            readOnly={!activedFase.initDate || !!activedFase.isCompleted}
-          />
+          {!hasPermission ? (
+            <View style={styles.alertContainer}>
+              <View style={styles.iconWrapper}>
+                <MaterialCommunityIcons
+                  name='shield-lock-outline'
+                  size={28}
+                  color='#E11D48'
+                />
+              </View>
+              <View style={styles.textWrapper}>
+                <Text style={styles.alertTitle}>Acceso Restringido</Text>
+                <Text style={styles.alertSubtitle}>
+                  No tienes los permisos necesarios para modificar esta
+                  inspección. Contacta con tu supervisor.
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <>
+              {/* Información rápida de la unidad */}
+              <CardCar
+                model_name={inspection.model}
+                vin={inspection.vin}
+                plate={inspection.vehiclePlate}
+                imageSource={require('../../assets/images/carros/FotoAuto.png')}
+                inspectionId={+id}
+                token={user!.token}
+                userId={user!.userId}
+                readOnly={!activedFase.initDate || !!activedFase.isCompleted} // Ver si esta inspección se puede iniciar
+              />
+
+              {/* Observaciones Generales */}
+              <AccordionObservation
+                observation={observation}
+                setObservation={setObservation}
+                showObservation={showObservation}
+                setShowObservation={setShowObservation}
+              />
+
+              {/* Lista de features */}
+              <ListFeatures
+                userId={user!.userId}
+                Groups={groups} // traer los grupos
+                token={user!.token}
+                readOnly={!activedFase.initDate || !!activedFase.isCompleted}
+              />
+            </>
+          )}
 
           {/* Footer con Carrusel Horizontal */}
 
@@ -170,5 +195,41 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
+  },
+  mainWrapper: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  alertContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF1F2', // Rojo muy tenue
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FECDD3',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  iconWrapper: {
+    backgroundColor: '#FFE4E6',
+    padding: 10,
+    borderRadius: 10,
+    marginRight: 14,
+  },
+  textWrapper: {
+    flex: 1,
+  },
+  alertTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#9F1239', // Rojo oscuro elegante
+    marginBottom: 2,
+  },
+  alertSubtitle: {
+    fontSize: 13,
+    color: '#BE123C',
+    lineHeight: 18,
+    opacity: 0.8,
   },
 });

@@ -15,7 +15,7 @@ export default function HomeScreen() {
   const { faseId = 0 as any } = useLocalSearchParams();
 
   // TODO: Falta el manejo de los errores y la carga
-  const { fases, inspections, loading, isLoggedIn, GetInfoPage, user } =
+  const { fases, inspections, loading, isLoggedIn, GetInfoPage, user, areas } =
     HookInspections();
 
   useEffect(() => {
@@ -48,18 +48,21 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {fases.map((item, index) => (
-            <CardFase
-              key={index + item.name_fase}
-              color={'green'}
-              name_fase={item.name_fase}
-              completed={item.completed}
-              total={item.total}
-              faseId={item.faseId}
-              selectedFaseId={faseId}
-              icon={<AntDesign name='check' size={24} color='#16A34A' />}
-            />
-          ))}
+          {fases.map(
+            (item, index) =>
+              areas?.some((areaItem) => areaItem.id === item.faseId) && (
+                <CardFase
+                  key={index + item.name_fase}
+                  color={'green'}
+                  name_fase={item.name_fase}
+                  completed={item.completed}
+                  total={item.total}
+                  faseId={item.faseId}
+                  selectedFaseId={faseId}
+                  icon={<AntDesign name='check' size={24} color='#16A34A' />}
+                />
+              ),
+          )}
         </ScrollView>
 
         {/* Datatable */}

@@ -57,7 +57,7 @@ export const ModalInspection: FC<Props> = (props) => {
       }
 
       setNeedsRefresh(true);
-      router.replace(`/inspection/${result?.lastId}`);
+      router.replace(`/`);
 
       console.log({ result });
     } catch (error) {

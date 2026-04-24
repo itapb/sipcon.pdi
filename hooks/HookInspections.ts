@@ -13,7 +13,7 @@ type Props = {
 };
 
 export const HookInspections = () => {
-  const { user, isLoggedIn } = useAuthStore();
+  const { user, isLoggedIn, areas } = useAuthStore();
 
   const [fases, setFases] = useState<T_GroupInspectionsFase[] | null>(null);
   const [inspections, setInspections] = useState<any[] | null>(null);
@@ -66,6 +66,7 @@ export const HookInspections = () => {
     error,
     isLoggedIn,
     user,
+    areas,
     GetInfoPage,
   };
 };
