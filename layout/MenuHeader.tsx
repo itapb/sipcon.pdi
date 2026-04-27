@@ -54,6 +54,7 @@ export const MenuHeader: FC = () => {
     } else {
       setSelectedSupplier(itemValue);
     }
+    router.replace('/');
   };
 
   const hasCeroDealer = user?.dealers.some((item) => item.id === 0);
