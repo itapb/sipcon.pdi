@@ -1,3 +1,4 @@
+import { ModalConfirmInspection } from '@/components/modal/ModalConfirmInspection';
 import { ModalEndInspection } from '@/components/modal/ModalEndInspection';
 import { ModalInspection } from '@/components/modal/ModalInspection';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
@@ -16,31 +17,30 @@ export const FooterMain: FC<Props> = (props) => {
   const insets = useSafeAreaInsets();
   const [openInpection, setOpenInpection] = useState(false);
   const [openEndInpection, setOpenEndInpection] = useState(false);
+  const [openConfirmInspection, setOpenConfirmInspection] = useState(false);
 
-  // Acción para Nueva Inspección
-  const handleNewInspection = () => {
-    setOpenInpection(true);
-  };
+  const handleNewInspection = () => setOpenInpection(true);
 
-  // Acción para Salida
+  // TODO! SE DEBE MEJORAR ESTO URGENTEMENTE
   const handleExit = () => {
-    setOpenEndInpection(true);
+    if (props.areaId === 13) {
+      setOpenEndInpection(true); // Activamos este...
+    } else {
+      setOpenConfirmInspection(true); // ...o este
+    }
   };
 
   return (
     <View
       style={[
         styles.fixedFooter,
-        {
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
-        },
+        { paddingBottom: insets.bottom > 0 ? insets.bottom : 10 },
       ]}
     >
-      {/* Botón Izquierdo: NUEVA INSPECCIÓN */}
+      {/* Botones */}
       <TouchableOpacity
         style={styles.footerButton}
         onPress={handleNewInspection}
-        activeOpacity={0.7}
       >
         <View style={styles.greenCircle}>
           <MaterialIcons name='add' size={18} color='#22C55E' />
@@ -50,15 +50,14 @@ export const FooterMain: FC<Props> = (props) => {
         </Text>
       </TouchableOpacity>
 
-      {/* Botón Derecho: SALIDA */}
-      <TouchableOpacity
-        style={styles.footerButton}
-        onPress={handleExit}
-        activeOpacity={0.7}
-      >
+      <TouchableOpacity style={styles.footerButton} onPress={handleExit}>
         <MaterialCommunityIcons name='car-side' size={26} color='#EF4444' />
-        <Text style={[styles.footerButtonText, styles.textRed]}>SALIDA</Text>
+        <Text style={[styles.footerButtonText, styles.textRed]}>
+          {props.areaId === 13 ? 'SALIDA' : 'CIERRE'}
+        </Text>
       </TouchableOpacity>
+
+      {/* Modales - AQUÍ ESTABA EL ERROR DE MAPEO */}
 
       <ModalInspection
         onDismiss={setOpenInpection}
@@ -68,11 +67,20 @@ export const FooterMain: FC<Props> = (props) => {
         userId={props.userId}
       />
 
+      {/* Si es Area 13, mostramos el de Salida (End) */}
       <ModalEndInspection
         supplierId={props.supplierId}
-        onDismiss={setOpenEndInpection}
-        visible={openEndInpection}
+        onDismiss={setOpenEndInpection} // Antes tenías setOpenConfirmInspection (MAL)
+        visible={openEndInpection} // Antes tenías openConfirmInspection (MAL)
         areaId={props.areaId}
+        token={props.token}
+        userId={props.userId}
+      />
+
+      {/* Si NO es Area 13, mostramos el de Confirmación simple */}
+      <ModalConfirmInspection
+        onDismiss={setOpenConfirmInspection} // Antes tenías setOpenEndInpection (MAL)
+        visible={openConfirmInspection} // Antes tenías openEndInpection (MAL)
         token={props.token}
         userId={props.userId}
       />
