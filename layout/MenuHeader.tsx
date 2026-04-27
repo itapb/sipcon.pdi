@@ -178,7 +178,7 @@ export const MenuHeader: FC = () => {
                   style={styles.pickerIcon}
                 />
                 <Picker
-                  selectedValue={selectedDealer}
+                  selectedValue={selectedArea}
                   onValueChange={(itemValue) =>
                     HandleOnChange(itemValue!, 'area')
                   }
