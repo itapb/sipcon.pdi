@@ -28,6 +28,7 @@ export type DataInspectionDetail = {
   plate: string;
   id: number;
   isActive: boolean;
+  hasFiles: boolean;
 };
 
 export const GET_InspectionDetails = async (props: Props) => {

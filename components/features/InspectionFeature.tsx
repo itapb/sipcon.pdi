@@ -33,6 +33,7 @@ type Props = {
   readOnly: boolean;
   userId: number;
   featureValueTypeId: number;
+  hasFiles: boolean;
 };
 
 export const InspectionFeature: FC<Props> = (props) => {
@@ -212,6 +213,7 @@ export const InspectionFeature: FC<Props> = (props) => {
             readOnly={props.readOnly}
             recordID={props.id}
             moduleName='INSPECCION-TIPOS-CARACTERISTICAS'
+            hasFiles={props.hasFiles}
           />
         </View>
       </View>

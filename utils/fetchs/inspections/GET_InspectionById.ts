@@ -30,6 +30,7 @@ export type DataInspectionById = {
   isCompleted: number;
   id: number;
   isActive: boolean;
+  hasFiles: boolean;
 };
 
 export const GET_InspectionById = async (props: Props) => {

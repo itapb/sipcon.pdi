@@ -12,6 +12,7 @@ type Props = {
   token: string;
   userId: number;
   readOnly: boolean;
+  hasFiles: boolean;
 };
 
 export const CardCar: FC<Props> = (props) => {
@@ -35,6 +36,7 @@ export const CardCar: FC<Props> = (props) => {
 
         {/* Acciones de media */}
         <MediaActions
+          hasFiles={props.hasFiles}
           fileCount={1}
           additional_styles={{
             display: 'flex',

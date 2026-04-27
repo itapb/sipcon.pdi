@@ -36,6 +36,7 @@ export type Questions = {
   fileUrl: string | null;
   inspectionId: number;
   featureValueTypeId: number;
+  hasFiles: boolean;
 };
 
 export const ListFeatures: FC<Props> = ({
@@ -101,6 +102,7 @@ export const ListFeatures: FC<Props> = ({
           readOnly={readOnly}
           userId={userId}
           featureValueTypeId={item.featureValueTypeId}
+          hasFiles={item.hasFiles}
         />
       );
     },

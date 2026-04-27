@@ -13,6 +13,7 @@ type Props = {
   moduleName: string;
   additional_styles?: object;
   onImageCaptured?: (uri: string) => void;
+  hasFiles: boolean;
 };
 
 export const MediaActions: FC<Props> = (props) => {
@@ -51,9 +52,9 @@ export const MediaActions: FC<Props> = (props) => {
       >
         <FontAwesome5 name='folder' size={28} color='#B0BEC5' />
 
-        {props.fileCount > 0 && (
+        {props.hasFiles && (
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{`${props.fileCount}`}</Text>
+            <Text style={styles.badgeText}></Text>
           </View>
         )}
       </TouchableOpacity>

@@ -161,6 +161,7 @@ export default function InspectionScreen() {
                 model_name={inspection.model}
                 vin={inspection.vin}
                 plate={inspection.vehiclePlate}
+                hasFiles={inspection.hasFiles}
                 imageSource={require('../../assets/images/carros/FotoAuto.png')}
                 inspectionId={+id}
                 token={user!.token}
