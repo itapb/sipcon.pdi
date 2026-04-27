@@ -13,7 +13,8 @@ type Props = {
 };
 
 export const HookInspections = () => {
-  const { user, isLoggedIn, areas, selectedArea } = useAuthStore();
+  const { user, isLoggedIn, areas, selectedArea, selectedSupplier } =
+    useAuthStore();
 
   const [fases, setFases] = useState<T_GroupInspectionsFase[] | null>(null);
   const [inspections, setInspections] = useState<any[] | null>(null);
@@ -30,7 +31,7 @@ export const HookInspections = () => {
       try {
         const [resFases, resInspections] = await Promise.all([
           GET_InspectionsFases({ areaId, token: user.token, Completed: false }),
-          GET_Inspections({ areaId, token: user.token }),
+          GET_Inspections({ areaId, token: user.token, isCompleted: false }),
         ]);
 
         let finalFases = fases; // Por defecto mantenemos lo que hay
@@ -68,6 +69,7 @@ export const HookInspections = () => {
     user,
     areas,
     selectedArea,
+    selectedSupplier,
     GetInfoPage,
   };
 };

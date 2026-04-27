@@ -1,8 +1,8 @@
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
-type Props = {
+// Definimos el objeto individual de inspección
+export type InspectionItem = {
   Id: number;
-  token: string;
   CreatedBy?: number;
   VehicleId?: number;
   AreaId?: number;
@@ -13,6 +13,12 @@ type Props = {
   DInit?: Date;
   DClose?: Date;
   DReception?: Date;
+  IsDispatch: boolean;
+};
+
+type Props = {
+  inspections: InspectionItem[];
+  token: string;
 };
 
 type Result = {
@@ -24,23 +30,25 @@ type Result = {
 
 export const POST_Inspection = async (props: Props) => {
   try {
-    const data_body = {
-      Id: props.Id,
-      CreatedBy: props.CreatedBy,
-      VehicleId: props.VehicleId,
-      AreaId: props.AreaId,
-      InitBy: props.InitBy,
-      ClosedBy: props.ClosedBy,
-      TransporterId: props.TransporterId,
-      RecepBy: props.RecepBy,
-      DInit: props.DInit,
-      DClose: props.DClose,
-      DReception: props.DReception,
-    };
+    // Mapeamos el array para asegurar que la estructura coincida con lo que espera el backend
+    const data_body = props.inspections.map((item) => ({
+      Id: item.Id,
+      CreatedBy: item.CreatedBy,
+      VehicleId: item.VehicleId,
+      AreaId: item.AreaId,
+      InitBy: item.InitBy,
+      ClosedBy: item.ClosedBy,
+      TransporterId: item.TransporterId,
+      RecepBy: item.RecepBy,
+      DInit: item.DInit,
+      DClose: item.DClose,
+      DReception: item.DReception,
+      IsDispatch: item.IsDispatch,
+    }));
 
     const result = await fetch(`${API_BASE}/Inspections/Post_Inspections`, {
       method: 'POST',
-      body: JSON.stringify([data_body]),
+      body: JSON.stringify(data_body),
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${props.token}`,

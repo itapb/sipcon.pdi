@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   userId: number;
+  supplierId: number;
   areaId: number;
   token: string;
 };
@@ -66,7 +67,9 @@ export const FooterMain: FC<Props> = (props) => {
         token={props.token}
         userId={props.userId}
       />
+
       <ModalEndInspection
+        supplierId={props.supplierId}
         onDismiss={setOpenEndInpection}
         visible={openEndInpection}
         areaId={props.areaId}

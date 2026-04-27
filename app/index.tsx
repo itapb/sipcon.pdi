@@ -24,6 +24,7 @@ export default function HomeScreen() {
     user,
     areas,
     selectedArea,
+    selectedSupplier,
   } = HookInspections();
 
   useEffect(() => {
@@ -90,6 +91,7 @@ export default function HomeScreen() {
       />
 
       <FooterMain
+        supplierId={selectedSupplier!}
         areaId={selectedArea!}
         token={user!.token}
         userId={user!.userId}

@@ -1,5 +1,9 @@
 import { useVehicleStore } from '@/store/useVehicleStore';
 import { DataDealer, GET_Dealer } from '@/utils/fetchs/dealer/GET_Dealer';
+import {
+  DataInspectionDealers,
+  GET_InpectionDealers,
+} from '@/utils/fetchs/inspections/GET_InpectionDealers';
 import { GET_InspectionById } from '@/utils/fetchs/inspections/GET_InspectionById';
 import { POST_Inspection } from '@/utils/fetchs/inspections/POST_Inspection';
 import {
@@ -17,12 +21,13 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { IconButton, Modal, Portal, Text } from 'react-native-paper';
+import { Divider, IconButton, Modal, Portal, Text } from 'react-native-paper';
 
 type Props = {
   userId: number;
@@ -30,116 +35,143 @@ type Props = {
   onDismiss: (value: boolean) => void;
   token: string;
   areaId: number;
+  supplierId: number;
 };
 
-// TODO: Separar logica, está muy complejo
 export const ModalEndInspection: FC<Props> = (props) => {
   const router = useRouter();
 
-  // --- Estados locales ---
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [transporter, setTransporter] = useState<DataTransporter[]>([]);
   const [dealer, setDealer] = useState<DataDealer[]>([]);
-  const [valueTransporter, setValueTransporter] = useState<number>(0);
-  const [valueDealer, setValueDealer] = useState<number>(0);
+  const [dealersVehicles, setDealersVehicles] = useState<
+    DataInspectionDealers[]
+  >([]);
 
-  // --- Store (Zustand) ---
+  const [valueTransporter, setValueTransporter] = useState<number>(0);
+  const [selectedDealersMap, setSelectedDealersMap] = useState<
+    Record<number, number>
+  >({});
+
   const selectedVehicles = useVehicleStore((state) => state.selectedVehicles);
   const clearSelection = useVehicleStore((state) => state.clearSelection);
 
-  // --- Carga de datos maestros (Catálogos) ---
   useEffect(() => {
     const GetData = async () => {
+      // Reinicio de estados al abrir
+      setValueTransporter(0);
+      setSelectedDealersMap({});
+
       setIsLoading(true);
       try {
-        const [rawTransporter, rawDealer] = await Promise.all([
-          GET_Transporter({ token: props.token }),
-          GET_Dealer({ token: props.token, supplierId: 4069 }),
-        ]);
+        const ids = selectedVehicles.map((item) => item.vehicleId);
+
+        const [rawTransporter, rawDealer, rawVehicleDealers] =
+          await Promise.all([
+            GET_Transporter({ token: props.token }),
+            GET_Dealer({ token: props.token, supplierId: props.supplierId }),
+            GET_InpectionDealers({ token: props.token, inspectionIds: ids }),
+          ]);
 
         if (rawTransporter) setTransporter(rawTransporter);
         if (rawDealer) setDealer(rawDealer);
+
+        if (rawVehicleDealers) {
+          setDealersVehicles(rawVehicleDealers);
+
+          // SOLUCIÓN: Precarga del diccionario para evitar undefined en el POST
+          const initialMap: Record<number, number> = {};
+          rawVehicleDealers.forEach((item) => {
+            if (item.dealerId > 0) {
+              // Usamos inspectionId como llave para coincidir con el mapeo del POST
+              initialMap[item.inspectionId] = item.dealerId;
+            }
+          });
+          setSelectedDealersMap(initialMap);
+        }
       } catch (error) {
         console.error('Error al cargar catálogos:', error);
-        Alert.alert(
-          'Error',
-          'No se pudieron cargar los transportistas o concesionarios.',
-        );
+        Alert.alert('Error', 'No se pudieron cargar los datos iniciales.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (props.visible) {
-      GetData();
-    }
+    if (props.visible) GetData();
   }, [props.visible]);
 
-  // --- Proceso de finalización masiva ---
-  const onSubmit = async () => {
-    if (valueDealer === 0 || valueTransporter === 0) {
-      Alert.alert(
-        'Validación',
-        'Por favor seleccione transportista y concesionario.',
-      );
-      return;
-    }
+  const isFormValid = () => {
+    if (valueTransporter === 0) return false;
+    if (selectedVehicles.length === 0) return false;
 
-    if (selectedVehicles.length === 0) {
+    return selectedVehicles.every((v) => {
+      // Validamos que exista un valor mayor a 0 en el mapa (ya sea precargado o manual)
+      return (
+        selectedDealersMap[v.vehicleId] && selectedDealersMap[v.vehicleId] > 0
+      );
+    });
+  };
+
+  const handleDealerChange = (vehicleId: number, dealerId: number) => {
+    setSelectedDealersMap((prev) => ({
+      ...prev,
+      [vehicleId]: dealerId,
+    }));
+  };
+
+  const onSubmit = async () => {
+    if (!isFormValid()) {
       Alert.alert(
         'Validación',
-        'No hay unidades seleccionadas para finalizar.',
+        'Por favor complete todos los datos requeridos.',
       );
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // 1. Mapeamos los IDs seleccionados a promesas de obtención de detalle y luego posteo
-      const promises = selectedVehicles.map(async (inspectionId) => {
-        const result = await GET_InspectionById({
-          inspectionId,
-          token: props.token,
-        });
+      const results = await Promise.all(
+        selectedVehicles.map((v) =>
+          GET_InspectionById({ inspectionId: v.vehicleId, token: props.token }),
+        ),
+      );
 
-        if (!result)
-          throw new Error(`Inspección ${inspectionId} no encontrada.`);
-
-        return await POST_Inspection({
-          Id: result.id,
-          token: props.token,
-          CreatedBy: result.createdBy,
-          AreaId: result.areaId,
+      const inspectionsPayload = results
+        .filter((res) => res !== null)
+        .map((res) => ({
+          Id: res.id,
+          CreatedBy: res.createdBy,
+          AreaId: res.areaId,
           ClosedBy: props.userId,
           DClose: GetTime(),
-          RecepBy: valueDealer,
+          // Ahora siempre está poblado por el useEffect o el picker manual
+          RecepBy: selectedDealersMap[res.id] || 0,
           TransporterId: valueTransporter,
-          VehicleId: result.vehicleId,
-        });
+          VehicleId: res.vehicleId,
+          IsDispatch: true,
+        }));
+
+      if (inspectionsPayload.length === 0) throw new Error('Carga vacía');
+
+      await POST_Inspection({
+        inspections: inspectionsPayload,
+        token: props.token,
       });
 
-      // 2. Ejecutamos todas las peticiones en paralelo
-      await Promise.all(promises);
-
-      Alert.alert(
-        'Éxito',
-        `${selectedVehicles.length} unidades procesadas correctamente.`,
-      );
-
-      // 3. Limpieza de estados y refresco de vista principal
+      Alert.alert('Éxito', `${inspectionsPayload.length} unidades procesadas.`);
       clearSelection();
+      props.onDismiss(false);
       router.replace('/');
     } catch (error) {
-      console.error('Error en proceso masivo:', error);
-      Alert.alert(
-        'Error',
-        'Ocurrió un fallo al finalizar el lote. Verifique su conexión.',
-      );
+      console.error('Error POST:', error);
+      Alert.alert('Error', 'Ocurrió un error al procesar el lote.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!props.visible) return null;
 
   return (
     <Portal>
@@ -151,9 +183,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.keyboardView}
           >
-            {/* Cabecera */}
             <View style={styles.header}>
               <Text style={styles.title}>Finalizar Inspección</Text>
               <IconButton
@@ -167,89 +197,111 @@ export const ModalEndInspection: FC<Props> = (props) => {
             {isLoading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size='large' color='#22C55E' />
-                <Text style={styles.loadingText}>Cargando catálogos...</Text>
+                <Text style={styles.loadingText}>
+                  Sincronizando unidades...
+                </Text>
               </View>
             ) : (
-              <View style={styles.innerContent}>
-                {/* Retroalimentación: Resumen de selección */}
-                <View style={styles.summaryBadge}>
-                  <FontAwesome6 name='car-side' size={16} color='#475569' />
-                  <Text style={styles.summaryText}>
-                    Se finalizarán{' '}
-                    <Text style={styles.boldText}>
-                      {selectedVehicles.length}
-                    </Text>{' '}
-                    unidades seleccionadas.
+              <ScrollView style={{ maxHeight: 400 }}>
+                <View style={styles.innerContent}>
+                  {/* Transportista General */}
+                  <View style={styles.containerLabel}>
+                    <FontAwesome6 name='truck-front' size={16} color='#666' />
+                    <Text style={styles.label}>Transportista General:</Text>
+                  </View>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={valueTransporter}
+                      onValueChange={(val) => setValueTransporter(val)}
+                      enabled={!isSubmitting}
+                    >
+                      <Picker.Item
+                        label='Seleccione transportista...'
+                        value={0}
+                        color='#999'
+                      />
+                      {transporter.map((t) => (
+                        <Picker.Item
+                          key={t.id}
+                          label={t.firstName}
+                          value={t.id}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
+
+                  <Divider
+                    style={{ marginVertical: 20, marginHorizontal: 20 }}
+                  />
+
+                  <Text
+                    style={[
+                      styles.label,
+                      { paddingHorizontal: 20, marginBottom: 10 },
+                    ]}
+                  >
+                    Asignar Destinos ({selectedVehicles.length})
                   </Text>
-                </View>
 
-                {/* Selector de Transportista */}
-                <View style={styles.containerLabel}>
-                  <FontAwesome6 name='truck-front' size={18} color='#666' />
-                  <Text style={styles.label}>Transportista:</Text>
-                </View>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={valueTransporter}
-                    onValueChange={(val) => setValueTransporter(val)}
-                    enabled={!isSubmitting}
-                    style={{ width: '100%', color: '#000' }}
-                    dropdownIconColor='#FFF'
-                  >
-                    <Picker.Item
-                      label='Seleccione transportista...'
-                      value={0}
-                      color='#999'
-                    />
-                    {transporter.map((item) => (
-                      <Picker.Item
-                        style={{
-                          color: '#000',
-                          backgroundColor: 'transparent',
-                        }}
-                        key={item.id}
-                        label={item.firstName}
-                        value={item.id}
-                      />
-                    ))}
-                  </Picker>
-                </View>
+                  {selectedVehicles.map((vehicle) => {
+                    // Verificamos si la unidad ya tenía dealer en la BD
+                    const dealerFromDB = dealersVehicles.find(
+                      (dv) => dv.inspectionId === vehicle.vehicleId,
+                    )?.dealerId;
 
-                {/* Selector de Concesionario */}
-                <View style={[styles.containerLabel, { marginTop: 15 }]}>
-                  <FontAwesome6 name='shop' size={18} color='#666' />
-                  <Text style={styles.label}>Concesionario:</Text>
+                    const currentDealerId =
+                      selectedDealersMap[vehicle.vehicleId] || 0;
+                    const isReadOnly = !!dealerFromDB || isSubmitting;
+
+                    return (
+                      <View
+                        key={vehicle.vehicleId}
+                        style={styles.vehicleAssignmentCard}
+                      >
+                        <Text style={styles.vehicleInfoText}>
+                          Placa : {vehicle.plate} | VIN: {vehicle.vin}
+                          {!!dealerFromDB && (
+                            <Text style={{ color: '#22C55E' }}>
+                              {' '}
+                              (Destino pre-establecido)
+                            </Text>
+                          )}
+                        </Text>
+                        <View
+                          style={[
+                            styles.pickerWrapperSmall,
+                            isReadOnly && { backgroundColor: '#F1F5F9' },
+                          ]}
+                        >
+                          <Picker
+                            selectedValue={currentDealerId}
+                            onValueChange={(val) =>
+                              handleDealerChange(vehicle.vehicleId, val)
+                            }
+                            enabled={!isReadOnly}
+                            style={{ color: isReadOnly ? '#64748B' : '#000' }}
+                          >
+                            <Picker.Item
+                              label='Seleccionar destino...'
+                              value={0}
+                              color='#999'
+                            />
+                            {dealer.map((d) => (
+                              <Picker.Item
+                                key={d.id}
+                                label={d.name}
+                                value={d.id}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+                    );
+                  })}
                 </View>
-                <View style={styles.pickerWrapper}>
-                  <Picker
-                    selectedValue={valueDealer}
-                    onValueChange={(val) => setValueDealer(val)}
-                    enabled={!isSubmitting}
-                    style={{ width: '100%', color: '#000' }}
-                    dropdownIconColor='#FFF'
-                  >
-                    <Picker.Item
-                      label='Seleccione concesionario...'
-                      value={0}
-                      color='#999'
-                    />
-                    {dealer.map((item) => (
-                      <Picker.Item
-                        style={{
-                          color: '#000',
-                          backgroundColor: 'transparent',
-                        }}
-                        key={item.id}
-                        label={`${item.reference} - ${item.name}`}
-                        value={item.id}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-              </View>
+              </ScrollView>
             )}
 
-            {/* Botones de acción */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.button}
@@ -263,25 +315,15 @@ export const ModalEndInspection: FC<Props> = (props) => {
                 style={[
                   styles.button,
                   styles.green,
-                  (isSubmitting ||
-                    valueDealer === 0 ||
-                    valueTransporter === 0) &&
-                    styles.disabledButton,
+                  (!isFormValid() || isSubmitting) && styles.disabledButton,
                 ]}
                 onPress={onSubmit}
-                disabled={
-                  isSubmitting || valueDealer === 0 || valueTransporter === 0
-                }
+                disabled={!isFormValid() || isSubmitting}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator color='white' size='small' />
+                  <ActivityIndicator color='white' />
                 ) : (
-                  <>
-                    <FontAwesome6 name='check-double' size={18} color='white' />
-                    <Text style={[styles.buttonText, styles.white]}>
-                      Confirmar Lote
-                    </Text>
-                  </>
+                  <Text style={styles.buttonTextWhite}>Confirmar Lote</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -296,120 +338,82 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: 'white',
     marginHorizontal: 20,
-    borderRadius: 20,
+    borderRadius: 15,
     paddingBottom: 10,
-    elevation: 10,
-    overflow: 'hidden',
-  },
-  keyboardView: {
-    width: '100%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: '#EEE',
   },
-  title: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1E293B',
-  },
+  title: { fontSize: 16, fontWeight: 'bold', color: '#1E293B' },
   loadingContainer: {
-    height: 280,
+    height: 200,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    marginTop: 10,
-    color: '#666',
-    fontWeight: '500',
-  },
-  innerContent: {
-    paddingVertical: 15,
-  },
-  summaryBadge: {
-    backgroundColor: '#F1F5F9',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 12,
-    marginHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  summaryText: {
-    color: '#475569',
-    fontSize: 13,
-    flex: 1,
-  },
-  boldText: {
-    fontWeight: '900',
-    color: '#1E293B',
-  },
+  loadingText: { marginTop: 10, color: '#666', fontWeight: '500' },
+  innerContent: { paddingVertical: 10 },
   containerLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 20,
-    marginBottom: 8,
+    marginBottom: 5,
   },
-  label: {
-    fontSize: 14,
-    color: '#475569',
-    fontWeight: '700',
-  },
+  label: { fontSize: 13, fontWeight: '700', color: '#475569' },
   pickerWrapper: {
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 10,
+    borderRadius: 8,
     backgroundColor: '#F8FAFC',
     width: '90%',
     alignSelf: 'center',
+  },
+  vehicleAssignmentCard: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+    borderRadius: 8,
+  },
+  vehicleInfoText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#64748B',
+    marginBottom: 5,
+  },
+  pickerWrapperSmall: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 6,
+    height: 45,
     justifyContent: 'center',
-    overflow: 'hidden',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 10,
-    paddingVertical: 15,
+    padding: 15,
     borderTopWidth: 1,
-    borderColor: '#F1F5F9',
+    borderTopColor: '#EEE',
   },
   button: {
     borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    height: 45,
+    width: 130,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 145,
-    height: 48,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
-  buttonText: {
-    color: '#64748B',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  green: {
-    backgroundColor: '#22C55E',
-    flexDirection: 'row',
-    gap: 8,
-    borderColor: '#16A34A',
-  },
-  disabledButton: {
-    backgroundColor: '#86EFAC',
-    borderColor: '#86EFAC',
-    opacity: 0.8,
-  },
-  white: {
-    color: 'white',
-  },
+  buttonText: { fontWeight: 'bold', color: '#64748B' },
+  buttonTextWhite: { fontWeight: 'bold', color: 'white' },
+  green: { backgroundColor: '#22C55E', borderColor: '#16A34A' },
+  disabledButton: { backgroundColor: '#CCC', borderColor: '#CCC' },
 });

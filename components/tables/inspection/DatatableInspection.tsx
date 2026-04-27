@@ -1,4 +1,4 @@
-import { useVehicleStore } from '@/store/useVehicleStore';
+import { SelectedVehicle, useVehicleStore } from '@/store/useVehicleStore';
 import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
 import { T_GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
 import { GroupLoteModel } from '@/utils/GroupLoteModel';
@@ -31,8 +31,12 @@ export const DatatableInspection: React.FC<Props> = ({
   const clearSelection = useVehicleStore((state) => state.clearSelection);
 
   // Ejemplo de uso en un renderizado
-  const SelectVehicle = (id: number) => {
-    toggleVehicle(id);
+  const SelectVehicle = (props: SelectedVehicle) => {
+    toggleVehicle({
+      vehicleId: props.vehicleId,
+      plate: props.plate,
+      vin: props.vin,
+    });
   };
 
   const DataLoteModels = GroupLoteModel({ items: Inspections });
@@ -94,8 +98,16 @@ export const DatatableInspection: React.FC<Props> = ({
                       <View key={vehicle.id}>
                         <VehicleItem
                           vehicle={vehicle}
-                          isSelected={selectedVehicles.includes(vehicle.id)}
-                          onSelect={SelectVehicle}
+                          isSelected={selectedVehicles.some(
+                            (item) => item.vehicleId === vehicle.id,
+                          )}
+                          onSelect={() => {
+                            SelectVehicle({
+                              vehicleId: vehicle.id,
+                              vin: vehicle.vin,
+                              plate: vehicle.vehiclePlate,
+                            });
+                          }}
                           fase={fases}
                           onPressVim={() =>
                             GoToInspection({

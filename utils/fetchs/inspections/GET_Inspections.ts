@@ -2,6 +2,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type Props = {
   areaId?: number;
+  isCompleted?: boolean;
   token: string;
 };
 
@@ -39,6 +40,8 @@ export const GET_Inspections = async (props: Props) => {
     // Modificamos para que el endpoint reciba parametros dinámicos
     if (props.areaId !== undefined)
       params.append('areaId', props.areaId.toString());
+    if (props.isCompleted !== undefined)
+      params.append('isCompleted', props.isCompleted.toString());
 
     const queryString = params.toString();
     const url = `${API_BASE}/Inspections/GetAll${queryString ? `?${queryString}` : ''}`;
