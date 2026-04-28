@@ -25,8 +25,8 @@ export const MenuHeader: FC = () => {
     selectedDealer,
     selectedArea,
     setSelectedArea,
-    setSelectedDealer,
-    setSelectedSupplier,
+    updateDealer,
+    updateSupplier,
     logout,
   } = useAuthStore((state) => state);
   const router = useRouter();
@@ -48,11 +48,11 @@ export const MenuHeader: FC = () => {
     type: 'dealer' | 'supplier' | 'area',
   ) => {
     if (type === 'dealer') {
-      setSelectedDealer(itemValue);
+      updateDealer(itemValue);
     } else if (type === 'area') {
       setSelectedArea(itemValue);
     } else {
-      setSelectedSupplier(itemValue);
+      updateSupplier(itemValue);
     }
     router.replace('/');
   };

@@ -1,5 +1,6 @@
-import { DataAreas } from '@/utils/fetchs/Areas/Get_Areas';
+import { DataAreas, GETALL_Areas } from '@/utils/fetchs/Areas/Get_Areas';
 import type { DataUser } from '@/utils/fetchs/login/POST_Login';
+import { Alert } from 'react-native';
 import { create } from 'zustand';
 
 interface AuthState {
@@ -9,13 +10,18 @@ interface AuthState {
   selectedSupplier: number | null;
   selectedArea: number | null;
   isLoggedIn: boolean;
-  // Acciones (Funciones para cambiar el estado)
+  // Acciones
   login: (user: DataUser, areas: DataAreas[]) => void;
   logout: () => void;
-  setSelectedDealer: (dealerId: number) => void;
-  setSelectedSupplier: (supplierId: number) => void;
-  setSelectedArea: (AreaId: number) => void;
+  updateDealer: (dealerId: number) => Promise<void>;
+  updateSupplier: (supplierId: number) => Promise<void>;
+  setSelectedArea: (areaId: number) => void;
   checkSession: () => Promise<boolean>;
+  // Agregamos la función a la interfaz
+  validateAndSetAreas: (
+    dealerId: number,
+    supplierId: number,
+  ) => Promise<boolean>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -26,7 +32,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   selectedSupplier: null,
   isLoggedIn: false,
 
-  login: async (user, areas) => {
+  login: (user, areas) => {
     set({
       user,
       areas,
@@ -36,6 +42,55 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isLoggedIn: true,
     });
   },
+
+  // Implementación de la validación
+  validateAndSetAreas: async (dealerId: number, supplierId: number) => {
+    const { user } = get();
+    if (!user) return false;
+
+    try {
+      const newAreas = await GETALL_Areas({
+        dealerId: dealerId,
+        supplierId: supplierId,
+        token: user.token,
+        userId: user.userId,
+      });
+
+      if (!newAreas || newAreas.length === 0) {
+        Alert.alert(
+          'Acceso Restringido',
+          'La combinación seleccionada no tiene áreas configuradas. Por favor contacte con su supervisor.',
+        );
+        return false;
+      }
+
+      set({
+        areas: newAreas,
+        selectedArea: newAreas[0].areaId,
+        selectedDealer: dealerId,
+        selectedSupplier: supplierId,
+      });
+      return true;
+    } catch (error) {
+      Alert.alert(
+        'Error',
+        'No se pudieron validar las áreas para esta selección.',
+      );
+      return false;
+    }
+  },
+
+  updateDealer: async (dealerId) => {
+    const { selectedSupplier, validateAndSetAreas } = get();
+    await validateAndSetAreas(dealerId, selectedSupplier!);
+  },
+
+  updateSupplier: async (supplierId) => {
+    const { selectedDealer, validateAndSetAreas } = get();
+    await validateAndSetAreas(selectedDealer!, supplierId);
+  },
+
+  setSelectedArea: (areaId) => set({ selectedArea: areaId }),
 
   logout: () =>
     set({
@@ -48,7 +103,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   checkSession: async () => {
     const API_BASE = process.env.EXPO_PUBLIC_API_URL;
-
     const { user, logout } = get();
 
     if (!user || !user.token) {
@@ -68,20 +122,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         },
       );
 
-      if (result.status === 401) {
-        throw new Error('Token vencido');
-      }
-
+      if (result.status === 401) throw new Error('Token vencido');
       return true;
     } catch (error: any) {
-      // Si la API responde 401 o el token no es válido, cerramos sesión
-      console.error('Sesión expirada o inválida', error);
+      console.error('Sesión expirada', error);
       logout();
       return false;
     }
   },
-
-  setSelectedDealer: (dealerId) => set({ selectedDealer: dealerId }),
-  setSelectedSupplier: (supplierId) => set({ selectedSupplier: supplierId }),
-  setSelectedArea: (areaId) => set({ selectedArea: areaId }),
 }));
