@@ -23,7 +23,7 @@ export const FooterMain: FC<Props> = (props) => {
 
   // TODO! SE DEBE MEJORAR ESTO URGENTEMENTE
   const handleExit = () => {
-    if (props.areaId === 13) {
+    if (props.areaId === 14) {
       setOpenEndInpection(true); // Activamos este...
     } else {
       setOpenConfirmInspection(true); // ...o este
@@ -53,7 +53,7 @@ export const FooterMain: FC<Props> = (props) => {
       <TouchableOpacity style={styles.footerButton} onPress={handleExit}>
         <MaterialCommunityIcons name='car-side' size={26} color='#EF4444' />
         <Text style={[styles.footerButtonText, styles.textRed]}>
-          {props.areaId === 13 ? 'SALIDA' : 'CIERRE'}
+          {props.areaId === 14 ? 'SALIDA' : 'CIERRE'}
         </Text>
       </TouchableOpacity>
 

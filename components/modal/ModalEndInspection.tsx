@@ -11,7 +11,7 @@ import {
   GET_Transporter,
 } from '@/utils/fetchs/transporter/GET_Transporter';
 import { GetTime } from '@/utils/GetTime';
-import { FontAwesome6 } from '@expo/vector-icons';
+import { FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState, type FC } from 'react';
@@ -43,6 +43,8 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
   const [transporter, setTransporter] = useState<DataTransporter[]>([]);
   const [dealer, setDealer] = useState<DataDealer[]>([]);
   const [dealersVehicles, setDealersVehicles] = useState<
@@ -50,18 +52,16 @@ export const ModalEndInspection: FC<Props> = (props) => {
   >([]);
 
   const [valueTransporter, setValueTransporter] = useState<number>(0);
-  const [selectedDealersMap, setSelectedDealersMap] = useState<
-    Record<number, number>
-  >({});
+  const [valueGeneralDealer, setValueGeneralDealer] = useState<number>(0);
 
   const selectedVehicles = useVehicleStore((state) => state.selectedVehicles);
   const clearSelection = useVehicleStore((state) => state.clearSelection);
 
   useEffect(() => {
     const GetData = async () => {
-      // Reinicio de estados al abrir
       setValueTransporter(0);
-      setSelectedDealersMap({});
+      setValueGeneralDealer(0);
+      setShowDetails(false);
 
       setIsLoading(true);
       try {
@@ -76,20 +76,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
         if (rawTransporter) setTransporter(rawTransporter);
         if (rawDealer) setDealer(rawDealer);
-
-        if (rawVehicleDealers) {
-          setDealersVehicles(rawVehicleDealers);
-
-          // SOLUCIÓN: Precarga del diccionario para evitar undefined en el POST
-          const initialMap: Record<number, number> = {};
-          rawVehicleDealers.forEach((item) => {
-            if (item.dealerId > 0) {
-              // Usamos inspectionId como llave para coincidir con el mapeo del POST
-              initialMap[item.inspectionId] = item.dealerId;
-            }
-          });
-          setSelectedDealersMap(initialMap);
-        }
+        if (rawVehicleDealers) setDealersVehicles(rawVehicleDealers);
       } catch (error) {
         console.error('Error al cargar catálogos:', error);
         Alert.alert('Error', 'No se pudieron cargar los datos iniciales.');
@@ -106,25 +93,18 @@ export const ModalEndInspection: FC<Props> = (props) => {
     if (selectedVehicles.length === 0) return false;
 
     return selectedVehicles.every((v) => {
-      // Validamos que exista un valor mayor a 0 en el mapa (ya sea precargado o manual)
-      return (
-        selectedDealersMap[v.vehicleId] && selectedDealersMap[v.vehicleId] > 0
-      );
+      const hasDealerInDB =
+        dealersVehicles.find((dv) => dv.inspectionId === v.vehicleId)
+          ?.dealerId ?? 0;
+      return hasDealerInDB > 0 || valueGeneralDealer > 0;
     });
-  };
-
-  const handleDealerChange = (vehicleId: number, dealerId: number) => {
-    setSelectedDealersMap((prev) => ({
-      ...prev,
-      [vehicleId]: dealerId,
-    }));
   };
 
   const onSubmit = async () => {
     if (!isFormValid()) {
       Alert.alert(
         'Validación',
-        'Por favor complete todos los datos requeridos.',
+        'Por favor seleccione el transportista y el concesionario general.',
       );
       return;
     }
@@ -139,25 +119,32 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
       const inspectionsPayload = results
         .filter((res) => res !== null)
-        .map((res) => ({
-          Id: res.id,
-          CreatedBy: res.createdBy,
-          AreaId: res.areaId,
-          ClosedBy: props.userId,
-          DClose: GetTime(),
-          // Ahora siempre está poblado por el useEffect o el picker manual
-          RecepBy: selectedDealersMap[res.id] || 0,
-          TransporterId: valueTransporter,
-          VehicleId: res.vehicleId,
-          IsDispatch: true,
-        }));
+        .map((res) => {
+          const dealerFromDB =
+            dealersVehicles.find((dv) => dv.inspectionId === res.id)
+              ?.dealerId ?? 0;
+
+          return {
+            Id: res.id,
+            CreatedBy: res.createdBy,
+            AreaId: res.areaId,
+            ClosedBy: props.userId,
+            DClose: GetTime(),
+            RecepBy: dealerFromDB > 0 ? dealerFromDB : valueGeneralDealer,
+            TransporterId: valueTransporter,
+            VehicleId: res.vehicleId,
+            IsDispatch: true,
+          };
+        });
 
       if (inspectionsPayload.length === 0) throw new Error('Carga vacía');
 
-      await POST_Inspection({
+      const r_post = await POST_Inspection({
         inspections: inspectionsPayload,
         token: props.token,
       });
+
+      if (r_post === null) throw new Error('No se pudo procesar la petición');
 
       Alert.alert('Éxito', `${inspectionsPayload.length} unidades procesadas.`);
       clearSelection();
@@ -185,7 +172,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             <View style={styles.header}>
-              <Text style={styles.title}>Finalizar Inspección</Text>
+              <Text style={styles.title}>Despacho de Lote</Text>
               <IconButton
                 icon='close'
                 size={20}
@@ -198,16 +185,20 @@ export const ModalEndInspection: FC<Props> = (props) => {
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size='large' color='#22C55E' />
                 <Text style={styles.loadingText}>
-                  Sincronizando unidades...
+                  Sincronizando catálogos...
                 </Text>
               </View>
             ) : (
-              <ScrollView style={{ maxHeight: 400 }}>
+              <ScrollView style={{ maxHeight: 500 }} bounces={false}>
                 <View style={styles.innerContent}>
-                  {/* Transportista General */}
+                  {/* Selector: Transportista */}
                   <View style={styles.containerLabel}>
-                    <FontAwesome6 name='truck-front' size={16} color='#666' />
-                    <Text style={styles.label}>Transportista General:</Text>
+                    <FontAwesome6
+                      name='truck-front'
+                      size={14}
+                      color='#64748B'
+                    />
+                    <Text style={styles.label}>Transportista Responsable</Text>
                   </View>
                   <View style={styles.pickerWrapper}>
                     <Picker
@@ -216,9 +207,9 @@ export const ModalEndInspection: FC<Props> = (props) => {
                       enabled={!isSubmitting}
                     >
                       <Picker.Item
-                        label='Seleccione transportista...'
+                        label='Seleccionar transportista...'
                         value={0}
-                        color='#999'
+                        color='#94A3B8'
                       />
                       {transporter.map((t) => (
                         <Picker.Item
@@ -230,100 +221,129 @@ export const ModalEndInspection: FC<Props> = (props) => {
                     </Picker>
                   </View>
 
-                  <Divider
-                    style={{ marginVertical: 20, marginHorizontal: 20 }}
-                  />
+                  {/* Selector: Concesionario General */}
+                  <View style={[styles.containerLabel, { marginTop: 16 }]}>
+                    <MaterialCommunityIcons
+                      name='store-cog'
+                      size={16}
+                      color='#64748B'
+                    />
+                    <Text style={styles.label}>Concesionario de Destino</Text>
+                  </View>
+                  <View style={styles.pickerWrapper}>
+                    <Picker
+                      selectedValue={valueGeneralDealer}
+                      onValueChange={(val) => setValueGeneralDealer(val)}
+                      enabled={!isSubmitting}
+                    >
+                      <Picker.Item
+                        label='Seleccionar destino general...'
+                        value={0}
+                        color='#94A3B8'
+                      />
+                      {dealer.map((d) => (
+                        <Picker.Item key={d.id} label={d.name} value={d.id} />
+                      ))}
+                    </Picker>
+                  </View>
 
-                  <Text
-                    style={[
-                      styles.label,
-                      { paddingHorizontal: 20, marginBottom: 10 },
-                    ]}
+                  <Divider style={styles.divider} />
+
+                  {/* Sección Colapsable de Unidades */}
+                  <TouchableOpacity
+                    style={styles.collapseHeader}
+                    onPress={() => setShowDetails(!showDetails)}
+                    activeOpacity={0.7}
                   >
-                    Asignar Destinos ({selectedVehicles.length})
-                  </Text>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                    >
+                      <MaterialCommunityIcons
+                        name='car-multiple'
+                        size={20}
+                        color='#475569'
+                      />
+                      <Text style={styles.collapseTitle}>
+                        Ver Unidades ({selectedVehicles.length})
+                      </Text>
+                    </View>
+                    <MaterialCommunityIcons
+                      name={showDetails ? 'chevron-up' : 'chevron-down'}
+                      size={24}
+                      color='#475569'
+                    />
+                  </TouchableOpacity>
 
-                  {selectedVehicles.map((vehicle) => {
-                    // Verificamos si la unidad ya tenía dealer en la BD
-                    const dealerFromDB = dealersVehicles.find(
-                      (dv) => dv.inspectionId === vehicle.vehicleId,
-                    )?.dealerId;
+                  {showDetails && (
+                    <View style={styles.detailsContainer}>
+                      {selectedVehicles.map((vehicle) => {
+                        const dealerFromDB = dealersVehicles.find(
+                          (dv) => dv.inspectionId === vehicle.vehicleId,
+                        )?.dealerId;
 
-                    const currentDealerId =
-                      selectedDealersMap[vehicle.vehicleId] || 0;
-                    const isReadOnly = !!dealerFromDB || isSubmitting;
-
-                    return (
-                      <View
-                        key={vehicle.vehicleId}
-                        style={styles.vehicleAssignmentCard}
-                      >
-                        <Text style={styles.vehicleInfoText}>
-                          Placa : {vehicle.plate} | VIN: {vehicle.vin}
-                          {!!dealerFromDB && (
-                            <Text style={{ color: '#22C55E' }}>
-                              {' '}
-                              (Destino pre-establecido)
-                            </Text>
-                          )}
-                        </Text>
-                        <View
-                          style={[
-                            styles.pickerWrapperSmall,
-                            isReadOnly && { backgroundColor: '#F1F5F9' },
-                          ]}
-                        >
-                          <Picker
-                            selectedValue={currentDealerId}
-                            onValueChange={(val) =>
-                              handleDealerChange(vehicle.vehicleId, val)
-                            }
-                            enabled={!isReadOnly}
-                            style={{ color: isReadOnly ? '#64748B' : '#000' }}
+                        return (
+                          <View
+                            key={vehicle.vehicleId}
+                            style={styles.vehicleCard}
                           >
-                            <Picker.Item
-                              label='Seleccionar destino...'
-                              value={0}
-                              color='#999'
-                            />
-                            {dealer.map((d) => (
-                              <Picker.Item
-                                key={d.id}
-                                label={d.name}
-                                value={d.id}
-                              />
-                            ))}
-                          </Picker>
-                        </View>
-                      </View>
-                    );
-                  })}
+                            <View style={styles.vehicleCardHeader}>
+                              <Text style={styles.vinText}>
+                                VIN: {vehicle.vin}
+                              </Text>
+                              {!!dealerFromDB && (
+                                <View style={styles.badge}>
+                                  <Text style={styles.badgeText}>FIJO</Text>
+                                </View>
+                              )}
+                            </View>
+                            <Text style={styles.plateText}>
+                              Placa: {vehicle.plate}
+                            </Text>
+                            <Text style={styles.statusText}>
+                              Destino:{' '}
+                              {!!dealerFromDB
+                                ? dealer.find((d) => d.id === dealerFromDB)
+                                    ?.name || 'Cargando...'
+                                : valueGeneralDealer > 0
+                                  ? dealer.find(
+                                      (d) => d.id === valueGeneralDealer,
+                                    )?.name
+                                  : 'No asignado'}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               </ScrollView>
             )}
 
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={styles.button}
+                style={styles.btnCancel}
                 onPress={() => props.onDismiss(false)}
                 disabled={isSubmitting}
               >
-                <Text style={styles.buttonText}>Cancelar</Text>
+                <Text style={styles.btnTextCancel}>Cancelar</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
-                  styles.button,
-                  styles.green,
-                  (!isFormValid() || isSubmitting) && styles.disabledButton,
+                  styles.btnConfirm,
+                  (!isFormValid() || isSubmitting) && styles.btnDisabled,
                 ]}
                 onPress={onSubmit}
                 disabled={!isFormValid() || isSubmitting}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator color='white' />
+                  <ActivityIndicator color='white' size='small' />
                 ) : (
-                  <Text style={styles.buttonTextWhite}>Confirmar Lote</Text>
+                  <Text style={styles.btnTextConfirm}>Confirmar Despacho</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -336,84 +356,100 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
 const styles = StyleSheet.create({
   modalContainer: {
-    backgroundColor: 'white',
-    marginHorizontal: 20,
-    borderRadius: 15,
-    paddingBottom: 10,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#F8FAFC',
     borderBottomWidth: 1,
-    borderBottomColor: '#EEE',
+    borderBottomColor: '#F1F5F9',
   },
-  title: { fontSize: 16, fontWeight: 'bold', color: '#1E293B' },
+  title: { fontSize: 18, fontWeight: '700', color: '#0F172A' },
   loadingContainer: {
     height: 200,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: { marginTop: 10, color: '#666', fontWeight: '500' },
-  innerContent: { paddingVertical: 10 },
+  loadingText: { marginTop: 12, color: '#64748B', fontSize: 14 },
+  innerContent: { padding: 20 },
   containerLabel: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 20,
-    marginBottom: 5,
+    gap: 6,
+    marginBottom: 8,
   },
-  label: { fontSize: 13, fontWeight: '700', color: '#475569' },
+  label: { fontSize: 14, fontWeight: '600', color: '#475569' },
   pickerWrapper: {
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    backgroundColor: '#F8FAFC',
-    width: '90%',
-    alignSelf: 'center',
+    borderColor: '#CBD5E1',
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
   },
-  vehicleAssignmentCard: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#FFF',
+  divider: { marginVertical: 20, backgroundColor: '#F1F5F9', height: 1 },
+
+  // Estilos del Colapsable
+  collapseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+  },
+  collapseTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B' },
+  detailsContainer: { marginTop: 12, gap: 8 },
+  vehicleCard: {
+    padding: 12,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    borderRadius: 8,
-  },
-  vehicleInfoText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#64748B',
-    marginBottom: 5,
-  },
-  pickerWrapperSmall: {
-    borderWidth: 1,
     borderColor: '#E2E8F0',
-    borderRadius: 6,
-    height: 45,
-    justifyContent: 'center',
+    borderRadius: 10,
   },
+  vehicleCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  vinText: { fontSize: 12, fontWeight: '700', color: '#475569' },
+  plateText: { fontSize: 12, color: '#64748B', marginBottom: 4 },
+  statusText: { fontSize: 12, fontWeight: '600', color: '#0F172A' },
+  badge: { backgroundColor: '#DCFCE7', paddingHorizontal: 6, borderRadius: 4 },
+  badgeText: { fontSize: 10, color: '#166534', fontWeight: '900' },
+
+  // Botones
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 10,
-    padding: 15,
+    padding: 20,
+    gap: 12,
     borderTopWidth: 1,
-    borderTopColor: '#EEE',
+    borderTopColor: '#F1F5F9',
   },
-  button: {
-    borderRadius: 8,
-    height: 45,
-    width: 130,
+  btnCancel: {
+    flex: 1,
+    height: 48,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
-  buttonText: { fontWeight: 'bold', color: '#64748B' },
-  buttonTextWhite: { fontWeight: 'bold', color: 'white' },
-  green: { backgroundColor: '#22C55E', borderColor: '#16A34A' },
-  disabledButton: { backgroundColor: '#CCC', borderColor: '#CCC' },
+  btnConfirm: {
+    flex: 2,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#22C55E',
+  },
+  btnDisabled: { backgroundColor: '#94A3B8' },
+  btnTextCancel: { color: '#64748B', fontWeight: '700', fontSize: 15 },
+  btnTextConfirm: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });
