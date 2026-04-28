@@ -6,11 +6,9 @@ import {
   DataFeatureOptions,
   GET_FeatureOptions,
 } from '@/utils/fetchs/features/GET_FeatureOptions';
-import { POST_InspectionDetail } from '@/utils/fetchs/inspections/POST_InspectionDetail';
 import { Picker } from '@react-native-picker/picker';
-import { useEffect, useRef, useState, type FC } from 'react';
+import React, { memo, useEffect, useRef, useState, type FC } from 'react';
 import {
-  Alert,
   Platform,
   StyleSheet,
   TextInput,
@@ -19,7 +17,6 @@ import {
 } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MediaActions } from '../media/MediaActions';
-import { InspectionSkeleton } from '../skeleton/skeletonFeature';
 
 type Props = {
   id: number;
@@ -34,25 +31,41 @@ type Props = {
   userId: number;
   featureValueTypeId: number;
   hasFiles: boolean;
+  isDirty: boolean; // Recibido del padre
+  onDataChange: (data: any, isOriginal: boolean) => void; // Notifica al padre
 };
 
-export const InspectionFeature: FC<Props> = (props) => {
+export const InspectionFeature: FC<Props> = memo((props) => {
   const [value, setvalue] = useState<number | null>(props.value);
   const [observation, setObservation] = useState(props.observation);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Estados para la lista dinámica (Tipo 3)
   const [options, setOptions] = useState<DataFeatureOptions[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
-  const observationRef = useRef(observation);
-  const valueRef = useRef(value);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMounted = useRef(true);
+
+  // Detectamos si el estado actual es igual al original que vino por props
+  const isOriginal = value === props.value && observation === props.observation;
 
   useEffect(() => {
-    observationRef.current = observation;
-    valueRef.current = value;
-  }, [observation, value]);
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // Notificar al padre cuando cambie algo
+  useEffect(() => {
+    props.onDataChange(
+      {
+        id: props.id,
+        value: value,
+        observation: observation,
+        featureId: props.featureId,
+        inspectionId: props.inspectionId,
+      },
+      isOriginal,
+    );
+  }, [value, observation, isOriginal]);
 
   useEffect(() => {
     if (+props.featureValueTypeId === 2) {
@@ -66,57 +79,23 @@ export const InspectionFeature: FC<Props> = (props) => {
   }, [props.featureId, props.featureValueTypeId]);
 
   const loadOptions = async () => {
+    if (loadingOptions) return;
     setLoadingOptions(true);
     try {
       const data = await GET_FeatureOptions({
         featureId: props.featureId,
         token: props.token,
       });
-      if (data && Array.isArray(data)) {
+      if (data && Array.isArray(data) && isMounted.current) {
         setOptions(data);
         setCachedOptions(props.featureId, data);
       }
     } catch (error) {
       console.error('Error cargando opciones para feature ' + props.featureId);
     } finally {
-      setLoadingOptions(false);
+      if (isMounted.current) setLoadingOptions(false);
     }
   };
-
-  const OnSaveInfor = async (obsToSave = observation, valToSave = value) => {
-    if (obsToSave === props.observation && valToSave === props.value) return;
-
-    setIsSaving(true);
-    try {
-      await POST_InspectionDetail({
-        id: props.id,
-        value: valToSave,
-        observation: obsToSave,
-        featureId: props.featureId,
-        inspectionId: props.inspectionId,
-        token: props.token,
-      });
-    } catch (error: any) {
-      Alert.alert('Error al guardar', error.message);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  useEffect(() => {
-    if (props.readOnly) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    timerRef.current = setTimeout(() => {
-      OnSaveInfor();
-    }, 900);
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [observation, value]);
-
-  if (isSaving) return <InspectionSkeleton />;
 
   const renderInputByTypeId = () => {
     switch (+props.featureValueTypeId) {
@@ -183,11 +162,32 @@ export const InspectionFeature: FC<Props> = (props) => {
               ]}
               keyboardType='number-pad'
               placeholder='0'
-              placeholderTextColor={'#000'}
+              placeholderTextColor={'#94A3B8'}
+              // Mostramos string vacío si es 0 para que sea fácil de borrar, o el valor
               value={value !== null ? String(value) : ''}
               onChangeText={(txt) => {
+                // 1. Solo permitimos números
                 const cleanText = txt.replace(/[^0-9]/g, '');
-                setvalue(cleanText === '' ? null : parseInt(cleanText, 10));
+
+                if (cleanText === '') {
+                  setvalue(0); // En lugar de null, enviamos 0
+                  return;
+                }
+
+                const parsedValue = parseInt(cleanText, 10);
+                const MAX = 999999; // Ajusta según Int32
+
+                // 2. Validamos el máximo mientras escribe
+                if (parsedValue <= MAX) {
+                  setvalue(parsedValue);
+                }
+              }}
+              onBlur={() => {
+                // 3. Validación final al salir del input (ejemplo: Minimo 10)
+                const MIN = 0;
+                if (value !== null && value < MIN) {
+                  setvalue(MIN);
+                }
               }}
               editable={!props.readOnly}
             />
@@ -195,27 +195,28 @@ export const InspectionFeature: FC<Props> = (props) => {
         );
 
       default:
-        return <Text style={styles.errorText}>Tipo de input no soportado</Text>;
+        return <Text style={styles.errorText}>Tipo no soportado</Text>;
     }
   };
 
   return (
-    <Card style={styles.qCard}>
+    <Card style={[styles.qCard, props.isDirty && styles.dirtyCard]}>
       <View style={styles.qHeader}>
-        <Text style={styles.qText}>
-          {props.feature} {props.featureId}
-        </Text>
-        <View style={styles.qIcons}>
-          <MediaActions
-            userId={props.userId}
-            token={props.token}
-            fileCount={props.fileCount}
-            readOnly={props.readOnly}
-            recordID={props.id}
-            moduleName='INSPECCION-TIPOS-CARACTERISTICAS'
-            hasFiles={props.hasFiles}
-          />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.qText}>{props.feature}</Text>
+          {props.isDirty && (
+            <Text style={styles.dirtyLabel}>Cambio pendiente</Text>
+          )}
         </View>
+        <MediaActions
+          userId={props.userId}
+          token={props.token}
+          fileCount={props.fileCount}
+          readOnly={props.readOnly}
+          recordID={props.id}
+          moduleName='INSPECCION-TIPOS-CARACTERISTICAS'
+          hasFiles={props.hasFiles}
+        />
       </View>
 
       {renderInputByTypeId()}
@@ -232,7 +233,9 @@ export const InspectionFeature: FC<Props> = (props) => {
       />
     </Card>
   );
-};
+});
+
+InspectionFeature.displayName = 'InspectionFeature';
 
 const OptionButton = ({ label, isActive, type, onPress, disabled }: any) => {
   const isGreen = type === 'success' && isActive;
@@ -268,42 +271,48 @@ const OptionButton = ({ label, isActive, type, onPress, disabled }: any) => {
 const styles = StyleSheet.create({
   qCard: {
     marginHorizontal: 15,
-    marginVertical: 6,
-    padding: 12,
+    marginVertical: 8,
+    padding: 16,
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 14,
     elevation: 2,
+  },
+  dirtyCard: {
+    borderWidth: 1,
+    borderLeftWidth: 2,
+    borderColor: '#2563EB',
+    backgroundColor: '#F0F7FF',
   },
   qHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  qText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#334155',
-    fontWeight: '600',
+  qText: { flex: 1, fontSize: 14, color: '#1E293B', fontWeight: '700' },
+  dirtyLabel: {
+    fontSize: 10,
+    color: '#2563EB',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    marginTop: 2,
   },
-  qIcons: { flexDirection: 'row', alignItems: 'center' },
-  qButtons: { flexDirection: 'row' },
+  qButtons: { flexDirection: 'row', height: 44 },
   optButton: {
     flex: 1,
-    height: 38,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
   },
-  optButtonText: { fontSize: 14, fontWeight: '700' },
+  optButtonText: { fontSize: 14, fontWeight: '800' },
   btnInactive: { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' },
   textInactive: { color: '#94A3B8' },
   btnActiveGreen: { backgroundColor: '#F0FDF4', borderColor: '#22C55E' },
   textActiveGreen: { color: '#166534' },
   btnActiveRed: { backgroundColor: '#FEF2F2', borderColor: '#EF4444' },
   textActiveRed: { color: '#991B1B' },
-  inputContainer: { marginVertical: 5 },
+  inputContainer: { marginVertical: 8 },
   subLabel: {
     fontSize: 12,
     color: '#64748B',
@@ -315,9 +324,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    height: 42,
+    height: 46,
     paddingHorizontal: 12,
-    fontSize: 14,
+    fontSize: 15,
     color: '#334155',
   },
   listWrapper: {
@@ -325,24 +334,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    height: 48, // Ajustado para evitar cortes
+    height: 50,
     justifyContent: 'center',
     overflow: 'hidden',
   },
   picker: {
-    height: Platform.OS === 'android' ? 50 : 45,
     width: '100%',
     color: '#334155',
-    ...Platform.select({
-      android: { marginLeft: -8 },
-    }),
+    ...Platform.select({ android: { marginLeft: -8 } }),
   },
   obsInput: {
     marginTop: 12,
     backgroundColor: '#F8FAFC',
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     color: '#334155',

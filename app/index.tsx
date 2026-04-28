@@ -4,15 +4,17 @@ import { TableInspection } from '@/components/tables/TableInspection';
 import { HookInspections } from '@/hooks/HookInspections';
 import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
+import { useVehicleStore } from '@/store/useVehicleStore';
 import { AntDesign } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FAB } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { faseId = 0 as any } = useLocalSearchParams();
+  const clearSelection = useVehicleStore((state) => state.clearSelection);
 
   // TODO: Falta el manejo de los errores y la carga
   const {
@@ -27,13 +29,14 @@ export default function HomeScreen() {
     selectedSupplier,
   } = HookInspections();
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      if (!inspections) {
-        GetInfoPage({ areaId: selectedArea! });
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoggedIn && selectedArea) {
+        GetInfoPage({ areaId: selectedArea });
+        clearSelection();
       }
-    }
-  }, [isLoggedIn, GetInfoPage, inspections]);
+    }, [isLoggedIn, selectedArea]), // Se dispara al entrar o si cambia el área
+  );
 
   if (!isLoggedIn) return null;
   if (!inspections || !fases) return <Text>No hay datos</Text>;

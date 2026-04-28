@@ -1,6 +1,7 @@
 import { POST_InspectionFase } from '@/utils/fetchs/inspections/POST_InspectionFase';
 import { GetTime } from '@/utils/GetTime';
-import { Link, usePathname, useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { usePathname, useRouter } from 'expo-router';
 import { useState, type FC } from 'react';
 import {
   ActivityIndicator,
@@ -34,6 +35,14 @@ export const BreadCrumbInspection: FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/'); // Ruta por defecto si no hay historial
+    }
+  };
 
   const handleInitInspection = () => {
     Alert.alert(
@@ -130,7 +139,16 @@ export const BreadCrumbInspection: FC<Props> = ({
       );
     }
 
-    return null;
+    return (
+      <View style={styles.completedBadge}>
+        <MaterialCommunityIcons
+          name='check-decagram'
+          size={16}
+          color='#22C55E'
+        />
+        <Text style={styles.completedText}>Finalizada</Text>
+      </View>
+    );
   };
 
   return (
@@ -144,14 +162,14 @@ export const BreadCrumbInspection: FC<Props> = ({
         </View>
       </Modal>
 
-      <View style={styles.breadCrumbsTexts}>
-        <Link href={'/'} asChild>
-          <TouchableOpacity>
-            <Text style={styles.text}>Inicio {'> '}</Text>
-          </TouchableOpacity>
-        </Link>
-        <Text style={[styles.text, styles.text_fase]}>Fase</Text>
-      </View>
+      <TouchableOpacity
+        onPress={handleBack}
+        style={styles.backButtonContainer}
+        activeOpacity={0.6}
+      >
+        <MaterialCommunityIcons name='chevron-left' size={28} color='#64748B' />
+        <Text style={styles.backText}>Regresar</Text>
+      </TouchableOpacity>
 
       {renderActionButton()}
     </View>
@@ -163,59 +181,84 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 15,
-    height: 45,
+    paddingHorizontal: 12,
+    height: 55,
     backgroundColor: '#fff',
     borderColor: '#E2E8F0',
     borderBottomWidth: 1,
     zIndex: 10,
   },
-  breadCrumbsTexts: {
+  backButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 5,
   },
-  text: {
+  backText: {
     color: '#64748B',
     fontSize: 15,
-  },
-  text_fase: {
-    color: '#0C8CE9',
-    fontWeight: '700',
+    fontWeight: '600',
+    marginLeft: -4,
   },
   button: {
-    borderRadius: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
   buttonText: {
     color: '#FFF',
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
+    textTransform: 'uppercase',
   },
   red: {
-    backgroundColor: '#FF383C',
+    backgroundColor: '#EF4444',
   },
   green: {
     backgroundColor: '#22C55E',
   },
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  completedText: {
+    color: '#166534',
+    fontWeight: '700',
+    fontSize: 12,
+    marginLeft: 4,
+  },
   loadingContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingCard: {
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
+    padding: 25,
+    borderRadius: 15,
     alignItems: 'center',
-    elevation: 5,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
   },
   loadingText: {
-    marginTop: 10,
-    fontWeight: '600',
-    color: '#334155',
+    marginTop: 12,
+    fontWeight: '700',
+    color: '#1E293B',
+    fontSize: 14,
   },
 });

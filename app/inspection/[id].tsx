@@ -20,8 +20,8 @@ import {
 } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GroupFeaturesByType } from '@/utils/GroupFeaturesByType';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -92,14 +92,13 @@ export default function InspectionScreen() {
     }
   };
 
-  useEffect(() => {
-    // Si no está logueado retorna a 0
-    if (isLoggedIn) {
-      if (!inspectionDetail?.length || !inspection || !inspectionFase.length) {
+  useFocusEffect(
+    useCallback(() => {
+      if (isLoggedIn && id && faseId) {
         GetInfoPageInspection({ inspectionId: +id, faseId: +faseId });
       }
-    }
-  }, []);
+    }, [isLoggedIn, id, faseId]), // Se dispara si cambia el ID o la Fase
+  );
 
   if (!isLoggedIn) return null;
   if (!inspectionDetail.length || !inspection || !inspectionFase.length)
@@ -168,7 +167,6 @@ export default function InspectionScreen() {
                 userId={user!.userId}
                 readOnly={!activedFase.initDate || !!activedFase.isCompleted} // Ver si esta inspección se puede iniciar
               />
-
               {/* Observaciones Generales */}
               <AccordionObservation
                 observation={observation}
@@ -176,7 +174,6 @@ export default function InspectionScreen() {
                 showObservation={showObservation}
                 setShowObservation={setShowObservation}
               />
-
               {/* Lista de features */}
               <ListFeatures
                 userId={user!.userId}

@@ -205,6 +205,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
                       selectedValue={valueTransporter}
                       onValueChange={(val) => setValueTransporter(val)}
                       enabled={!isSubmitting}
+                      selectionColor={'#000'}
                     >
                       <Picker.Item
                         label='Seleccionar transportista...'
@@ -213,6 +214,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
                       />
                       {transporter.map((t) => (
                         <Picker.Item
+                          style={{ color: '#000', backgroundColor: '#fff' }}
                           key={t.id}
                           label={t.firstName}
                           value={t.id}
@@ -242,7 +244,12 @@ export const ModalEndInspection: FC<Props> = (props) => {
                         color='#94A3B8'
                       />
                       {dealer.map((d) => (
-                        <Picker.Item key={d.id} label={d.name} value={d.id} />
+                        <Picker.Item
+                          style={{ color: '#000', backgroundColor: '#fff' }}
+                          key={d.id}
+                          label={d.name}
+                          value={d.id}
+                        />
                       ))}
                     </Picker>
                   </View>

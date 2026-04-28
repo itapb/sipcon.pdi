@@ -1,14 +1,11 @@
-import { Alert } from 'react-native';
-
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
-export type Props = {
+export type InspectionDetailItem = {
   id: number;
-  value: number | null;
-  observation: string;
-  inspectionId: number;
-  featureId: number;
-  token: string;
+  Value: number | null;
+  Observation: string;
+  InspectionId: number;
+  FeatureId: number;
 };
 
 export type Result = {
@@ -18,17 +15,12 @@ export type Result = {
   lastId: number;
 };
 
-export const POST_InspectionDetail = async (props: Props) => {
-  const data_body = {
-    id: props.id,
-    Observation: props.observation.trim() ? props.observation : 'S/O',
-    InspectionId: props.inspectionId,
-    FeatureId: props.featureId,
-    ...(props.value !== null && { Value: +props.value }),
-  };
-
+export const POST_InspectionDetail = async (
+  items: InspectionDetailItem[],
+  token: string,
+) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 40000);
 
   try {
     const result = await fetch(
@@ -36,10 +28,10 @@ export const POST_InspectionDetail = async (props: Props) => {
       {
         method: 'POST',
         signal: controller.signal,
-        body: JSON.stringify([data_body]),
+        body: JSON.stringify(items), // Enviamos el array completo
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${props.token}`,
+          Authorization: `Bearer ${token}`,
         },
       },
     );
@@ -56,16 +48,7 @@ export const POST_InspectionDetail = async (props: Props) => {
     return data;
   } catch (error: any) {
     clearTimeout(timeoutId);
-
-    if (error.name === 'AbortError') {
-      Alert.alert(
-        'Petición cancelada',
-        'Tiempo agotado: El servidor tardó más de lo esperado',
-      );
-    } else {
-      Alert.alert('Error', 'Ocurrio un error de red o configuración');
-      console.log('Error de red o configuración:', error);
-    }
-    throw error;
+    console.error('Error en Guardado Masivo:', error);
+    return false;
   }
 };

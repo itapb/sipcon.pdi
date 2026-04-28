@@ -5,6 +5,8 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -22,64 +24,69 @@ export const FormLogin: FC = () => {
   const { login } = useAuthStore();
 
   return (
-    <View style={styles.formContainer}>
-      <Text style={styles.title}>Inicia Sesión</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Inicia Sesión</Text>
+        {/* Input 1: Usuario */}
+        <View>
+          <Text style={styles.label}>Usuario:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder='Ingrese el usuario...'
+            placeholderTextColor={'#999'}
+            value={username}
+            onChangeText={setUserName}
+            autoCapitalize='none'
+            autoCorrect={false}
+          />
+        </View>
 
-      {/* Input 1: Usuario */}
-      <View>
-        <Text style={styles.label}>Usuario:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Ingrese el usuario...'
-          placeholderTextColor={'#999'}
-          value={username}
-          onChangeText={setUserName}
-          autoCapitalize='none'
-          autoCorrect={false}
-        />
-      </View>
+        {/* Input 2: Contraseña */}
+        <View>
+          <Text style={styles.label}>Contraseña:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder='Ingrese su contraseña...'
+            placeholderTextColor={'#999'}
+            secureTextEntry={true}
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
 
-      {/* Input 2: Contraseña */}
-      <View>
-        <Text style={styles.label}>Contraseña:</Text>
-        <TextInput
-          style={styles.input}
-          placeholder='Ingrese su contraseña...'
-          placeholderTextColor={'#999'}
-          secureTextEntry={true}
-          value={password}
-          onChangeText={setPassword}
-        />
-      </View>
+        {/* Boton de ingreso */}
+        <View>
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={() =>
+              HandleLogin({ login, password, setLoading, username })
+            }
+            activeOpacity={0.7}
+            disabled={loading}
+          >
+            {loading ? (
+              <View style={styles.containerButton}>
+                <Text style={styles.buttonText}>Validando</Text>
+                <ActivityIndicator size='small' color='#FFFFFF' />
+              </View>
+            ) : (
+              <Text style={styles.buttonText}>INGRESAR</Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
-      {/* Boton de ingreso */}
-      <View>
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={() => HandleLogin({ login, password, setLoading, username })}
-          activeOpacity={0.7}
-          disabled={loading}
-        >
-          {loading ? (
-            <View style={styles.containerButton}>
-              <Text style={styles.buttonText}>Validando</Text>
-              <ActivityIndicator size='small' color='#FFFFFF' />
-            </View>
-          ) : (
-            <Text style={styles.buttonText}>INGRESAR</Text>
-          )}
-        </TouchableOpacity>
+        {/* Opción en casos de olvidar la contraseña */}
+        <View>
+          <TouchableOpacity
+            onPress={() => Alert.alert('Aviso', 'Contacte a soporte.')}
+          >
+            <Text style={styles.labelPasword}>Olvidé mi contraseña</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* Opción en casos de olvidar la contraseña */}
-      <View>
-        <TouchableOpacity
-          onPress={() => Alert.alert('Aviso', 'Contacte a soporte.')}
-        >
-          <Text style={styles.labelPasword}>Olvidé mi contraseña</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
