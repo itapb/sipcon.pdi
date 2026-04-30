@@ -2,6 +2,7 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type Props = {
   userId: number;
+  supplierId: number;
   AreaId: number;
   Identifier: string;
   token: string;
@@ -22,7 +23,7 @@ export const POST_FullInspection = async (props: Props) => {
     };
 
     const result = await fetch(
-      `${API_BASE}/Post_FullInspection?userId=${props.userId}`,
+      `${API_BASE}/Post_FullInspection?userId=${props.userId}&&supplierId=${props.supplierId}`,
       {
         method: 'POST',
         body: JSON.stringify([data_body]),

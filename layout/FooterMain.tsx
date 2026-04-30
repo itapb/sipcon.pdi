@@ -65,6 +65,7 @@ export const FooterMain: FC<Props> = (props) => {
         areaId={props.areaId}
         token={props.token}
         userId={props.userId}
+        supplierId={props.supplierId}
       />
 
       {/* Si es Area 13, mostramos el de Salida (End) */}

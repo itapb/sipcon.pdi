@@ -9,7 +9,11 @@ import { MD3LightTheme, PaperProvider } from 'react-native-paper';
 
 SplashScreen.preventAutoHideAsync();
 
+const API_BASE = process.env.EXPO_PUBLIC_API_URL;
+
 export default function RootLayout() {
+  console.log({ API_BASE });
+
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const checkSession = useAuthStore((state) => state.checkSession);
 

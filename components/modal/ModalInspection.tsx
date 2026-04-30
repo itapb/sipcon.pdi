@@ -23,6 +23,7 @@ type Props = {
   onDismiss: (value: boolean) => void;
   token: string;
   areaId: number;
+  supplierId: number;
 };
 
 export const ModalInspection: FC<Props> = (props) => {
@@ -42,6 +43,7 @@ export const ModalInspection: FC<Props> = (props) => {
         AreaId: props.areaId,
         token: props.token,
         userId: props.userId,
+        supplierId: props.supplierId,
       });
 
       if (result?.insertedRows === 0 && result?.lastId === 0) {
