@@ -12,6 +12,7 @@ export type DataAreas = {
   faseName: string;
   areaId: number;
   areaName: string;
+  givesOutCar: boolean;
 };
 
 export const GETALL_Areas = async (props: Props) => {

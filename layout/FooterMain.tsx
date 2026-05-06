@@ -1,6 +1,7 @@
 import { ModalConfirmInspection } from '@/components/modal/ModalConfirmInspection';
 import { ModalEndInspection } from '@/components/modal/ModalEndInspection';
 import { ModalInspection } from '@/components/modal/ModalInspection';
+import { DataAreas } from '@/utils/fetchs/Areas/Get_Areas';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useState, type FC } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -11,6 +12,7 @@ type Props = {
   supplierId: number;
   areaId: number;
   token: string;
+  areas: DataAreas[];
 };
 
 export const FooterMain: FC<Props> = (props) => {
@@ -21,9 +23,10 @@ export const FooterMain: FC<Props> = (props) => {
 
   const handleNewInspection = () => setOpenInpection(true);
 
-  // TODO! SE DEBE MEJORAR ESTO URGENTEMENTE
+  const IsOutPut = props.areas.find((item) => item.areaId === props.areaId);
+
   const handleExit = () => {
-    if (props.areaId === 14) {
+    if (IsOutPut?.givesOutCar) {
       setOpenEndInpection(true); // Activamos este...
     } else {
       setOpenConfirmInspection(true); // ...o este
@@ -68,7 +71,6 @@ export const FooterMain: FC<Props> = (props) => {
         supplierId={props.supplierId}
       />
 
-      {/* Si es Area 13, mostramos el de Salida (End) */}
       <ModalEndInspection
         supplierId={props.supplierId}
         onDismiss={setOpenEndInpection} // Antes tenías setOpenConfirmInspection (MAL)
@@ -78,7 +80,6 @@ export const FooterMain: FC<Props> = (props) => {
         userId={props.userId}
       />
 
-      {/* Si NO es Area 13, mostramos el de Confirmación simple */}
       <ModalConfirmInspection
         onDismiss={setOpenConfirmInspection} // Antes tenías setOpenEndInpection (MAL)
         visible={openConfirmInspection} // Antes tenías openEndInpection (MAL)

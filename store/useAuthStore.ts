@@ -21,6 +21,7 @@ interface AuthState {
   validateAndSetAreas: (
     dealerId: number,
     supplierId: number,
+    areaId?: number,
   ) => Promise<boolean>;
 }
 
@@ -44,7 +45,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   // Implementación de la validación
-  validateAndSetAreas: async (dealerId: number, supplierId: number) => {
+  validateAndSetAreas: async (
+    dealerId: number,
+    supplierId: number,
+    areaId?: number,
+  ) => {
     const { user } = get();
     if (!user) return false;
 
@@ -64,12 +69,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return false;
       }
 
+      let selected_area;
+
+      if (areaId === undefined) {
+        selected_area = newAreas[0].areaId;
+      } else {
+        selected_area = areaId;
+      }
+
       set({
         areas: newAreas,
-        selectedArea: newAreas[0].areaId,
+        selectedArea: selected_area,
         selectedDealer: dealerId,
         selectedSupplier: supplierId,
       });
+
       return true;
     } catch (error) {
       Alert.alert(
@@ -90,7 +104,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await validateAndSetAreas(selectedDealer!, supplierId);
   },
 
-  setSelectedArea: (areaId) => set({ selectedArea: areaId }),
+  setSelectedArea: async (areaId) => {
+    const { selectedDealer, selectedSupplier, validateAndSetAreas } = get();
+    await validateAndSetAreas(selectedDealer!, selectedSupplier!, areaId);
+  },
 
   logout: () =>
     set({

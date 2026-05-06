@@ -94,8 +94,10 @@ export default function HomeScreen() {
       />
 
       <FooterMain
+        key={`footer-${selectedArea}-${selectedSupplier}`}
         supplierId={selectedSupplier!}
         areaId={selectedArea!}
+        areas={areas!}
         token={user!.token}
         userId={user!.userId}
       />
