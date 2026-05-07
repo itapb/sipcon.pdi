@@ -83,6 +83,7 @@ export default function InspectionScreen() {
       setInspection(finalInspection);
       setInspectionDetail(finalDetail);
       setInspectionFase(finalFases);
+      setObservation(finalInspection?.comment ?? '');
     } catch (err) {
       const mensaje = `Error obteniendo detalles de inspección: ${err}`;
       console.error(mensaje);
@@ -167,13 +168,18 @@ export default function InspectionScreen() {
                 userId={user!.userId}
                 readOnly={!activedFase.initDate || !!activedFase.isCompleted} // Ver si esta inspección se puede iniciar
               />
+
               {/* Observaciones Generales */}
               <AccordionObservation
                 observation={observation}
                 setObservation={setObservation}
                 showObservation={showObservation}
                 setShowObservation={setShowObservation}
+                inspection={inspection}
+                token={user?.token!}
+                readOnly={!activedFase.initDate || !!activedFase.isCompleted}
               />
+
               {/* Lista de features */}
               <ListFeatures
                 userId={user!.userId}

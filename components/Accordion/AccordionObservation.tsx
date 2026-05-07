@@ -1,5 +1,7 @@
+import { DataInspectionById } from '@/utils/fetchs/inspections/GET_InspectionById';
+import { POST_Inspection } from '@/utils/fetchs/inspections/POST_Inspection';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import type { FC } from 'react';
+import React, { type FC, useEffect, useState } from 'react';
 import {
   LayoutAnimation,
   Platform,
@@ -9,29 +11,67 @@ import {
   UIManager,
   View,
 } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { ActivityIndicator, TextInput } from 'react-native-paper';
 
 type Props = {
   observation: string;
   showObservation: boolean;
   setObservation: React.Dispatch<React.SetStateAction<string>>;
   setShowObservation: React.Dispatch<React.SetStateAction<boolean>>;
+  inspection: DataInspectionById;
+  token: string;
+  readOnly: boolean; // Propiedad de control
 };
 
 const isNewArch = (global as any).nativeFabricUIManager != null;
-
 if (
   Platform.OS === 'android' &&
-  !isNewArch && // Solo si no es la nueva arquitectura
+  !isNewArch &&
   UIManager.setLayoutAnimationEnabledExperimental
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 export const AccordionObservation: FC<Props> = (props) => {
+  const [isSaving, setIsSaving] = useState(false);
+
   const toggleObservation = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     props.setShowObservation(!props.showObservation);
+  };
+
+  // --- LÓGICA DE AUTOGUARDADO CONTROLADA ---
+  useEffect(() => {
+    // Si es readonly o no hay texto, no hacemos nada
+    if (props.readOnly || !props.observation) return;
+
+    const delayDebounceFn = setTimeout(async () => {
+      await handleInternalSave();
+    }, 1000);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [props.observation, props.readOnly]); // Agregamos readOnly a las dependencias
+
+  const handleInternalSave = async () => {
+    setIsSaving(true);
+    try {
+      await POST_Inspection({
+        inspections: [
+          {
+            Id: props.inspection.id,
+            AreaId: props.inspection.areaId,
+            CreatedBy: props.inspection.createdBy,
+            VehicleId: props.inspection.vehicleId,
+            Comment: props.observation,
+          },
+        ],
+        token: props.token,
+      });
+    } catch (error) {
+      console.error('Error al autoguardar:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -43,7 +83,7 @@ export const AccordionObservation: FC<Props> = (props) => {
       >
         <View style={styles.headerLeft}>
           <MaterialCommunityIcons
-            name='note-edit-outline'
+            name={props.readOnly ? 'note-text-outline' : 'note-edit-outline'}
             size={22}
             color={props.observation ? '#2196F3' : '#64748B'}
           />
@@ -53,31 +93,60 @@ export const AccordionObservation: FC<Props> = (props) => {
               props.observation && styles.activeTitle,
             ]}
           >
-            Observaciones generales
+            Observaciones generales {props.readOnly && '(Lectura)'}
           </Text>
         </View>
-        <MaterialCommunityIcons
-          name={props.showObservation ? 'chevron-up' : 'chevron-down'}
-          size={24}
-          color='#64748B'
-        />
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          {isSaving && <ActivityIndicator size={14} color='#2196F3' />}
+          <MaterialCommunityIcons
+            name={props.showObservation ? 'chevron-up' : 'chevron-down'}
+            size={24}
+            color='#64748B'
+          />
+        </View>
       </TouchableOpacity>
 
-      {/* Contenido que se oculta/muestra (Input Permanente) */}
       {props.showObservation && (
         <View style={styles.observationContainer}>
           <TextInput
-            placeholder='Escribe notas permanentes sobre la unidad...'
+            placeholder={
+              props.readOnly
+                ? 'Sin observaciones'
+                : 'Escribe notas permanentes...'
+            }
             onChangeText={props.setObservation}
             value={props.observation}
             mode='outlined'
             multiline
             numberOfLines={3}
-            outlineColor='#E2E8F0'
+            editable={!props.readOnly} // Desactiva la edición
+            outlineColor={props.readOnly ? '#F1F5F9' : '#E2E8F0'}
             activeOutlineColor='#2196F3'
-            style={styles.observationInput}
-            placeholderTextColor='#94A3B8'
+            style={[
+              styles.observationInput,
+              props.readOnly && styles.readOnlyInput, // Estilo visual opcional para lectura
+            ]}
           />
+
+          {/* Solo mostramos el footer de guardado si NO es readonly */}
+          {!props.readOnly && (
+            <View style={styles.autoSaveFooter}>
+              <MaterialCommunityIcons
+                name={isSaving ? 'cloud-upload' : 'cloud-check'}
+                size={14}
+                color={isSaving ? '#2196F3' : '#10B981'}
+              />
+              <Text
+                style={[
+                  styles.autoSaveText,
+                  { color: isSaving ? '#2196F3' : '#10B981' },
+                ]}
+              >
+                {isSaving ? 'Sincronizando...' : 'Sincronizado'}
+              </Text>
+            </View>
+          )}
         </View>
       )}
     </>
@@ -118,7 +187,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     fontSize: 14,
     minHeight: 80,
-    textAlignVertical: 'top',
-    padding: 3,
+  },
+  readOnlyInput: {
+    backgroundColor: '#F1F5F9', // Color más grisáceo para indicar que es de consulta
+    color: '#64748B',
+  },
+  autoSaveFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+    gap: 4,
+  },
+  autoSaveText: {
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
 });

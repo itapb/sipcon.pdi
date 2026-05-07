@@ -11,6 +11,7 @@ export type DataInspectionById = {
   areaId: number;
   initBy: null | string;
   closedBy: null | string;
+  comment: null | string;
   transporterId: null | number;
   recepBy: null | string;
   userName: string;
