@@ -63,7 +63,6 @@ export const HandleLogin = async (props: Props) => {
     }
 
     const areas = await GETALL_Areas({
-      dealerId: data_user.dealers[0].id,
       supplierId: data_user.suppliers[0].id,
       token: data_user.token,
       userId: data_user.userId,

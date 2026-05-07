@@ -6,20 +6,17 @@ import { create } from 'zustand';
 interface AuthState {
   user: DataUser | null;
   areas: DataAreas[] | null;
-  selectedDealer: number | null;
   selectedSupplier: number | null;
   selectedArea: number | null;
   isLoggedIn: boolean;
   // Acciones
   login: (user: DataUser, areas: DataAreas[]) => void;
   logout: () => void;
-  updateDealer: (dealerId: number) => Promise<void>;
   updateSupplier: (supplierId: number) => Promise<void>;
   setSelectedArea: (areaId: number) => void;
   checkSession: () => Promise<boolean>;
   // Agregamos la función a la interfaz
   validateAndSetAreas: (
-    dealerId: number,
     supplierId: number,
     areaId?: number,
   ) => Promise<boolean>;
@@ -29,7 +26,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   areas: null,
   selectedArea: null,
-  selectedDealer: null,
   selectedSupplier: null,
   isLoggedIn: false,
 
@@ -38,24 +34,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       user,
       areas,
       selectedSupplier: user.suppliers[0].id,
-      selectedDealer: user.dealers[0].id,
       selectedArea: areas[0].areaId,
       isLoggedIn: true,
     });
   },
 
   // Implementación de la validación
-  validateAndSetAreas: async (
-    dealerId: number,
-    supplierId: number,
-    areaId?: number,
-  ) => {
+  validateAndSetAreas: async (supplierId: number, areaId?: number) => {
     const { user } = get();
     if (!user) return false;
 
     try {
       const newAreas = await GETALL_Areas({
-        dealerId: dealerId,
         supplierId: supplierId,
         token: user.token,
         userId: user.userId,
@@ -80,7 +70,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({
         areas: newAreas,
         selectedArea: selected_area,
-        selectedDealer: dealerId,
         selectedSupplier: supplierId,
       });
 
@@ -94,26 +83,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  updateDealer: async (dealerId) => {
-    const { selectedSupplier, validateAndSetAreas } = get();
-    await validateAndSetAreas(dealerId, selectedSupplier!);
-  },
-
   updateSupplier: async (supplierId) => {
-    const { selectedDealer, validateAndSetAreas } = get();
-    await validateAndSetAreas(selectedDealer!, supplierId);
+    const { validateAndSetAreas } = get();
+    await validateAndSetAreas(supplierId);
   },
 
   setSelectedArea: async (areaId) => {
-    const { selectedDealer, selectedSupplier, validateAndSetAreas } = get();
-    await validateAndSetAreas(selectedDealer!, selectedSupplier!, areaId);
+    const { selectedSupplier, validateAndSetAreas } = get();
+    await validateAndSetAreas(selectedSupplier!, areaId);
   },
 
   logout: () =>
     set({
       user: null,
       areas: null,
-      selectedDealer: null,
       selectedSupplier: null,
       isLoggedIn: false,
     }),

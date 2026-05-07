@@ -22,10 +22,8 @@ export const MenuHeader: FC = () => {
     user,
     areas,
     selectedSupplier,
-    selectedDealer,
     selectedArea,
     setSelectedArea,
-    updateDealer,
     updateSupplier,
     logout,
   } = useAuthStore((state) => state);
@@ -47,17 +45,13 @@ export const MenuHeader: FC = () => {
     itemValue: number,
     type: 'dealer' | 'supplier' | 'area',
   ) => {
-    if (type === 'dealer') {
-      updateDealer(itemValue);
-    } else if (type === 'area') {
-      setSelectedArea(itemValue);
-    } else {
+    if (type === 'supplier') {
       updateSupplier(itemValue);
+    } else {
+      setSelectedArea(itemValue);
     }
     router.replace('/');
   };
-
-  const hasCeroDealer = user?.dealers.some((item) => item.id === 0);
 
   return (
     <View style={styles.header}>
@@ -134,39 +128,6 @@ export const MenuHeader: FC = () => {
                 </Picker>
               </View>
             </View>
-
-            {!hasCeroDealer && (
-              <View style={styles.pickerSection}>
-                <Text style={styles.label}>Concesionario</Text>
-                <View style={styles.pickerWrapper}>
-                  <Ionicons
-                    name={'business'}
-                    size={20}
-                    color='#2563EB'
-                    style={styles.pickerIcon}
-                  />
-                  <Picker
-                    selectedValue={selectedDealer}
-                    onValueChange={(itemValue) =>
-                      HandleOnChange(itemValue!, 'dealer')
-                    }
-                    style={styles.picker}
-                    mode='dropdown' // Solo afecta a Android
-                    dropdownIconColor='#64748B'
-                  >
-                    {user?.dealers
-                      .filter((item) => item.supplierId == selectedSupplier)
-                      .map((item, index) => (
-                        <Picker.Item
-                          key={item.id + index}
-                          label={item.name}
-                          value={item.id}
-                        />
-                      ))}
-                  </Picker>
-                </View>
-              </View>
-            )}
 
             <View style={styles.pickerSection}>
               <Text style={styles.label}>Areas</Text>

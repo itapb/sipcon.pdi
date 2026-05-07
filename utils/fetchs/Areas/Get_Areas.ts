@@ -3,7 +3,6 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 type Props = {
   userId: number;
   supplierId: number;
-  dealerId: number;
   token: string;
 };
 
@@ -17,7 +16,7 @@ export type DataAreas = {
 
 export const GETALL_Areas = async (props: Props) => {
   try {
-    const url = `${API_BASE}/PDI/AccessGroupPDI/GetAll?userId=${props.userId}&supplierId=${props.supplierId}&dealerId=${props.dealerId}`;
+    const url = `${API_BASE}/PDI/AccessGroupPDI/GetAll?userId=${props.userId}&supplierId=${props.supplierId}`;
 
     const result = await fetch(url, {
       method: 'GET',
