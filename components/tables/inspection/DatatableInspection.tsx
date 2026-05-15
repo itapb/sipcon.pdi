@@ -63,7 +63,7 @@ export const DatatableInspection: React.FC<Props> = ({
       <DataTable style={styles.tableCard}>
         <DataTable.Header style={styles.headerBackground}>
           <DataTable.Title textStyle={styles.headerText}>
-            Lote / Modelo / plate
+            Lote / Modelo / Placa
           </DataTable.Title>
           <DataTable.Title numeric textStyle={styles.headerText}>
             % Cumpl.

@@ -1,13 +1,13 @@
 import type { FC } from 'react';
-import { Image, ImageSourcePropType, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
+import { ImageCar } from '../images/ImageCar';
 import { MediaActions } from '../media/MediaActions';
 
 type Props = {
   model_name: string;
   vin: string | number;
   plate: string;
-  imageSource: ImageSourcePropType;
   inspectionId: number;
   token: string;
   userId: number;
@@ -51,13 +51,7 @@ export const CardCar: FC<Props> = (props) => {
         />
 
         {/* Contenedor de imagen */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={props.imageSource}
-            style={styles.vehicleImage}
-            resizeMode='cover'
-          />
-        </View>
+        <ImageCar model_name={props.model_name} />
       </Card.Content>
     </Card>
   );
@@ -105,19 +99,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#475569',
     lineHeight: 14,
-  },
-  imageContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-    width: 100,
-    height: 75,
-    overflow: 'hidden',
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-  },
-  vehicleImage: {
-    width: '100%',
-    height: '100%',
   },
 });
