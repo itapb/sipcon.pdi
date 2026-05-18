@@ -9,6 +9,8 @@ export type DataDealer = {
   id: number;
   name: string;
   reference: string;
+  adress: string;
+  branchOfficeId: number;
 };
 
 export const GET_Dealer = async (props: Props) => {

@@ -52,7 +52,10 @@ export const ModalEndInspection: FC<Props> = (props) => {
   >([]);
 
   const [valueTransporter, setValueTransporter] = useState<number>(0);
-  const [valueGeneralDealer, setValueGeneralDealer] = useState<number>(0);
+
+  // OPTIMIZACIÓN: Cambiamos el estado para almacenar el objeto completo seleccionado o null
+  const [valueGeneralDealer, setValueGeneralDealer] =
+    useState<DataDealer | null>(null);
 
   const selectedVehicles = useVehicleStore((state) => state.selectedVehicles);
   const clearSelection = useVehicleStore((state) => state.clearSelection);
@@ -60,7 +63,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
   useEffect(() => {
     const GetData = async () => {
       setValueTransporter(0);
-      setValueGeneralDealer(0);
+      setValueGeneralDealer(null);
       setShowDetails(false);
 
       setIsLoading(true);
@@ -96,7 +99,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
       const hasDealerInDB =
         dealersVehicles.find((dv) => dv.inspectionId === v.vehicleId)
           ?.dealerId ?? 0;
-      return hasDealerInDB > 0 || valueGeneralDealer > 0;
+      return hasDealerInDB > 0 || valueGeneralDealer !== null;
     });
   };
 
@@ -130,7 +133,9 @@ export const ModalEndInspection: FC<Props> = (props) => {
             AreaId: res.areaId,
             ClosedBy: props.userId,
             DClose: GetTime(),
-            RecepBy: dealerFromDB > 0 ? dealerFromDB : valueGeneralDealer,
+            RecepBy:
+              dealerFromDB > 0 ? dealerFromDB : (valueGeneralDealer?.id ?? 0),
+            BranchOffice: valueGeneralDealer?.branchOfficeId ?? 0,
             TransporterId: valueTransporter,
             VehicleId: res.vehicleId,
             IsDispatch: true,
@@ -157,6 +162,9 @@ export const ModalEndInspection: FC<Props> = (props) => {
       setIsSubmitting(false);
     }
   };
+
+  // BUSCADOR DE DIRECCIÓN: Obtenemos la dirección directamente del estado del objeto seleccionado
+  const selectedDealerAddress = valueGeneralDealer?.adress;
 
   if (!props.visible) return null;
 
@@ -235,12 +243,12 @@ export const ModalEndInspection: FC<Props> = (props) => {
                   <View style={styles.pickerWrapper}>
                     <Picker
                       selectedValue={valueGeneralDealer}
-                      onValueChange={(val) => setValueGeneralDealer(val)}
+                      onValueChange={(val) => setValueGeneralDealer(val)} // Recibe el objeto entero o null
                       enabled={!isSubmitting}
                     >
                       <Picker.Item
                         label='Seleccionar destino general...'
-                        value={0}
+                        value={null as any}
                         color='#94A3B8'
                       />
                       {dealer.map((d) => (
@@ -248,11 +256,26 @@ export const ModalEndInspection: FC<Props> = (props) => {
                           style={{ color: '#000', backgroundColor: '#fff' }}
                           key={d.id}
                           label={d.name}
-                          value={d.id}
+                          value={d} // 💡 CLAVE: Pasamos todo el objeto de la iteración para conservar ID y BranchOfficeId
                         />
                       ))}
                     </Picker>
                   </View>
+
+                  {/* VISTA DETALLE DIRECCIÓN SELECCIONADA */}
+                  {valueGeneralDealer !== null && selectedDealerAddress && (
+                    <View style={styles.addressDetailContainer}>
+                      <MaterialCommunityIcons
+                        name='map-marker-outline'
+                        size={14}
+                        color='#64748B'
+                      />
+                      <Text style={styles.addressDetailText}>
+                        <Text style={{ fontWeight: '700' }}>Dirección: </Text>
+                        {selectedDealerAddress}
+                      </Text>
+                    </View>
+                  )}
 
                   <Divider style={styles.divider} />
 
@@ -315,10 +338,8 @@ export const ModalEndInspection: FC<Props> = (props) => {
                               {!!dealerFromDB
                                 ? dealer.find((d) => d.id === dealerFromDB)
                                     ?.name || 'Cargando...'
-                                : valueGeneralDealer > 0
-                                  ? dealer.find(
-                                      (d) => d.id === valueGeneralDealer,
-                                    )?.name
+                                : valueGeneralDealer !== null
+                                  ? valueGeneralDealer.name
                                   : 'No asignado'}
                             </Text>
                           </View>
@@ -399,6 +420,19 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#FFFFFF',
     overflow: 'hidden',
+  },
+  addressDetailContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+    marginTop: 8,
+    paddingHorizontal: 6,
+  },
+  addressDetailText: {
+    fontSize: 10,
+    color: '#64748B',
+    lineHeight: 16,
+    flex: 1,
   },
   divider: { marginVertical: 20, backgroundColor: '#F1F5F9', height: 1 },
 

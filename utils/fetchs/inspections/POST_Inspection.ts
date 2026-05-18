@@ -15,6 +15,7 @@ export type InspectionItem = {
   DReception?: Date;
   IsDispatch?: boolean;
   Comment?: string;
+  BranchOffice?: number;
 };
 
 type Props = {
@@ -46,6 +47,7 @@ export const POST_Inspection = async (props: Props) => {
       DReception: item.DReception,
       IsDispatch: item.IsDispatch,
       Comment: item.Comment,
+      BranchOffice: item.BranchOffice,
     }));
 
     const result = await fetch(`${API_BASE}/Inspections/Post_Inspections`, {

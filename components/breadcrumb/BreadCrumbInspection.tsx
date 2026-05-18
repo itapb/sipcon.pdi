@@ -90,7 +90,7 @@ export const BreadCrumbInspection: FC<Props> = ({
           onPress: async () => {
             try {
               setLoading(true);
-              await POST_InspectionFase({
+              const response = await POST_InspectionFase({
                 Id: InspectionFaseId,
                 FaseId: faseId,
                 InspectionId: inspectionId,
@@ -98,10 +98,17 @@ export const BreadCrumbInspection: FC<Props> = ({
                 CompletedDate: GetTime(),
               });
 
-              router.replace({
-                pathname: pathname as any,
-                params: { faseId },
-              });
+              if (response?.lastId === -1) {
+                Alert.alert(
+                  'Inspecciones pendientes',
+                  'Aún tienes caracteristicas por completar, por favor validar',
+                );
+              } else {
+                router.replace({
+                  pathname: pathname as any,
+                  params: { faseId },
+                });
+              }
             } catch (error) {
               Alert.alert('Error', 'No se pudo completar la fase.');
             } finally {
