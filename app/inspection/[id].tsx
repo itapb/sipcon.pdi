@@ -79,7 +79,7 @@ export default function InspectionScreen() {
       let finalFases = inspectionFase;
       if (rawInspection) finalInspection = rawInspection;
       if (rawDetail) finalDetail = rawDetail;
-      if (rawFases) finalFases = rawFases;
+      if (rawFases) finalFases = rawFases.data!;
       setInspection(finalInspection);
       setInspectionDetail(finalDetail);
       setInspectionFase(finalFases);

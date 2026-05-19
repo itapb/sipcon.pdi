@@ -25,7 +25,11 @@ export type DataInspectionFase = {
   Completed: number;
 };
 
-export const GET_InspectionsFases = async (props: Props) => {
+type Response =
+  | { ok: true; data: DataInspectionFase[]; status: number }
+  | { ok: false; data: null; status: number };
+
+export const GET_InspectionsFases = async (props: Props): Promise<Response> => {
   try {
     const params = new URLSearchParams();
 
@@ -55,13 +59,21 @@ export const GET_InspectionsFases = async (props: Props) => {
     if (!result.ok) {
       const errorText = await result.text();
       console.log('Error en la petición:', errorText);
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data_json = await result.json();
     const data = data_json.data as DataInspectionFase[];
 
-    return data;
+    return {
+      ok: true,
+      data,
+      status: result.status,
+    };
   } catch (error) {
     console.error('Error de red:', error);
     throw error;

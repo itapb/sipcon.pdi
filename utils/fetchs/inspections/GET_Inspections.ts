@@ -7,37 +7,41 @@ type Props = {
 };
 
 export type DataInspection = {
-  createdBy: number;
-  vehicleId: number;
   areaId: number;
-  initBy: null | string;
   closedBy: null | string;
-  transporterId: null | number;
-  recepBy: null | string;
-  userName: string;
-  initByName: string;
   closedByName: string;
-  transporterName: string;
-  recepByName: string;
-  vehiclePlate: string;
-  model: string;
-  lote: string;
-  vin: string;
-  nameArea: string;
   created: Date;
-  dInit: Date;
+  createdBy: number;
   dClose: null | Date;
+  dInit: Date;
   dReception: Date;
-  isCompleted: number;
   id: number;
+  initBy: null | string;
+  initByName: string;
   isActive: boolean;
+  isCompleted: number;
+  lote: string;
+  model: string;
+  nameArea: string;
+  recepBy: null | string;
+  recepByName: string;
+  transporterId: null | number;
+  transporterName: string;
+  userName: string;
+  vehicleId: number;
+  vehiclePlate: string;
+  vin: string;
 };
 
-export const GET_Inspections = async (props: Props) => {
+type Response =
+  | { ok: true; data: DataInspection[]; status: number }
+  | { ok: false; data: null; status: number };
+
+export const GET_Inspections = async (props: Props): Promise<Response> => {
   try {
     const params = new URLSearchParams();
 
-    // Modificamos para que el endpoint reciba parametros dinámicos
+    // Parametros dinámicos
     if (props.areaId !== undefined)
       params.append('areaId', props.areaId.toString());
     if (props.isCompleted !== undefined)
@@ -57,14 +61,21 @@ export const GET_Inspections = async (props: Props) => {
     if (!result.ok) {
       const errorText = await result.text();
       console.log('Error en la petición:', errorText);
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data_json = await result.json();
-
     const data = data_json.data as DataInspection[];
 
-    return data;
+    return {
+      ok: true,
+      data,
+      status: result.status,
+    };
   } catch (error) {
     console.error('Error de red:', error);
     throw error;

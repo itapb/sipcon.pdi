@@ -1,6 +1,10 @@
 import { useAuthStore } from '@/store/useAuthStore';
+import { useVehicleStore } from '@/store/useVehicleStore';
 import { GET_InspectionsFases } from '@/utils/fetchs/inspections/GET_InspectionFase';
-import { GET_Inspections } from '@/utils/fetchs/inspections/GET_Inspections';
+import {
+  DataInspection,
+  GET_Inspections,
+} from '@/utils/fetchs/inspections/GET_Inspections';
 import {
   GroupInspectionsFase,
   T_GroupInspectionsFase,
@@ -13,16 +17,22 @@ type Props = {
 };
 
 export const HookInspections = () => {
+  //  Variable global del usuario y selección de la unidad
   const { user, isLoggedIn, areas, selectedArea, selectedSupplier } =
     useAuthStore();
+  const ClearSelection = useVehicleStore((state) => state.clearSelection);
 
+  // Estados para guardar la información de las fases e inspecciones
   const [fases, setFases] = useState<T_GroupInspectionsFase[] | null>(null);
-  const [inspections, setInspections] = useState<any[] | null>(null);
+  const [inspections, setInspections] = useState<DataInspection[] | null>(null);
+
+  // Estados de carga y errores
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Función principal que me retorna todos los valores
   const GetInfoPage = useCallback(
-    async ({ areaId }: Props) => {
+    async (props: Props) => {
       if (!user?.token) return;
 
       setLoading(true);
@@ -30,26 +40,31 @@ export const HookInspections = () => {
 
       try {
         const [resFases, resInspections] = await Promise.all([
-          GET_InspectionsFases({ areaId, token: user.token, Completed: false }),
-          GET_Inspections({ areaId, token: user.token, isCompleted: false }),
+          GET_InspectionsFases({
+            areaId: props.areaId,
+            token: user.token,
+            Completed: false,
+          }),
+          GET_Inspections({
+            areaId: props.areaId,
+            token: user.token,
+            isCompleted: false,
+          }),
         ]);
 
-        let finalFases = fases; // Por defecto mantenemos lo que hay
-        let finalInspections = inspections;
-
-        // Procesamos las fases
-        if (Array.isArray(resFases)) {
-          finalFases = GroupInspectionsFase(resFases);
+        if (!resFases.ok || !resInspections.ok) {
+          setError('Error al momento de solicitar las fases o la inspecciones');
+          setFases(null);
+          setInspections(null);
+          return;
         }
 
-        // Procesamos las inspecciones
-        if (resInspections) {
-          finalInspections = resInspections;
-        }
+        const dataFase = resFases.data;
+        const dataInspection = resInspections.data;
 
-        setFases(finalFases);
-        setInspections(finalInspections);
-        // Guardamos todo en el Store Global
+        // Guardamos la información en los states
+        setFases(dataFase.length ? GroupInspectionsFase(dataFase) : []);
+        setInspections(dataInspection);
       } catch (err) {
         console.error('Error obteniendo datos:', err);
         setError('No se pudieron cargar los datos de inspección');
@@ -57,7 +72,7 @@ export const HookInspections = () => {
         setLoading(false);
       }
     },
-    [user, fases, inspections],
+    [user?.token],
   );
 
   return {
@@ -70,6 +85,7 @@ export const HookInspections = () => {
     areas,
     selectedArea,
     selectedSupplier,
+    ClearSelection,
     GetInfoPage,
   };
 };

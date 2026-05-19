@@ -12,14 +12,23 @@ SplashScreen.preventAutoHideAsync();
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 export default function RootLayout() {
-  console.log({ API_BASE });
-
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const checkSession = useAuthStore((state) => state.checkSession);
 
   const segments = useSegments();
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
+
+  // 💡 Monitoreo en consola del API Endpoint y la pantalla actual
+  useEffect(() => {
+    const arrSegments = segments as string[];
+    const paginaActual =
+      arrSegments.length === 0 ? '/' : `/${arrSegments.join('/')}`;
+    console.log({
+      API_BASE,
+      PAGINA_ACTUAL: paginaActual,
+    });
+  }, [segments]);
 
   useEffect(() => {
     async function initialize() {
@@ -28,7 +37,6 @@ export default function RootLayout() {
         if (Platform.OS === 'android') {
           // 'inset-swipe' es la opción correcta según tu tipado.
           // Oculta la barra y permite que aparezca temporalmente al deslizar.
-          await NavigationBar.setBehaviorAsync('inset-swipe');
           await NavigationBar.setVisibilityAsync('hidden');
         }
 
