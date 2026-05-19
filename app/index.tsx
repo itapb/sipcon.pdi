@@ -10,9 +10,9 @@ import {
   GroupInspectionsFase,
   T_GroupInspectionsFase,
 } from '@/utils/GroupInspectionsByFase';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router'; // 💡 Importamos useRouter
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native'; // 💡 Importamos Alert nativo
+import { Alert } from 'react-native';
 
 type FetchProps = {
   areaId: number;
