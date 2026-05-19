@@ -16,7 +16,7 @@ import { Avatar, Divider, List, Modal, Portal, Text } from 'react-native-paper';
 const { width, height } = Dimensions.get('window');
 
 export const MenuHeader: FC = () => {
-  const [visible, setVisible] = useState(false);
+  const router = useRouter();
 
   const {
     user,
@@ -27,7 +27,8 @@ export const MenuHeader: FC = () => {
     updateSupplier,
     logout,
   } = useAuthStore((state) => state);
-  const router = useRouter();
+
+  const [visible, setVisible] = useState(false);
 
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E2E8F0',
     height: 50,
-    overflow: 'hidden', // Importante para que el picker no se salga del radio
+    overflow: 'hidden',
   },
   pickerIcon: {
     marginLeft: 12,
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
     color: '#334155',
     ...Platform.select({
       android: {
-        marginLeft: -5, // Ajuste fino para Android
+        marginLeft: -5,
       },
     }),
   },
