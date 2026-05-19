@@ -9,7 +9,7 @@ type P_CardFase = {
   completed: number;
   icon: ReactNode;
   faseId: number;
-  selectedFaseId: number;
+  selectedFaseId: string;
 };
 
 export const CardFase: FC<P_CardFase> = ({
@@ -22,7 +22,7 @@ export const CardFase: FC<P_CardFase> = ({
   selectedFaseId,
 }) => {
   const router = useRouter();
-  const IsSameFase = Number(selectedFaseId) === Number(faseId);
+  const IsSameFase = Number(selectedFaseId) === faseId;
 
   return (
     <TouchableOpacity

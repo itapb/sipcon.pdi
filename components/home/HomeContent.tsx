@@ -11,7 +11,7 @@ import { LoadingScreen } from '../loading/LoadingScreen';
 import { TableInspection } from '../tables/TableInspection';
 
 type Props = {
-  faseId: number;
+  faseId: string;
   fases: T_GroupInspectionsFase[] | null;
   inspections: DataInspection[] | null;
   loading: boolean;

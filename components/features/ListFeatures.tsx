@@ -204,9 +204,9 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 80,
     right: 20,
-    zIndex: 9999,
+    zIndex: 99999,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -20,9 +20,10 @@ type VehicleItemProps = {
 };
 
 export const VehicleItem = React.memo((props: VehicleItemProps) => {
-  const fase_count = props.fase.length;
-  const fase_completed = props.fase.filter((item) => {
-    return item.inpectionsId.some(
+  const fase_count = props.fase?.length ?? 0;
+
+  const fase_completed = (props.fase ?? []).filter((item) => {
+    return item.inpectionsId?.some(
       (inspection) =>
         inspection.completed === 1 && inspection.id === props.vehicle.id,
     );
@@ -33,7 +34,6 @@ export const VehicleItem = React.memo((props: VehicleItemProps) => {
 
   return (
     <View style={styles.vehicleRow}>
-      {/* Celda del Checkbox */}
       <View style={styles.checkCell}>
         {compliance === 100 && (
           <Checkbox
@@ -44,7 +44,6 @@ export const VehicleItem = React.memo((props: VehicleItemProps) => {
         )}
       </View>
 
-      {/* Contenedor de Información */}
       <View style={styles.vehicleInfoContainer}>
         <View style={styles.textColumn}>
           <Pressable
@@ -56,14 +55,12 @@ export const VehicleItem = React.memo((props: VehicleItemProps) => {
             </Text>
           </Pressable>
           <Text style={styles.plateText}>
-            Placa: {props.vehicle.vehiclePlate}
+            Placa: {props.vehicle.vehiclePlate || 'S/P'}
           </Text>
 
-          {/* Contenedor de Etiquetas (Badges) */}
           <View style={styles.badgeContainer}>
-            {props.fase.map((fase, index) => {
-              // Lógica para determinar si la fase está completa para este vehículo
-              const isCompleted = fase.inpectionsId.some(
+            {(props.fase ?? []).map((fase, index) => {
+              const isCompleted = fase.inpectionsId?.some(
                 (item) => item.id === props.vehicle.id && item.completed === 1,
               );
 
@@ -91,7 +88,6 @@ export const VehicleItem = React.memo((props: VehicleItemProps) => {
           </View>
         </View>
 
-        {/* Porcentaje de cumplimiento */}
         <View style={styles.complianceContainer}>
           <Text style={styles.complianceText}>{compliance}%</Text>
         </View>
@@ -112,11 +108,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: '#eee',
   },
-  checkCell: {
-    width: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  checkCell: { width: 40, alignItems: 'center', justifyContent: 'center' },
   vehicleInfoContainer: {
     flex: 1,
     flexDirection: 'row',
@@ -124,26 +116,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingLeft: 4,
   },
-  textColumn: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  vinText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#333',
-  },
-  linkText: {
-    color: '#2196F3',
-    textDecorationLine: 'underline',
-  },
-  plateText: {
-    fontSize: 12,
-    color: '#757575',
-    marginTop: 2,
-    marginBottom: 4,
-  },
+  textColumn: { flexDirection: 'column', justifyContent: 'center', flex: 1 },
+  vinText: { fontSize: 15, fontWeight: '700', color: '#333' },
+  linkText: { color: '#2196F3', textDecorationLine: 'underline' },
+  plateText: { fontSize: 12, color: '#757575', marginTop: 2, marginBottom: 4 },
   complianceContainer: {
     backgroundColor: '#e8f5e9',
     paddingHorizontal: 8,
@@ -151,12 +127,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginLeft: 8,
   },
-  complianceText: {
-    fontWeight: 'bold',
-    color: '#2e7d32',
-    fontSize: 13,
-  },
-  // Estilos de los Badges
+  complianceText: { fontWeight: 'bold', color: '#2e7d32', fontSize: 13 },
   badgeContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -169,22 +140,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
   },
-  badgeCompleted: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#C8E6C9',
-  },
-  badgePending: {
-    backgroundColor: '#F5F5F5',
-    borderColor: '#E0E0E0',
-  },
-  badgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  badgeTextCompleted: {
-    color: '#2E7D32',
-  },
-  badgeTextPending: {
-    color: '#9E9E9E',
-  },
+  badgeCompleted: { backgroundColor: '#E8F5E9', borderColor: '#C8E6C9' },
+  badgePending: { backgroundColor: '#F5F5F5', borderColor: '#E0E0E0' },
+  badgeText: { fontSize: 10, fontWeight: 'bold' },
+  badgeTextCompleted: { color: '#2E7D32' },
+  badgeTextPending: { color: '#9E9E9E' },
 });

@@ -10,7 +10,7 @@ const { width } = Dimensions.get('window');
 type Props = {
   Inspections: DataInspection[];
   fases: T_GroupInspectionsFase[];
-  filterFaseId: number;
+  filterFaseId: string;
 };
 
 export const TableInspection: FC<Props> = ({
@@ -24,13 +24,13 @@ export const TableInspection: FC<Props> = ({
     const query = searchQuery.toLowerCase().trim();
 
     const inspectionsInFase = Inspections.filter((inspection) => {
-      if (filterFaseId == 0) return true;
+      if (filterFaseId === '0') return true;
 
       return fases.some(
         (fase) =>
-          fase.faseId == filterFaseId &&
+          fase.faseId === Number(filterFaseId) &&
           fase.inpectionsId.some(
-            (item) => item.id == inspection.id && !item.completed,
+            (item) => item.id === inspection.id && !item.completed,
           ),
       );
     });

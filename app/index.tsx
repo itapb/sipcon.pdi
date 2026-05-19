@@ -20,7 +20,7 @@ type FetchProps = {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { faseId = 0 as any } = useLocalSearchParams();
+  const { faseId = '0' as any } = useLocalSearchParams();
 
   // Conexión a Stores globales
   const ClearSelection = useVehicleStore((state) => state.clearSelection);

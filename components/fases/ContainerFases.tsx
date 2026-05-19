@@ -8,7 +8,7 @@ import { CardFase } from '../card/CardFase';
 type Props = {
   fases: T_GroupInspectionsFase[] | null;
   areas: DataAreas[] | null;
-  faseId: number;
+  faseId: string;
 };
 
 export const ContainerFases: FC<Props> = (props) => {
