@@ -26,6 +26,7 @@ type Props = {
   visible: boolean;
   readOnly: boolean;
   onDismiss: React.Dispatch<React.SetStateAction<boolean>>;
+  onRefresh: () => void;
   title?: string;
   children?: ReactNode;
 };
@@ -34,7 +35,7 @@ export const ModalFiles: FC<Props> = (props) => {
   const [attachment, setAttachment] = useState<DataAttachment[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Función para obtener/recargar los archivos
+  // Función para obtener/recargar los archivos internamente
   const loadAttachments = async () => {
     setLoading(true);
     try {
@@ -61,6 +62,12 @@ export const ModalFiles: FC<Props> = (props) => {
       loadAttachments();
     }
   }, [props.visible]);
+
+  // Manejador que actualiza la lista interna del modal y avisa a la pantalla principal
+  const handleActionSuccess = async () => {
+    await loadAttachments(); // Refresca las tarjetas visuales del modal
+    props.onRefresh(); // Dispara la recarga de SQL Server en la vista principal
+  };
 
   return (
     <Portal>
@@ -101,7 +108,7 @@ export const ModalFiles: FC<Props> = (props) => {
                     attachmentId={item.id}
                     userId={props.userId}
                     token={props.token}
-                    onActionSuccess={loadAttachments} // Recargar tras borrar
+                    onActionSuccess={handleActionSuccess}
                     readonly={props.readOnly}
                   />
                 ))
@@ -132,7 +139,7 @@ export const ModalFiles: FC<Props> = (props) => {
                     token: props.token,
                     userId: props.userId,
                   });
-                  await loadAttachments(); // Recarga después de subir
+                  await handleActionSuccess();
                 } catch (e) {
                   setLoading(false);
                 }
@@ -175,7 +182,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
   },
   body: {
-    height: height * 0.4, // Altura fija para el área de contenido
+    height: height * 0.4,
   },
   loaderArea: {
     flex: 1,
@@ -198,7 +205,6 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginTop: 20,
   },
-
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',

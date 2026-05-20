@@ -6,6 +6,7 @@ import {
 } from 'expo-camera';
 import { FC, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   StyleSheet,
   Text,
@@ -39,6 +40,7 @@ export const CameraScanner: FC<Props> = ({
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [flash, setFlash] = useState<'off' | 'on' | 'auto'>('off');
   const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [zoom, setZoom] = useState(0);
   const cameraRef = useRef<CameraView>(null);
@@ -73,6 +75,36 @@ export const CameraScanner: FC<Props> = ({
     });
   };
 
+  const handleShutterPress = async () => {
+    if (isUploading) return;
+
+    // Si el modo es foto, activamos el loader local inmediatamente antes de procesar el archivo
+    if (mode === 'picture') {
+      setIsUploading(true);
+    }
+
+    try {
+      await HandleAction({
+        cameraRef,
+        isRecording,
+        mode,
+        onCapture,
+        setIsRecording,
+        recordId,
+        moduleName,
+        token,
+        userId,
+      });
+    } catch (error) {
+      console.error('Error al procesar la acción multimedia:', error);
+    } finally {
+      // Quitamos el loader si algo falla o si terminó la captura de la foto
+      if (mode === 'picture') {
+        setIsUploading(false);
+      }
+    }
+  };
+
   if (!cameraPermission || !micPermission)
     return <View style={styles.container} />;
 
@@ -100,13 +132,20 @@ export const CameraScanner: FC<Props> = ({
 
       <View style={styles.overlay}>
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.iconBtn} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={onClose}
+            disabled={isUploading}
+          >
             <MaterialCommunityIcons name='close' size={28} color='white' />
           </TouchableOpacity>
 
           <View style={styles.rightIcons}>
-            {/* Botón de Zoom */}
-            <TouchableOpacity style={styles.iconBtn} onPress={toggleZoom}>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={toggleZoom}
+              disabled={isUploading}
+            >
               <Text style={styles.zoomText}>
                 {zoom === 0 ? '1x' : zoom === 0.3 ? '2x' : '3x'}
               </Text>
@@ -115,6 +154,7 @@ export const CameraScanner: FC<Props> = ({
             <TouchableOpacity
               style={styles.iconBtn}
               onPress={() => setFlash((f) => (f === 'off' ? 'on' : 'off'))}
+              disabled={isUploading}
             >
               <MaterialCommunityIcons
                 name={flash === 'on' ? 'flash' : 'flash-off'}
@@ -127,6 +167,7 @@ export const CameraScanner: FC<Props> = ({
               onPress={() =>
                 setFacing((f) => (f === 'back' ? 'front' : 'back'))
               }
+              disabled={isUploading}
             >
               <MaterialCommunityIcons
                 name='camera-flip'
@@ -145,24 +186,39 @@ export const CameraScanner: FC<Props> = ({
           </View>
         )}
 
+        {/* NUEVO: Indicador visual de subida/sincronización con el servidor */}
+        {isUploading && (
+          <View style={styles.uploadLoaderContainer}>
+            <ActivityIndicator size='large' color='#FFFFFF' />
+            <Text style={styles.uploadLoaderText}>Sincronizando foto...</Text>
+          </View>
+        )}
+
         {/* Menu de opciones inferior */}
         <View style={styles.bottomControls}>
           <View style={styles.modeSelector}>
             <TouchableOpacity
-              onPress={() => !isRecording && setMode('picture')}
+              onPress={() => !isRecording && !isUploading && setMode('picture')}
             >
               <Text
                 style={[
                   styles.modeText,
                   mode === 'picture' && styles.activeMode,
+                  isUploading && { opacity: 0.2 },
                 ]}
               >
                 FOTO
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => !isRecording && setMode('video')}>
+            <TouchableOpacity
+              onPress={() => !isRecording && !isUploading && setMode('video')}
+            >
               <Text
-                style={[styles.modeText, mode === 'video' && styles.activeMode]}
+                style={[
+                  styles.modeText,
+                  mode === 'video' && styles.activeMode,
+                  isUploading && { opacity: 0.2 },
+                ]}
               >
                 VIDEO
               </Text>
@@ -174,20 +230,10 @@ export const CameraScanner: FC<Props> = ({
             style={[
               styles.shutter,
               mode === 'video' && isRecording && styles.shutterRecording,
+              isUploading && styles.shutterDisabled,
             ]}
-            onPress={() =>
-              HandleAction({
-                cameraRef,
-                isRecording,
-                mode,
-                onCapture,
-                setIsRecording,
-                recordId,
-                moduleName,
-                token,
-                userId,
-              })
-            }
+            disabled={isUploading}
+            onPress={handleShutterPress}
           />
         </View>
       </View>
@@ -249,6 +295,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF0000',
     marginRight: 10,
   },
+  uploadLoaderContainer: {
+    position: 'absolute',
+    top: '40%',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    paddingHorizontal: 25,
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    gap: 8,
+  },
+  uploadLoaderText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   bottomControls: { alignItems: 'center', width: '100%' },
   modeSelector: { flexDirection: 'row', marginBottom: 20, gap: 40 },
   modeText: { color: 'white', fontWeight: 'bold', opacity: 0.5, fontSize: 13 },
@@ -265,5 +327,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF5252',
     borderRadius: 10,
     transform: [{ scale: 0.8 }],
+  },
+  shutterDisabled: {
+    backgroundColor: '#64748B',
+    borderColor: 'rgba(100,116,139,0.3)',
   },
 });

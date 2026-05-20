@@ -1,4 +1,3 @@
-import { BreadCrumbInspection } from '@/components/breadcrumb/BreadCrumbInspection';
 import { LoadingScreen } from '@/components/loading/LoadingScreen';
 import { FooterInspections } from '@/layout/FooterInspections';
 import { MenuHeader } from '@/layout/MenuHeader';
@@ -10,6 +9,7 @@ import { DataUser } from '@/utils/fetchs/login/POST_Login';
 import React, { Dispatch, SetStateAction } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { BreadCrumbInspection } from '../breadcrumb/BreadCrumbInspection';
 import { Inspection } from './Inspection';
 import { RestrictedAccess } from './RestrictedAccess';
 

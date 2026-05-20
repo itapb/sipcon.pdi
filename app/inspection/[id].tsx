@@ -13,8 +13,12 @@ import {
   GET_InspectionsFases,
 } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GroupFeaturesByType } from '@/utils/GroupFeaturesByType';
+import {
+  inspectionEventEmitter,
+  TRIGGER_REFRESH_EVENT,
+} from '@/utils/inspectionEvents';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 type Props = {
@@ -103,15 +107,10 @@ export default function InspectionScreen() {
         }
 
         // 3. Extracción de datos defensiva evaluando el flag .ok
-        const finalInspection = resInspection.ok
-          ? resInspection.data
-          : inspection;
-        const finalDetail = resDetail.ok ? resDetail.data : inspectionDetail;
-        const finalFases = resFases.ok ? resFases.data : inspectionFase;
 
-        setInspection(finalInspection);
-        setInspectionDetail(finalDetail);
-        setInspectionFase(finalFases);
+        setInspection((prev) => (resInspection.ok ? resInspection.data : prev));
+        setInspectionDetail((prev) => (resDetail.ok ? resDetail.data : prev));
+        setInspectionFase((prev) => (resFases.ok ? resFases.data : prev));
 
         if (resInspection.ok && resInspection.data?.comment !== undefined) {
           setObservation(resInspection.data.comment ?? '');
@@ -130,16 +129,25 @@ export default function InspectionScreen() {
         setLoad(false);
       }
     },
-    [
-      user?.token,
-      inspection,
-      inspectionDetail,
-      inspectionFase,
-      handleUnauthorized,
-    ],
+    [user?.token, handleUnauthorized],
   );
 
-  // Control del ciclo de vida enfocado en la pantalla
+  // ESCUCHADOR DE EVENTO GLOBAL
+  useEffect(() => {
+    const subscription = inspectionEventEmitter.addListener(
+      TRIGGER_REFRESH_EVENT,
+      () => {
+        if (id && faseId) {
+          GetInfoPageInspection({ inspectionId: +id, faseId: +faseId });
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [id, faseId, GetInfoPageInspection]);
+
   useFocusEffect(
     useCallback(() => {
       if (isLoggedIn && id && faseId) {

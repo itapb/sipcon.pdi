@@ -1,4 +1,8 @@
 import { CameraScanner } from '@/hooks/handles/camera/OpenCamera';
+import {
+  inspectionEventEmitter,
+  TRIGGER_REFRESH_EVENT,
+} from '@/utils/inspectionEvents';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState, type FC } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -18,13 +22,26 @@ type Props = {
 
 export const MediaActions: FC<Props> = (props) => {
   const [openFiles, setOpenFiles] = useState(false);
-  const [openCamera, setOpenCamera] = useState(false); // Estado para controlar la cámara
+  const [openCamera, setOpenCamera] = useState(false);
 
-  const handleCapture = (uri: string) => {
+  // Se ejecuta cuando se toma una foto exitosa dentro de la cámara
+  const handleCaptureFinished = (uri: string) => {
     if (props.onImageCaptured) {
       props.onImageCaptured(uri);
     }
     setOpenCamera(false);
+    inspectionEventEmitter.emit(TRIGGER_REFRESH_EVENT);
+  };
+
+  // Se ejecuta cuando tocas la "X" para cerrar la cámara o al finalizar
+  const handleCloseCamera = () => {
+    setOpenCamera(false);
+    inspectionEventEmitter.emit(TRIGGER_REFRESH_EVENT);
+  };
+
+  // Forzar recarga en la pantalla principal al alterar la galería (subir o borrar)
+  const handleGalleryRefresh = () => {
+    inspectionEventEmitter.emit(TRIGGER_REFRESH_EVENT);
   };
 
   return (
@@ -66,8 +83,8 @@ export const MediaActions: FC<Props> = (props) => {
         presentationStyle='fullScreen'
       >
         <CameraScanner
-          onClose={() => setOpenCamera(false)}
-          onCapture={handleCapture}
+          onClose={handleCloseCamera}
+          onCapture={handleCaptureFinished}
           recordId={props.recordID}
           moduleName={props.moduleName}
           token={props.token}
@@ -78,7 +95,8 @@ export const MediaActions: FC<Props> = (props) => {
       {/* Modal para los archivos */}
       <ModalFiles
         visible={openFiles}
-        onDismiss={() => setOpenFiles(false)}
+        onDismiss={setOpenFiles}
+        onRefresh={handleGalleryRefresh}
         moduleName={props.moduleName}
         recordId={props.recordID}
         token={props.token}
