@@ -34,7 +34,11 @@ export type DataInspectionById = {
   hasFiles: boolean;
 };
 
-export const GET_InspectionById = async (props: Props) => {
+type Response =
+  | { ok: true; data: DataInspectionById; status: number }
+  | { ok: false; data: null; status: number };
+
+export const GET_InspectionById = async (props: Props): Promise<Response> => {
   try {
     const url = `${API_BASE}/Inspections/GetOne?InspectionId=${props.inspectionId}`;
 
@@ -49,19 +53,31 @@ export const GET_InspectionById = async (props: Props) => {
     if (!result.ok) {
       const errorText = await result.text();
       console.log('Error en la petición:', errorText);
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data_json = await result.json();
 
     if (data_json.processed === false) {
       console.log('No se encontraron resultados');
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data = data_json.data as DataInspectionById;
 
-    return data;
+    return {
+      ok: true,
+      data: data,
+      status: result.status,
+    };
   } catch (error) {
     console.error('Error de red:', error);
     throw error;

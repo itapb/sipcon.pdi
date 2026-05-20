@@ -1,12 +1,9 @@
 import { OpenGallery } from '@/hooks/handles/OpenGallery';
-import { GET_AttachmentPreview } from '@/utils/fetchs/attachment/GET_AttachmentPreview';
 import {
   DataAttachment,
   GETALL_Attachment,
 } from '@/utils/fetchs/attachment/GETALL_Attachment';
-import { POST_DeleteAttachment } from '@/utils/fetchs/attachment/POST_DeleteAttachment';
-import { TruncateText } from '@/utils/TruncateText';
-import { Entypo, Feather } from '@expo/vector-icons';
+import { Entypo } from '@expo/vector-icons';
 import { useEffect, useState, type FC, type ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -17,6 +14,7 @@ import {
   View,
 } from 'react-native';
 import { IconButton, Modal, Portal, Text } from 'react-native-paper';
+import { CardFile } from './CardFile';
 
 const { height } = Dimensions.get('window');
 
@@ -45,7 +43,12 @@ export const ModalFiles: FC<Props> = (props) => {
         recordId: props.recordId,
         token: props.token,
       });
-      if (data) setAttachment(data);
+
+      if (data) {
+        setAttachment(data);
+      } else {
+        setAttachment([]);
+      }
     } catch (error) {
       console.error('Error cargando adjuntos:', error);
     } finally {
@@ -145,82 +148,6 @@ export const ModalFiles: FC<Props> = (props) => {
   );
 };
 
-// --- Sub-componente CardFile ---
-
-type PropsCardFile = {
-  name: string;
-  attachmentId: number;
-  userId: number;
-  token: string;
-  readonly: boolean;
-  onActionSuccess: () => void;
-};
-
-const CardFile: FC<PropsCardFile> = (props) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    const success = await POST_DeleteAttachment({
-      token: props.token,
-      attachmentId: props.attachmentId,
-      userId: props.userId,
-    });
-    if (success) {
-      props.onActionSuccess();
-    }
-    setIsDeleting(false);
-  };
-
-  const downloadAttachment = async () => {
-    setIsDeleting(true);
-    try {
-      const data = await GET_AttachmentPreview({
-        attachmentId: props.attachmentId,
-        fileName: props.name,
-        token: props.token,
-        userId: props.userId,
-      });
-    } catch (error) {
-      console.error('Error cargando adjuntos:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  return (
-    <View style={[styles.cardItem, isDeleting && { opacity: 0.5 }]}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.fileNameText}>{TruncateText(props.name)}</Text>
-      </View>
-
-      <View style={styles.cardActions}>
-        <TouchableOpacity
-          style={styles.actionIcon}
-          onPress={downloadAttachment}
-          disabled={isDeleting}
-        >
-          <Feather name='download' size={22} color='#64748B' />
-        </TouchableOpacity>
-
-        {!props.readonly && (
-          <TouchableOpacity
-            style={styles.actionIcon}
-            onPress={handleDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <ActivityIndicator size='small' color='#EF4444' />
-            ) : (
-              <Feather name='trash-2' size={22} color='#EF4444' />
-            )}
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-};
-
 const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: 'white',
@@ -271,30 +198,7 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     marginTop: 20,
   },
-  cardItem: {
-    backgroundColor: '#F8FAFC',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-  },
-  fileNameText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#334155',
-  },
-  cardActions: {
-    flexDirection: 'row',
-    gap: 16,
-    marginLeft: 10,
-  },
-  actionIcon: {
-    padding: 4,
-  },
+
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',

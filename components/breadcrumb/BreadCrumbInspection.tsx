@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { ActionButton } from './ActionButton';
 
 type Props = {
   inspectionId: number;
@@ -120,44 +121,6 @@ export const BreadCrumbInspection: FC<Props> = ({
     );
   };
 
-  const renderActionButton = () => {
-    if (!isItStarted) {
-      return (
-        <TouchableOpacity
-          style={[styles.button, styles.green]}
-          activeOpacity={0.7}
-          onPress={handleInitInspection}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>Iniciar Fase</Text>
-        </TouchableOpacity>
-      );
-    }
-
-    if (!faseCompleted) {
-      return (
-        <TouchableOpacity
-          style={[styles.button, styles.red]}
-          activeOpacity={0.7}
-          onPress={handleCompletedFase}
-        >
-          <Text style={styles.buttonText}>Cerrar Fase</Text>
-        </TouchableOpacity>
-      );
-    }
-
-    return (
-      <View style={styles.completedBadge}>
-        <MaterialCommunityIcons
-          name='check-decagram'
-          size={16}
-          color='#22C55E'
-        />
-        <Text style={styles.completedText}>Finalizada</Text>
-      </View>
-    );
-  };
-
   return (
     <View style={styles.breadCrumbs}>
       <Modal transparent visible={loading} animationType='fade'>
@@ -178,7 +141,13 @@ export const BreadCrumbInspection: FC<Props> = ({
         <Text style={styles.backText}>Regresar</Text>
       </TouchableOpacity>
 
-      {renderActionButton()}
+      <ActionButton
+        faseCompleted={faseCompleted}
+        handleCompletedFase={handleCompletedFase}
+        handleInitInspection={handleInitInspection}
+        isItStarted={isItStarted}
+        loading={loading}
+      />
     </View>
   );
 };
@@ -205,46 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     marginLeft: -4,
-  },
-  button: {
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.41,
-  },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: '800',
-    fontSize: 13,
-    textTransform: 'uppercase',
-  },
-  red: {
-    backgroundColor: '#EF4444',
-  },
-  green: {
-    backgroundColor: '#22C55E',
-  },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
-  },
-  completedText: {
-    color: '#166534',
-    fontWeight: '700',
-    fontSize: 12,
-    marginLeft: 4,
   },
   loadingContainer: {
     flex: 1,

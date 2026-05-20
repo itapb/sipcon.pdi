@@ -1,5 +1,6 @@
 import { DataInspectionDetail } from './fetchs/inspections/GET_InspectionDetailt';
 
+// Con esta función agrupo los features con sus features types
 export const GroupFeaturesByType = (data: DataInspectionDetail[]) => {
   if (!data || !Array.isArray(data)) return [];
 

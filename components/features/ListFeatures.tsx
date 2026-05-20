@@ -73,7 +73,6 @@ export const ListFeatures: FC<Props> = ({
       if (response) {
         setPendingChanges({}); // Limpiamos cambios pendientes
 
-        // ALERTA DE ÉXITO REFORZADA
         Alert.alert(
           '¡Guardado con éxito!',
           'La información se ha sincronizado correctamente en la nube.',
@@ -117,8 +116,9 @@ export const ListFeatures: FC<Props> = ({
     <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
       <SectionList
         sections={sections}
-        // Mantenemos una key segura
-        keyExtractor={(item, index) => `${item.id}-${index}`}
+        keyExtractor={(item, index) =>
+          `${item.id}-${item.inspectionId}-${index}`
+        }
         renderItem={renderItem}
         renderSectionHeader={({ section: { title } }) => (
           <View style={styles.headerContainer}>
@@ -133,12 +133,13 @@ export const ListFeatures: FC<Props> = ({
         windowSize={5}
         removeClippedSubviews={Platform.OS === 'android'}
         // UX: Menos ruido visual
-        showsVerticalScrollIndicator={false}
-        stickySectionHeadersEnabled={false}
+        showsVerticalScrollIndicator={true}
+        stickySectionHeadersEnabled={true}
         // ESPACIO: Para el botón flotante de la nube
         contentContainerStyle={{ paddingBottom: 140 }}
       />
 
+      {/* Pequeño botón para subir los cambios */}
       {hasChanges && !readOnly && (
         <View style={styles.fabContainer}>
           {/* Contador pequeño sobre el botón */}
@@ -182,8 +183,8 @@ const styles = StyleSheet.create({
   },
   footerContainer: {
     position: 'absolute',
-    bottom: 60, // Un poco más arriba para que no choque con el borde
-    right: 20, // Alineado a la derecha como botón flotante
+    bottom: 60,
+    right: 20,
     minWidth: 160,
   },
   btnSaveAll: {

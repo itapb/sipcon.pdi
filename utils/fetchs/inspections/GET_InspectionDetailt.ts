@@ -31,7 +31,13 @@ export type DataInspectionDetail = {
   hasFiles: boolean;
 };
 
-export const GET_InspectionDetails = async (props: Props) => {
+type Response =
+  | { ok: true; data: DataInspectionDetail[]; status: number }
+  | { ok: false; data: null; status: number };
+
+export const GET_InspectionDetails = async (
+  props: Props,
+): Promise<Response> => {
   try {
     const params = new URLSearchParams();
 
@@ -59,13 +65,21 @@ export const GET_InspectionDetails = async (props: Props) => {
     if (!result.ok) {
       const errorText = await result.text();
       console.log('Error en la petición:', errorText);
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data_json = await result.json();
     const data = data_json.data as DataInspectionDetail[];
 
-    return data;
+    return {
+      ok: true,
+      data: data,
+      status: result.status,
+    };
   } catch (error) {
     console.error('Error de red:', error);
     throw error;

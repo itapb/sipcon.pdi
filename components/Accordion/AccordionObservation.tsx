@@ -20,7 +20,7 @@ type Props = {
   setShowObservation: React.Dispatch<React.SetStateAction<boolean>>;
   inspection: DataInspectionById;
   token: string;
-  readOnly: boolean; // Propiedad de control
+  readOnly: boolean;
 };
 
 const isNewArch = (global as any).nativeFabricUIManager != null;
@@ -50,7 +50,7 @@ export const AccordionObservation: FC<Props> = (props) => {
     }, 1000);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [props.observation, props.readOnly]); // Agregamos readOnly a las dependencias
+  }, [props.observation, props.readOnly]);
 
   const handleInternalSave = async () => {
     setIsSaving(true);
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   readOnlyInput: {
-    backgroundColor: '#F1F5F9', // Color más grisáceo para indicar que es de consulta
+    backgroundColor: '#F1F5F9',
     color: '#64748B',
   },
   autoSaveFooter: {

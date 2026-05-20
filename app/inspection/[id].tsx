@@ -1,10 +1,4 @@
-import { AccordionObservation } from '@/components/Accordion/AccordionObservation';
-import { BreadCrumbInspection } from '@/components/breadcrumb/BreadCrumbInspection';
-import { CardCar } from '@/components/card/CardCar';
-import { ListFeatures } from '@/components/features/ListFeatures';
-import { LoadingScreen } from '@/components/loading/LoadingScreen';
-import { FooterInspections } from '@/layout/FooterInspections';
-import { MenuHeader } from '@/layout/MenuHeader';
+import { InspectionContent } from '@/components/inspection/InspectionContent';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DataInspectionById,
@@ -19,11 +13,9 @@ import {
   GET_InspectionsFases,
 } from '@/utils/fetchs/inspections/GET_InspectionFase';
 import { GroupFeaturesByType } from '@/utils/GroupFeaturesByType';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert } from 'react-native';
 
 type Props = {
   inspectionId: number;
@@ -31,16 +23,19 @@ type Props = {
 };
 
 export default function InspectionScreen() {
-  const { id, faseId } = useLocalSearchParams();
-  const { user, isLoggedIn, areas } = useAuthStore();
+  const router = useRouter();
 
-  // --- Estados de Control ---
+  // Tipado seguro de parámetros de ruta desde Expo Router
+  const { id, faseId } = useLocalSearchParams<{ id: string; faseId: string }>();
+  const { user, isLoggedIn, areas, logout } = useAuthStore();
+
+  // --- Estados de Control
   const [load, setLoad] = useState(false);
-  const [error2, setError2] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  // Estados para contener la información
   const [observation, setObservation] = useState<string>('');
   const [showObservation, setShowObservation] = useState<boolean>(false);
-
   const [inspection, setInspection] = useState<DataInspectionById | null>(null);
   const [inspectionDetail, setInspectionDetail] = useState<
     DataInspectionDetail[]
@@ -49,197 +44,159 @@ export default function InspectionScreen() {
     [],
   );
 
-  const GetInfoPageInspection = async (props: Props) => {
-    // Usamos el token directamente del store de forma segura
-    if (!user?.token) return;
+  // Expulsión limpia si el token caducó (Status 401)
+  const handleUnauthorized = useCallback(() => {
+    setInspection(null);
+    setInspectionDetail([]);
+    setInspectionFase([]);
+    Alert.alert(
+      'Sesión Expirada',
+      'Tu sesión ha caducado. Por favor, inicia sesión nuevamente.',
+      [
+        {
+          text: 'Aceptar',
+          onPress: () => {
+            logout();
+            router.replace('/login');
+          },
+        },
+      ],
+      { cancelable: false },
+    );
+  }, [router, logout]);
 
-    setLoad(true);
-    setError2(null);
+  // Función para obtener la información
+  const GetInfoPageInspection = useCallback(
+    async (props: Props) => {
+      if (!user?.token) return;
 
-    try {
-      const [rawDetail, rawFases, rawInspection] = await Promise.all([
-        GET_InspectionDetails({
-          inspectionId: props.inspectionId,
-          faseId: props.faseId,
-          token: user.token,
-        }),
-        GET_InspectionsFases({
-          inspectionId: props.inspectionId,
-          token: user.token,
-          Completed: false,
-        }),
-        GET_InspectionById({
-          inspectionId: props.inspectionId,
-          token: user.token,
-        }),
-      ]);
-      // Mantenemos la data previa si la nueva viene vacía (como en tu otro hook)
-      let finalInspection = inspection;
-      let finalDetail = inspectionDetail;
-      let finalFases = inspectionFase;
-      if (rawInspection) finalInspection = rawInspection;
-      if (rawDetail) finalDetail = rawDetail;
-      if (rawFases) finalFases = rawFases.data!;
-      setInspection(finalInspection);
-      setInspectionDetail(finalDetail);
-      setInspectionFase(finalFases);
-      setObservation(finalInspection?.comment ?? '');
-    } catch (err) {
-      const mensaje = `Error obteniendo detalles de inspección: ${err}`;
-      console.error(mensaje);
-      setError2('No se pudo cargar la información detallada de la inspección.');
-    } finally {
-      setLoad(false);
-    }
-  };
+      setLoad(true);
+      setError(null);
 
+      try {
+        // 1. Ejecutamos las peticiones concurrentes
+        const [resDetail, resFases, resInspection] = await Promise.all([
+          GET_InspectionDetails({
+            inspectionId: props.inspectionId,
+            faseId: props.faseId,
+            token: user.token,
+          }),
+          GET_InspectionsFases({
+            inspectionId: props.inspectionId,
+            token: user.token,
+            Completed: false,
+          }),
+          GET_InspectionById({
+            inspectionId: props.inspectionId,
+            token: user.token,
+          }),
+        ]);
+
+        // 2. Control de sesión expirada unificado
+        if (
+          resDetail.status === 401 ||
+          resFases.status === 401 ||
+          resInspection.status === 401
+        ) {
+          handleUnauthorized();
+          return;
+        }
+
+        // 3. Extracción de datos defensiva evaluando el flag .ok
+        const finalInspection = resInspection.ok
+          ? resInspection.data
+          : inspection;
+        const finalDetail = resDetail.ok ? resDetail.data : inspectionDetail;
+        const finalFases = resFases.ok ? resFases.data : inspectionFase;
+
+        setInspection(finalInspection);
+        setInspectionDetail(finalDetail);
+        setInspectionFase(finalFases);
+
+        if (resInspection.ok && resInspection.data?.comment !== undefined) {
+          setObservation(resInspection.data.comment ?? '');
+        }
+
+        // Si alguna petición crítica falló sin ser 401, guardamos el aviso
+        if (!resDetail.ok || !resFases.ok || !resInspection.ok) {
+          setError('Algunos datos no se pudieron sincronizar por completo.');
+        }
+      } catch (err) {
+        console.error(`Error obteniendo detalles de inspección: ${err}`);
+        setError(
+          'No se pudo conectar con el servidor para traer la inspección.',
+        );
+      } finally {
+        setLoad(false);
+      }
+    },
+    [
+      user?.token,
+      inspection,
+      inspectionDetail,
+      inspectionFase,
+      handleUnauthorized,
+    ],
+  );
+
+  // Control del ciclo de vida enfocado en la pantalla
   useFocusEffect(
     useCallback(() => {
       if (isLoggedIn && id && faseId) {
         GetInfoPageInspection({ inspectionId: +id, faseId: +faseId });
       }
-    }, [isLoggedIn, id, faseId]), // Se dispara si cambia el ID o la Fase
+    }, [isLoggedIn, id, faseId, GetInfoPageInspection]),
   );
+
+  // --- Cómputos memorizados eficientes ---
+  const groups = useMemo(() => {
+    return GroupFeaturesByType(inspectionDetail);
+  }, [inspectionDetail]);
+
+  // Es para mostrar la fase que quiero filtrar en la pagina principal
+  const activedFase = useMemo(() => {
+    if (!id || !faseId) return null;
+    return inspectionFase.find(
+      (item) => item.faseId === +faseId && item.inspectionId === +id,
+    );
+  }, [inspectionFase, id, faseId]);
+
+  // Validar si el usuario tiene permisos para editar esa inspección
+  const hasPermission = useMemo(() => {
+    if (!activedFase) return false;
+    return areas?.some((item) => item.id === activedFase.faseId) ?? false;
+  }, [areas, activedFase]);
+
+  // Validamos el usuario que inició la inspección es el unico que puede
+  const canEditFase = useMemo(() => {
+    if (!activedFase) return false;
+    return inspectionFase.some(
+      (item) => item.faseId === activedFase.faseId && !item.initDate,
+    );
+  }, [inspectionFase, activedFase]);
 
   if (!isLoggedIn) return null;
-  if (!inspectionDetail.length || !inspection || !inspectionFase.length)
-    return <LoadingScreen visible={true} message='Obteniendo información' />;
 
-  const groups = GroupFeaturesByType(inspectionDetail || []);
-
-  const activedFase = inspectionFase.find(
-    (item) => item.faseId === +faseId && item.inspectionId === +id,
-  );
-
-  if (!activedFase) return <Text>No hay Fases</Text>;
-
-  const hasPermission = areas?.some((item) => item.id == activedFase.faseId);
-
-  // Falta esos permisos
-  const canEditFase = inspectionFase.some(
-    (item) => item.faseId === activedFase.faseId && !item.initDate,
-  );
-
+  // Pasamos la data limpia y procesada a tu componente visual
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <MenuHeader />
-        {/* BreadCrumbs fijos */}
-        <View style={styles.mainContent}>
-          <BreadCrumbInspection
-            isItStarted={!!activedFase.initDate || !hasPermission}
-            token={user!.token}
-            userId={user!.userId}
-            inspectionId={+id}
-            InspectionFaseId={activedFase.id} // traer la fase la cual estoy posicionado
-            faseId={+faseId}
-            faseCompleted={!!activedFase.isCompleted || !hasPermission} // traer si esa fase está completada
-          />
-
-          {/* Lista de features */}
-          {!hasPermission ? (
-            <View style={styles.alertContainer}>
-              <View style={styles.iconWrapper}>
-                <MaterialCommunityIcons
-                  name='shield-lock-outline'
-                  size={28}
-                  color='#E11D48'
-                />
-              </View>
-              <View style={styles.textWrapper}>
-                <Text style={styles.alertTitle}>Acceso Restringido</Text>
-                <Text style={styles.alertSubtitle}>
-                  No tienes los permisos necesarios para modificar esta
-                  inspección. Contacta con tu supervisor.
-                </Text>
-              </View>
-            </View>
-          ) : (
-            <>
-              {/* Información rápida de la unidad */}
-              <CardCar
-                model_name={inspection.model}
-                vin={inspection.vin}
-                plate={inspection.vehiclePlate}
-                hasFiles={inspection.hasFiles}
-                inspectionId={+id}
-                token={user!.token}
-                userId={user!.userId}
-                readOnly={!activedFase.initDate || !!activedFase.isCompleted} // Ver si esta inspección se puede iniciar
-              />
-
-              {/* Observaciones Generales */}
-              <AccordionObservation
-                observation={observation}
-                setObservation={setObservation}
-                showObservation={showObservation}
-                setShowObservation={setShowObservation}
-                inspection={inspection}
-                token={user?.token!}
-                readOnly={!activedFase.initDate || !!activedFase.isCompleted}
-              />
-
-              {/* Lista de features */}
-              <ListFeatures
-                userId={user!.userId}
-                Groups={groups} // traer los grupos
-                token={user!.token}
-                readOnly={!activedFase.initDate || !!activedFase.isCompleted}
-              />
-            </>
-          )}
-
-          {/* Footer con Carrusel Horizontal */}
-
-          <FooterInspections fases={inspectionFase} activePhase={+faseId} />
-        </View>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <InspectionContent
+      id={id ? +id : 0}
+      activedFase={activedFase}
+      areas={areas}
+      canEditFase={canEditFase}
+      error={error}
+      faseId={faseId ? +faseId : 0}
+      groups={groups}
+      hasPermission={hasPermission}
+      inspection={inspection}
+      inspectionDetail={inspectionDetail}
+      inspectionFase={inspectionFase}
+      load={load}
+      observation={observation}
+      setObservation={setObservation}
+      setShowObservation={setShowObservation}
+      showObservation={showObservation}
+      user={user}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  mainContent: {
-    flex: 1,
-  },
-  mainWrapper: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  alertContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF1F2', // Rojo muy tenue
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#FECDD3',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  iconWrapper: {
-    backgroundColor: '#FFE4E6',
-    padding: 10,
-    borderRadius: 10,
-    marginRight: 14,
-  },
-  textWrapper: {
-    flex: 1,
-  },
-  alertTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#9F1239', // Rojo oscuro elegante
-    marginBottom: 2,
-  },
-  alertSubtitle: {
-    fontSize: 13,
-    color: '#BE123C',
-    lineHeight: 18,
-    opacity: 0.8,
-  },
-});
