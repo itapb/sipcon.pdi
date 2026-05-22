@@ -40,16 +40,20 @@ export const ModalConfirmInspection: FC<Props> = (props) => {
       // 2. Mapeamos conservando TODO lo que trae el objeto original (res)
       // y sobreescribiendo/añadiendo solo lo necesario para el cierre
       const inspectionsPayload = results
-        .filter((res) => res !== null)
-        .map((res) => ({
-          Id: res.id,
-          CreatedBy: res.createdBy,
-          AreaId: res.areaId,
-          ClosedBy: props.userId,
-          DClose: GetTime(),
-          VehicleId: res.vehicleId,
-          IsDispatch: false,
-        }));
+        .filter((res) => res.ok)
+        .map((res) => {
+          const data = res.data;
+
+          return {
+            Id: data.id,
+            CreatedBy: data.createdBy,
+            AreaId: data.areaId,
+            ClosedBy: props.userId,
+            DClose: GetTime(),
+            VehicleId: data.vehicleId,
+            IsDispatch: false,
+          };
+        });
 
       if (inspectionsPayload.length === 0)
         throw new Error('No hay datos para procesar');

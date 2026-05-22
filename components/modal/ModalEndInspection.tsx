@@ -121,23 +121,25 @@ export const ModalEndInspection: FC<Props> = (props) => {
       );
 
       const inspectionsPayload = results
-        .filter((res) => res !== null)
+        .filter((res) => res.ok)
         .map((res) => {
+          const data = res.data;
+
           const dealerFromDB =
-            dealersVehicles.find((dv) => dv.inspectionId === res.id)
+            dealersVehicles.find((dv) => dv.inspectionId === data.id)
               ?.dealerId ?? 0;
 
           return {
-            Id: res.id,
-            CreatedBy: res.createdBy,
-            AreaId: res.areaId,
+            Id: data.id,
+            CreatedBy: data.createdBy,
+            AreaId: data.areaId,
             ClosedBy: props.userId,
             DClose: GetTime(),
             RecepBy:
               dealerFromDB > 0 ? dealerFromDB : (valueGeneralDealer?.id ?? 0),
             BranchOffice: valueGeneralDealer?.branchOfficeId ?? 0,
             TransporterId: valueTransporter,
-            VehicleId: res.vehicleId,
+            VehicleId: data.vehicleId,
             IsDispatch: true,
           };
         });
