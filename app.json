@@ -67,7 +67,8 @@
             "flipper": false
           }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

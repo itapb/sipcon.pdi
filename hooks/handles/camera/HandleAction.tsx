@@ -6,7 +6,6 @@ type Props = {
   userId: number;
   moduleName: string;
   recordId: number;
-  token: string;
   cameraRef: React.RefObject<CameraView | null>;
   isRecording: boolean;
   mode: 'picture' | 'video';
@@ -30,11 +29,10 @@ export const HandleAction = async (props: Props) => {
       if (photo) {
         console.log('✅ FOTO TOMADA:', photo.uri);
         // TODO: Ver que hago con este result
-        const result = await POST_Attachment({
+        await POST_Attachment({
           recordId: props.recordId,
           userId: props.userId,
           moduleName: props.moduleName,
-          token: props.token,
           file: {
             name: `photo_${GetTime()}.jpg`,
             type: 'image/jpeg',
@@ -57,7 +55,7 @@ export const HandleAction = async (props: Props) => {
         });
 
         if (video) {
-          const result = await POST_Attachment({
+          await POST_Attachment({
             recordId: props.recordId,
             userId: props.userId,
             moduleName: props.moduleName,
@@ -66,7 +64,6 @@ export const HandleAction = async (props: Props) => {
               type: 'video/mp4',
               uri: video.uri,
             },
-            token: props.token,
           });
 
           console.log('✅ VIDEO GRABADO:', video.uri);

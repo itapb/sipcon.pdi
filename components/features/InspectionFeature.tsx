@@ -2,15 +2,18 @@ import {
   getCachedOptions,
   setCachedOptions,
 } from '@/hooks/featureOptionsCache';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import {
   DataFeatureOptions,
   GET_FeatureOptions,
 } from '@/utils/fetchs/features/GET_FeatureOptions';
-import React, { memo, useEffect, useRef, useState, type FC } from 'react';
+import { POST_InspectionDetail } from '@/utils/fetchs/inspections/POST_InspectionDetail';
+import React, { memo, useEffect, useState, type FC } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
 import { MediaActions } from '../media/MediaActions';
 import { InputByType } from './InputByType';
+import { SaveStatusLabel } from './SaveStatusLabel';
 
 type Props = {
   id: number;
@@ -20,118 +23,118 @@ type Props = {
   value: number | null;
   featureId: number;
   inspectionId: number;
-  token: string;
   readOnly: boolean;
   userId: number;
   featureValueTypeId: number;
   hasFiles: boolean;
-  isDirty: boolean; // Recibido del padre
-  onDataChange: (data: any, isOriginal: boolean) => void; // Notifica al padre
 };
 
 export const InspectionFeature: FC<Props> = memo((props) => {
-  const [value, setvalue] = useState<number | null>(props.value);
-  const [observation, setObservation] = useState(props.observation);
+  const { id, featureId, inspectionId } = props;
   const [options, setOptions] = useState<DataFeatureOptions[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
-  const isMounted = useRef(true);
+  // Invocamos nuestro Hook de autoguardado pasándole la función fetch nativa
+  const {
+    value,
+    observation,
+    saveStatus,
+    fadeAnim,
+    isValidationInvalid,
+    setvalue,
+    setObservation,
+    handleValueChange,
+    handleObservationChange,
+  } = useAutoSave({
+    id,
+    featureId,
+    inspectionId,
+    readOnly: props.readOnly,
+    onSave: async (payload) => {
+      await POST_InspectionDetail([payload] as any);
+    },
+  });
 
-  // Detectamos si el estado actual es igual al original que vino por props
-  const isOriginal = value === props.value && observation === props.observation;
-
+  // Inicializar los estados del hook con los valores originales de la DB
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
+    setvalue(props.value);
+    setObservation(props.observation);
+  }, [props.value, props.observation]);
 
-  // Notificar al padre cuando cambie algo
-  useEffect(() => {
-    props.onDataChange(
-      {
-        id: props.id,
-        value: value,
-        observation: observation,
-        featureId: props.featureId,
-        inspectionId: props.inspectionId,
-      },
-      isOriginal,
-    );
-  }, [value, observation, isOriginal]);
-
+  // Carga de opciones dinámicas del selector
   useEffect(() => {
     if (+props.featureValueTypeId === 2) {
-      const cached = getCachedOptions(props.featureId);
+      const cached = getCachedOptions(featureId);
       if (cached) {
         setOptions(cached);
       } else {
+        const loadOptions = async () => {
+          if (loadingOptions) return;
+          setLoadingOptions(true);
+          try {
+            const res = await GET_FeatureOptions({ featureId });
+            if (res.ok && Array.isArray(res.data)) {
+              setOptions(res.data);
+              setCachedOptions(featureId, res.data);
+            }
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setLoadingOptions(false);
+          }
+        };
         loadOptions();
       }
     }
-  }, [props.featureId, props.featureValueTypeId]);
-
-  const loadOptions = async () => {
-    if (loadingOptions) return;
-    setLoadingOptions(true);
-    try {
-      const data = await GET_FeatureOptions({
-        featureId: props.featureId,
-        token: props.token,
-      });
-      if (data && Array.isArray(data) && isMounted.current) {
-        setOptions(data);
-        setCachedOptions(props.featureId, data);
-      }
-    } catch (error) {
-      console.error('Error cargando opciones para feature ' + props.featureId);
-    } finally {
-      if (isMounted.current) setLoadingOptions(false);
-    }
-  };
+  }, [featureId, props.featureValueTypeId]);
 
   return (
-    <Card style={[styles.qCard, props.isDirty && styles.dirtyCard]}>
+    <Card style={[styles.qCard, isValidationInvalid && styles.invalidCard]}>
       <View style={styles.qHeader}>
-        {/* Leyenda de cambios */}
         <View style={{ flex: 1 }}>
           <Text style={styles.qText}>{props.feature}</Text>
-          {props.isDirty && (
-            <Text style={styles.dirtyLabel}>Cambio pendiente</Text>
+
+          {isValidationInvalid && (
+            <Text style={styles.errorLabel}>
+              Justificación obligatoria si marca NO
+            </Text>
+          )}
+
+          {!isValidationInvalid && (
+            <SaveStatusLabel saveStatus={saveStatus} fadeAnim={fadeAnim} />
           )}
         </View>
 
-        {/* Barra de acciones para los datos adjuntos */}
         <MediaActions
           userId={props.userId}
-          token={props.token}
           fileCount={props.fileCount}
           readOnly={props.readOnly}
-          recordID={props.id}
+          recordID={id}
           moduleName='INSPECCION-TIPOS-CARACTERISTICAS'
           hasFiles={props.hasFiles}
         />
       </View>
 
-      {/* Este componente permite seleccionar el tipo de input para la inspección */}
       <InputByType
         featureValueTypeId={props.featureValueTypeId}
         loadingOptions={loadingOptions}
         options={options}
         readOnly={props.readOnly}
-        setvalue={setvalue}
+        setvalue={handleValueChange}
         value={value}
       />
 
-      {/* Input de observaciones */}
       <TextInput
-        style={[styles.obsInput, props.readOnly && styles.readOnlyField]}
-        placeholder='Observaciones...'
-        placeholderTextColor='#94A3B8'
+        style={[
+          styles.obsInput,
+          props.readOnly && styles.readOnlyField,
+          isValidationInvalid && styles.invalidInput,
+        ]}
+        placeholder='Escriba sus observaciones'
+        placeholderTextColor={isValidationInvalid ? '#FCA5A5' : '#94A3B8'}
         multiline
         value={observation}
-        onChangeText={setObservation}
+        onChangeText={handleObservationChange}
         editable={!props.readOnly}
         maxLength={500}
       />
@@ -149,14 +152,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     elevation: 2,
-  },
-  readOnlyField: { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' },
-  dirtyCard: {
     borderWidth: 1,
-    borderLeftWidth: 2,
-    borderColor: '#2563EB',
-    backgroundColor: '#F0F7FF',
+    borderColor: 'transparent',
   },
+  invalidCard: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+  readOnlyField: { backgroundColor: '#F1F5F9', borderColor: '#CBD5E1' },
   qHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -164,13 +164,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   qText: { flex: 1, fontSize: 14, color: '#1E293B', fontWeight: '700' },
-  dirtyLabel: {
-    fontSize: 10,
-    color: '#2563EB',
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    marginTop: 2,
-  },
   obsInput: {
     marginTop: 12,
     backgroundColor: '#F8FAFC',
@@ -183,5 +176,14 @@ const styles = StyleSheet.create({
     minHeight: 45,
     textAlignVertical: 'top',
     fontSize: 13,
+  },
+  invalidInput: { borderColor: '#FCA5A5', backgroundColor: '#FFF' },
+  errorLabel: {
+    fontSize: 11,
+    color: '#EF4444',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    marginTop: 4,
+    letterSpacing: 0.3,
   },
 });

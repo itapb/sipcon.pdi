@@ -1,8 +1,9 @@
+import { useAuthStore } from '@/store/useAuthStore';
+
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type Props = {
   inspectionId: number;
-  token: string;
 };
 
 export type DataInspectionById = {
@@ -40,13 +41,24 @@ type Response =
 
 export const GET_InspectionById = async (props: Props): Promise<Response> => {
   try {
+    const { token } = useAuthStore.getState();
+
+    if (!token) {
+      console.error('Error: No se encontró un token válido');
+      return {
+        ok: false,
+        data: null,
+        status: 401,
+      };
+    }
+
     const url = `${API_BASE}/Inspections/GetOne?InspectionId=${props.inspectionId}`;
 
     const result = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${props.token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 

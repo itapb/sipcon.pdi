@@ -1,5 +1,6 @@
 import { FooterMain } from '@/layout/FooterMain';
 import { MenuHeader } from '@/layout/MenuHeader';
+import { DataAreas } from '@/utils/fetchs/Areas/Get_Areas';
 import { DataInspection } from '@/utils/fetchs/inspections/GET_Inspections';
 import { T_GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
 import { StyleSheet, View } from 'react-native';
@@ -16,10 +17,10 @@ type Props = {
   inspections: DataInspection[] | null;
   loading: boolean;
   error: string | null;
-  areas: any[] | null;
-  selectedArea: number | null;
-  selectedSupplier: number | null;
-  user: any;
+  areas: DataAreas[];
+  selectedArea: number;
+  selectedSupplier: number;
+  userId: number;
   ManualRefresh: () => void;
 };
 
@@ -61,7 +62,6 @@ export const HomeContent = (props: Props) => {
     );
   }
 
-  // RETORNO PRINCIPAL: Aquí garantizamos al 100% que la data existe
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <LoadingScreen visible={props.loading} message='Actualizando...' />
@@ -96,9 +96,8 @@ export const HomeContent = (props: Props) => {
         key={`footer-${props.selectedArea}-${props.selectedSupplier}`}
         supplierId={props.selectedSupplier ?? 0}
         areaId={props.selectedArea ?? 0}
-        areas={props.areas ?? []}
-        token={props.user?.token ?? ''}
-        userId={props.user?.userId ?? 0}
+        areas={props.areas}
+        userId={props.userId}
       />
     </SafeAreaView>
   );

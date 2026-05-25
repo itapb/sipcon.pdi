@@ -22,7 +22,6 @@ type Props = {
   userId: number;
   moduleName: string;
   recordId: number;
-  token: string;
   visible: boolean;
   readOnly: boolean;
   onDismiss: React.Dispatch<React.SetStateAction<boolean>>;
@@ -39,14 +38,13 @@ export const ModalFiles: FC<Props> = (props) => {
   const loadAttachments = async () => {
     setLoading(true);
     try {
-      const data = await GETALL_Attachment({
+      const attachment = await GETALL_Attachment({
         moduleName: props.moduleName,
         recordId: props.recordId,
-        token: props.token,
       });
 
-      if (data) {
-        setAttachment(data);
+      if (attachment.ok) {
+        setAttachment(attachment.data);
       } else {
         setAttachment([]);
       }
@@ -107,7 +105,6 @@ export const ModalFiles: FC<Props> = (props) => {
                     name={item.fileName}
                     attachmentId={item.id}
                     userId={props.userId}
-                    token={props.token}
                     onActionSuccess={handleActionSuccess}
                     readonly={props.readOnly}
                   />
@@ -136,7 +133,6 @@ export const ModalFiles: FC<Props> = (props) => {
                   await OpenGallery({
                     moduleName: props.moduleName,
                     recordId: props.recordId,
-                    token: props.token,
                     userId: props.userId,
                   });
                   await handleActionSuccess();

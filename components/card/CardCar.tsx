@@ -9,7 +9,6 @@ type Props = {
   vin: string | number;
   plate: string;
   inspectionId: number;
-  token: string;
   userId: number;
   readOnly: boolean;
   hasFiles: boolean;
@@ -45,7 +44,6 @@ export const CardCar: FC<Props> = (props) => {
           }}
           recordID={props.inspectionId}
           moduleName='INSPECCION-INSPECCION'
-          token={props.token}
           userId={props.userId}
           readOnly={props.readOnly}
         />

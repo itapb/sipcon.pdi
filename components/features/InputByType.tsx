@@ -14,7 +14,7 @@ type Props = {
   featureValueTypeId: number;
   value: number | null;
   readOnly: boolean;
-  setvalue: React.Dispatch<React.SetStateAction<number | null>>;
+  setvalue: (val: number | null) => void;
   loadingOptions: boolean;
   options: DataFeatureOptions[];
 };
@@ -89,7 +89,7 @@ export const InputByType: FC<Props> = (props) => {
               const cleanText = txt.replace(/[^0-9]/g, '');
 
               if (cleanText === '') {
-                props.setvalue(0); // En lugar de null, enviamos 0
+                props.setvalue(0);
                 return;
               }
 
@@ -102,7 +102,6 @@ export const InputByType: FC<Props> = (props) => {
               }
             }}
             onBlur={() => {
-              // 3. Validación final al salir del input (ejemplo: Minimo 10)
               const MIN = 0;
               if (props.value !== null && props.value < MIN) {
                 props.setvalue(MIN);

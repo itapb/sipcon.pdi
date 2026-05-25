@@ -16,7 +16,6 @@ import { Divider, Modal, Portal, Text } from 'react-native-paper';
 type Props = {
   visible: boolean;
   onDismiss: (value: boolean) => void;
-  token: string;
   userId: number;
 };
 
@@ -33,7 +32,7 @@ export const ModalConfirmInspection: FC<Props> = (props) => {
       // 1. Obtenemos los datos actuales de cada inspección (los "results")
       const results = await Promise.all(
         selectedVehicles.map((v) =>
-          GET_InspectionById({ inspectionId: v.vehicleId, token: props.token }),
+          GET_InspectionById({ inspectionId: v.vehicleId }),
         ),
       );
 
@@ -59,10 +58,11 @@ export const ModalConfirmInspection: FC<Props> = (props) => {
         throw new Error('No hay datos para procesar');
 
       // 3. Enviamos el lote
-      await POST_Inspection({
+      const r_post = await POST_Inspection({
         inspections: inspectionsPayload,
-        token: props.token,
       });
+
+      if (!r_post.ok) throw new Error('No se pudo procesar la petición');
 
       Alert.alert(
         'Éxito',

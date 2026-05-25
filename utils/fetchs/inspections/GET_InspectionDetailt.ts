@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/useAuthStore';
+
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type Props = {
@@ -5,7 +7,6 @@ type Props = {
   areaId?: number;
   faseId?: number;
   featureTypeId?: boolean;
-  token: string;
 };
 
 export type DataInspectionDetail = {
@@ -39,6 +40,17 @@ export const GET_InspectionDetails = async (
   props: Props,
 ): Promise<Response> => {
   try {
+    const { token } = useAuthStore.getState();
+
+    if (!token) {
+      console.error('Error: No se encontró un token válido');
+      return {
+        ok: false,
+        data: null,
+        status: 401,
+      };
+    }
+
     const params = new URLSearchParams();
 
     // Modificamos para que el endpoint reciba parametros dinámicos
@@ -58,7 +70,7 @@ export const GET_InspectionDetails = async (
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${props.token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 

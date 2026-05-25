@@ -1,7 +1,8 @@
+import { useAuthStore } from '@/store/useAuthStore';
+
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 type AttachmentProps = {
-  token: string;
   userId: number;
   moduleName: string;
   recordId: number;
@@ -19,11 +20,27 @@ type Result = {
   lastId: number;
 };
 
-export const POST_Attachment = async (props: AttachmentProps) => {
+type Response =
+  | { ok: true; data: Result; status: number }
+  | { ok: false; data: null; status: number };
+
+export const POST_Attachment = async (
+  props: AttachmentProps,
+): Promise<Response> => {
   try {
+    const { token } = useAuthStore.getState();
+
+    if (!token) {
+      console.error('Error: No se encontró un token válido');
+      return {
+        ok: false,
+        data: null,
+        status: 401,
+      };
+    }
+
     const formData = new FormData();
 
-    // En React Native, el objeto del archivo debe tener uri, name y type
     formData.append('files', {
       uri: props.file.uri,
       name: props.file.name,
@@ -36,20 +53,28 @@ export const POST_Attachment = async (props: AttachmentProps) => {
       method: 'POST',
       body: formData,
       headers: {
-        Authorization: `Bearer ${props.token}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!result.ok) {
       const errorText = await result.text();
       console.log('Error en la petición de adjunto:', errorText);
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data_json = await result.json();
     const data = data_json.data as Result;
 
-    return data;
+    return {
+      ok: true,
+      data: data,
+      status: result.status,
+    };
   } catch (error) {
     console.error('Error de red al subir adjunto:', error);
     throw error;

@@ -19,7 +19,6 @@ type Props = {
   setObservation: React.Dispatch<React.SetStateAction<string>>;
   setShowObservation: React.Dispatch<React.SetStateAction<boolean>>;
   inspection: DataInspectionById;
-  token: string;
   readOnly: boolean;
 };
 
@@ -40,6 +39,29 @@ export const AccordionObservation: FC<Props> = (props) => {
     props.setShowObservation(!props.showObservation);
   };
 
+  const handleInternalSave = async () => {
+    setIsSaving(true);
+    try {
+      const response = await POST_Inspection({
+        inspections: [
+          {
+            Id: props.inspection.id,
+            AreaId: props.inspection.areaId,
+            CreatedBy: props.inspection.createdBy,
+            VehicleId: props.inspection.vehicleId,
+            Comment: props.observation,
+          },
+        ],
+      });
+
+      if (!response.ok) throw new Error('No se pudo procesar la petición');
+    } catch (error) {
+      console.error('Error al autoguardar:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // --- LÓGICA DE AUTOGUARDADO CONTROLADA ---
   useEffect(() => {
     // Si es readonly o no hay texto, no hacemos nada
@@ -51,28 +73,6 @@ export const AccordionObservation: FC<Props> = (props) => {
 
     return () => clearTimeout(delayDebounceFn);
   }, [props.observation, props.readOnly]);
-
-  const handleInternalSave = async () => {
-    setIsSaving(true);
-    try {
-      await POST_Inspection({
-        inspections: [
-          {
-            Id: props.inspection.id,
-            AreaId: props.inspection.areaId,
-            CreatedBy: props.inspection.createdBy,
-            VehicleId: props.inspection.vehicleId,
-            Comment: props.observation,
-          },
-        ],
-        token: props.token,
-      });
-    } catch (error) {
-      console.error('Error al autoguardar:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <>

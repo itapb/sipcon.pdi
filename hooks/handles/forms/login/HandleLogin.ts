@@ -64,11 +64,11 @@ export const HandleLogin = async (props: Props) => {
 
     const areas = await GETALL_Areas({
       supplierId: data_user.suppliers[0].id,
-      token: data_user.token,
       userId: data_user.userId,
+      token: data_user.token,
     });
 
-    if (!areas || areas.length === 0) {
+    if (!areas.ok) {
       Alert.alert(
         'Error',
         'El usuario no tiene su rol configurado, por favor contactar con su supervisor',
@@ -76,7 +76,7 @@ export const HandleLogin = async (props: Props) => {
       return;
     }
 
-    props.login(data_user, areas);
+    props.login(data_user, areas.data);
   } catch (error) {
     console.log('Login Error:', error);
     Alert.alert('Error', 'No se pudo conectar con el servidor.');

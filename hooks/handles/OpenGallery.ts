@@ -7,7 +7,6 @@ type Props = {
   userId: number;
   moduleName: string;
   recordId: number;
-  token: string;
 };
 
 export const OpenGallery = async (props: Props) => {
@@ -47,7 +46,6 @@ export const OpenGallery = async (props: Props) => {
       console.log(`Subiendo: ${asset.uri}`);
 
       await POST_Attachment({
-        token: props.token,
         userId: props.userId,
         moduleName: props.moduleName,
         recordId: props.recordId,

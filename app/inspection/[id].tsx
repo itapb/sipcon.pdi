@@ -72,8 +72,6 @@ export default function InspectionScreen() {
   // Función para obtener la información
   const GetInfoPageInspection = useCallback(
     async (props: Props) => {
-      if (!user?.token) return;
-
       setLoad(true);
       setError(null);
 
@@ -83,16 +81,13 @@ export default function InspectionScreen() {
           GET_InspectionDetails({
             inspectionId: props.inspectionId,
             faseId: props.faseId,
-            token: user.token,
           }),
           GET_InspectionsFases({
             inspectionId: props.inspectionId,
-            token: user.token,
             Completed: false,
           }),
           GET_InspectionById({
             inspectionId: props.inspectionId,
-            token: user.token,
           }),
         ]);
 
@@ -129,7 +124,7 @@ export default function InspectionScreen() {
         setLoad(false);
       }
     },
-    [user?.token, handleUnauthorized],
+    [handleUnauthorized],
   );
 
   // ESCUCHADOR DE EVENTO GLOBAL
@@ -204,7 +199,7 @@ export default function InspectionScreen() {
       setObservation={setObservation}
       setShowObservation={setShowObservation}
       showObservation={showObservation}
-      user={user}
+      userId={user?.userId ?? 0}
     />
   );
 }

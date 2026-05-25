@@ -11,7 +11,6 @@ import { ModalFiles } from '../modal/ModalFile';
 type Props = {
   fileCount: number;
   recordID: number;
-  token: string;
   userId: number;
   readOnly: boolean;
   moduleName: string;
@@ -87,7 +86,6 @@ export const MediaActions: FC<Props> = (props) => {
           onCapture={handleCaptureFinished}
           recordId={props.recordID}
           moduleName={props.moduleName}
-          token={props.token}
           userId={props.userId}
         />
       </Modal>
@@ -99,7 +97,6 @@ export const MediaActions: FC<Props> = (props) => {
         onRefresh={handleGalleryRefresh}
         moduleName={props.moduleName}
         recordId={props.recordID}
-        token={props.token}
         userId={props.userId}
         readOnly={props.readOnly}
       />

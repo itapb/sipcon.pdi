@@ -33,7 +33,6 @@ type Props = {
   userId: number;
   visible: boolean;
   onDismiss: (value: boolean) => void;
-  token: string;
   areaId: number;
   supplierId: number;
 };
@@ -72,14 +71,16 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
         const [rawTransporter, rawDealer, rawVehicleDealers] =
           await Promise.all([
-            GET_Transporter({ token: props.token }),
-            GET_Dealer({ token: props.token, supplierId: props.supplierId }),
-            GET_InpectionDealers({ token: props.token, inspectionIds: ids }),
+            GET_Transporter(),
+            GET_Dealer({ supplierId: props.supplierId }),
+            GET_InpectionDealers({ inspectionIds: ids }),
           ]);
 
-        if (rawTransporter) setTransporter(rawTransporter);
-        if (rawDealer) setDealer(rawDealer);
-        if (rawVehicleDealers) setDealersVehicles(rawVehicleDealers);
+        if (rawTransporter.ok && rawDealer.ok && rawVehicleDealers.ok) {
+          if (rawTransporter) setTransporter(rawTransporter.data);
+          if (rawDealer) setDealer(rawDealer.data);
+          if (rawVehicleDealers) setDealersVehicles(rawVehicleDealers.data);
+        }
       } catch (error) {
         console.error('Error al cargar catálogos:', error);
         Alert.alert('Error', 'No se pudieron cargar los datos iniciales.');
@@ -116,7 +117,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
     try {
       const results = await Promise.all(
         selectedVehicles.map((v) =>
-          GET_InspectionById({ inspectionId: v.vehicleId, token: props.token }),
+          GET_InspectionById({ inspectionId: v.vehicleId }),
         ),
       );
 
@@ -148,10 +149,9 @@ export const ModalEndInspection: FC<Props> = (props) => {
 
       const r_post = await POST_Inspection({
         inspections: inspectionsPayload,
-        token: props.token,
       });
 
-      if (r_post === null) throw new Error('No se pudo procesar la petición');
+      if (!r_post.ok) throw new Error('No se pudo procesar la petición');
 
       Alert.alert('Éxito', `${inspectionsPayload.length} unidades procesadas.`);
       clearSelection();

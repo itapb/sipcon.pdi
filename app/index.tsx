@@ -57,8 +57,6 @@ export default function HomeScreen() {
   // Función asíncrona de consulta
   const GetInfoPage = useCallback(
     async (props: FetchProps) => {
-      if (!user?.token) return;
-
       setLoading(true);
       setError(null);
 
@@ -66,12 +64,10 @@ export default function HomeScreen() {
         const [resFases, resInspections] = await Promise.all([
           GET_InspectionsFases({
             areaId: props.areaId,
-            token: user.token,
             Completed: false,
           }),
           GET_Inspections({
             areaId: props.areaId,
-            token: user.token,
             isCompleted: false,
           }),
         ]);
@@ -102,17 +98,17 @@ export default function HomeScreen() {
         setLoading(false);
       }
     },
-    [user?.token, handleUnauthorized],
+    [handleUnauthorized],
   );
 
   // Control del ciclo de vida y foco de pantalla
   useFocusEffect(
     useCallback(() => {
-      if (isLoggedIn && selectedArea && user?.token) {
+      if (isLoggedIn && selectedArea && user) {
         GetInfoPage({ areaId: selectedArea });
         ClearSelection();
       }
-    }, [isLoggedIn, selectedArea, user?.token, ClearSelection, GetInfoPage]),
+    }, [isLoggedIn, selectedArea, user, ClearSelection, GetInfoPage]),
   );
 
   const ManualRefresh = () => {
@@ -129,10 +125,10 @@ export default function HomeScreen() {
       inspections={inspections}
       loading={loading}
       error={error}
-      areas={areas}
-      selectedArea={selectedArea}
-      selectedSupplier={selectedSupplier}
-      user={user}
+      areas={areas ?? []}
+      selectedArea={selectedArea ?? 0}
+      selectedSupplier={selectedSupplier ?? 0}
+      userId={user?.userId ?? 0}
       ManualRefresh={ManualRefresh}
     />
   );

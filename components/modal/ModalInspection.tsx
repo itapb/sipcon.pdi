@@ -21,7 +21,6 @@ type Props = {
   userId: number;
   visible: boolean;
   onDismiss: (value: boolean) => void;
-  token: string;
   areaId: number;
   supplierId: number;
 };
@@ -41,12 +40,20 @@ export const ModalInspection: FC<Props> = (props) => {
       const result = await POST_FullInspection({
         Identifier: value,
         AreaId: props.areaId,
-        token: props.token,
         userId: props.userId,
         supplierId: props.supplierId,
       });
 
-      if (result?.insertedRows === 0 && result?.lastId === 0) {
+      if (!result.ok) {
+        Alert.alert(
+          'Error al generar la inspección',
+          'Ocurrio un error al momento de crear la inspección',
+        );
+
+        return;
+      }
+
+      if (result.data.insertedRows === 0 && result.data.lastId === 0) {
         Alert.alert(
           'Unidad no encontrada',
           'El VIN/Placa no existe o no tiene una inspección pendiente en esta área.',

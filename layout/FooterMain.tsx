@@ -11,7 +11,6 @@ type Props = {
   userId: number;
   supplierId: number;
   areaId: number;
-  token: string;
   areas: DataAreas[];
 };
 
@@ -60,30 +59,26 @@ export const FooterMain: FC<Props> = (props) => {
         </Text>
       </TouchableOpacity>
 
-      {/* Modales - AQUÍ ESTABA EL ERROR DE MAPEO */}
-
+      {/* Modales */}
       <ModalInspection
         onDismiss={setOpenInpection}
         visible={openInpection}
         areaId={props.areaId}
-        token={props.token}
         userId={props.userId}
         supplierId={props.supplierId}
       />
 
       <ModalEndInspection
         supplierId={props.supplierId}
-        onDismiss={setOpenEndInpection} // Antes tenías setOpenConfirmInspection (MAL)
-        visible={openEndInpection} // Antes tenías openConfirmInspection (MAL)
+        onDismiss={setOpenEndInpection}
+        visible={openEndInpection}
         areaId={props.areaId}
-        token={props.token}
         userId={props.userId}
       />
 
       <ModalConfirmInspection
-        onDismiss={setOpenConfirmInspection} // Antes tenías setOpenEndInpection (MAL)
-        visible={openConfirmInspection} // Antes tenías openEndInpection (MAL)
-        token={props.token}
+        onDismiss={setOpenConfirmInspection}
+        visible={openConfirmInspection}
         userId={props.userId}
       />
     </View>

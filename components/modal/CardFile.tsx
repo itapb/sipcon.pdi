@@ -10,7 +10,6 @@ type PropsCardFile = {
   name: string;
   attachmentId: number;
   userId: number;
-  token: string;
   readonly: boolean;
   onActionSuccess: () => void;
 };
@@ -21,11 +20,10 @@ export const CardFile: FC<PropsCardFile> = (props) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     const success = await POST_DeleteAttachment({
-      token: props.token,
       attachmentId: props.attachmentId,
       userId: props.userId,
     });
-    if (success) {
+    if (success.ok) {
       props.onActionSuccess();
     }
     setIsDeleting(false);
@@ -37,7 +35,6 @@ export const CardFile: FC<PropsCardFile> = (props) => {
       await GET_AttachmentPreview({
         attachmentId: props.attachmentId,
         fileName: props.name,
-        token: props.token,
         userId: props.userId,
       });
     } catch (error) {

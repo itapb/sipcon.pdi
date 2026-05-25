@@ -18,7 +18,6 @@ type Props = {
   inspectionId: number;
   InspectionFaseId: number;
   isItStarted: boolean;
-  token: string;
   faseId: number;
   faseCompleted: boolean;
   userId: number;
@@ -27,7 +26,6 @@ type Props = {
 export const BreadCrumbInspection: FC<Props> = ({
   isItStarted,
   InspectionFaseId,
-  token,
   inspectionId,
   faseId,
   faseCompleted,
@@ -56,21 +54,32 @@ export const BreadCrumbInspection: FC<Props> = ({
           onPress: async () => {
             try {
               setLoading(true);
-              await POST_InspectionFase({
+              const result = await POST_InspectionFase({
                 Id: InspectionFaseId,
                 FaseId: faseId,
                 InspectionId: inspectionId,
-                token,
                 InitDate: GetTime(),
                 UserInitId: userId,
               });
+
+              if (!result.ok) {
+                Alert.alert(
+                  'Error al generar la inspección',
+                  'Ocurrio un error al momento de crear la inspección',
+                );
+
+                return;
+              }
 
               router.replace({
                 pathname: pathname as any,
                 params: { faseId: faseId },
               });
             } catch (error) {
-              Alert.alert('Error', 'No se pudo iniciar la inspección.');
+              Alert.alert(
+                'Error',
+                `No se pudo iniciar la inspección. ${error}`,
+              );
             } finally {
               setLoading(false);
             }
@@ -95,11 +104,19 @@ export const BreadCrumbInspection: FC<Props> = ({
                 Id: InspectionFaseId,
                 FaseId: faseId,
                 InspectionId: inspectionId,
-                token,
                 CompletedDate: GetTime(),
               });
 
-              if (response?.lastId === -1) {
+              if (!response.ok) {
+                Alert.alert(
+                  'Error al generar la inspección',
+                  'Ocurrio un error al momento de crear la inspección',
+                );
+
+                return;
+              }
+
+              if (response.data.lastId === -1) {
                 Alert.alert(
                   'Inspecciones pendientes',
                   'Aún tienes caracteristicas por completar, por favor validar',

@@ -17,7 +17,6 @@ import { HandleAction } from './HandleAction';
 import { Permission } from './Permission';
 
 type Props = {
-  token: string;
   moduleName: string;
   recordId: number;
   userId: number;
@@ -26,7 +25,6 @@ type Props = {
 };
 
 export const CameraScanner: FC<Props> = ({
-  token,
   recordId,
   userId,
   moduleName,
@@ -92,7 +90,6 @@ export const CameraScanner: FC<Props> = ({
         setIsRecording,
         recordId,
         moduleName,
-        token,
         userId,
       });
     } catch (error) {

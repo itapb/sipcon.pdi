@@ -5,7 +5,6 @@ import { DataAreas } from '@/utils/fetchs/Areas/Get_Areas';
 import { DataInspectionById } from '@/utils/fetchs/inspections/GET_InspectionById';
 import { DataInspectionDetail } from '@/utils/fetchs/inspections/GET_InspectionDetailt';
 import { DataInspectionFase } from '@/utils/fetchs/inspections/GET_InspectionFase';
-import { DataUser } from '@/utils/fetchs/login/POST_Login';
 import React, { Dispatch, SetStateAction } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +12,6 @@ import { BreadCrumbInspection } from '../breadcrumb/BreadCrumbInspection';
 import { Inspection } from './Inspection';
 import { RestrictedAccess } from './RestrictedAccess';
 
-// Declaramos los tipos exactos de todas las propiedades que le manda el controlador
 type InspectionContentProps = {
   id: number;
   activedFase: DataInspectionFase | null | undefined;
@@ -23,53 +21,41 @@ type InspectionContentProps = {
   faseId: number;
   groups: any[];
   hasPermission: boolean;
-  inspection: DataInspectionById | null; // Reemplaza con DataInspectionById
-  inspectionDetail: DataInspectionDetail[]; // Reemplaza con DataInspectionDetail[]
-  inspectionFase: DataInspectionFase[]; // Reemplaza con DataInspectionFase[]
+  inspection: DataInspectionById | null;
+  inspectionDetail: DataInspectionDetail[];
+  inspectionFase: DataInspectionFase[];
   load: boolean;
   observation: string;
   setObservation: Dispatch<SetStateAction<string>>;
   setShowObservation: Dispatch<SetStateAction<boolean>>;
   showObservation: boolean;
-  user: DataUser | null; // Reemplaza con tu tipo de usuario real si lo tienes
+  userId: number;
 };
 
-export function InspectionContent({
-  id,
-  faseId,
-  load,
-  error,
-  user,
-  observation,
-  setObservation,
-  showObservation,
-  setShowObservation,
-  inspection,
-  inspectionDetail,
-  inspectionFase,
-  groups,
-  activedFase,
-  hasPermission,
-}: InspectionContentProps) {
+export function InspectionContent(props: InspectionContentProps) {
   // --- 1. Control de pantallas de carga tempranas ---
-  if (load && (!inspectionDetail.length || !inspection)) {
+  if (props.load && (!props.inspectionDetail.length || !props.inspection)) {
     return <LoadingScreen visible={true} message='Obteniendo información...' />;
   }
 
-  // --- 2. Validaciones de contingencia de datos ---
-  if (error && !inspection) {
+  // --- 2. Validacionnes o captyura de errores ---
+  if (props.error && !props.inspection) {
     return (
       <View style={styles.centerWrapper}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{props.error}</Text>
       </View>
     );
   }
 
-  if (!inspectionDetail.length || !inspection || !inspectionFase.length) {
+  if (
+    !props.inspectionDetail.length ||
+    !props.inspection ||
+    !props.inspectionFase.length
+  ) {
     return <LoadingScreen visible={true} message='Procesando datos...' />;
   }
 
-  if (!activedFase) {
+  if (!props.activedFase) {
     return (
       <View style={styles.centerWrapper}>
         <Text style={styles.centerText}>
@@ -80,7 +66,8 @@ export function InspectionContent({
   }
 
   // Variable calculada para controlar la edición global en los sub-componentes
-  const isReadOnly = !activedFase.initDate || !!activedFase.isCompleted;
+  const isReadOnly =
+    !props.activedFase.initDate || !!props.activedFase.isCompleted;
 
   // --- 4. El esqueleto visual definitivo ---
   return (
@@ -91,34 +78,38 @@ export function InspectionContent({
         <View style={styles.mainContent}>
           {/* Componente de navegación y tambien para iniciar las fases */}
           <BreadCrumbInspection
-            isItStarted={!!activedFase.initDate || !hasPermission}
-            token={user!.token}
-            userId={user!.userId}
-            inspectionId={id}
-            InspectionFaseId={activedFase.id}
-            faseId={faseId}
-            faseCompleted={!!activedFase.isCompleted || !hasPermission}
+            faseCompleted={
+              !!props.activedFase.isCompleted || !props.hasPermission
+            }
+            faseId={props.faseId}
+            InspectionFaseId={props.activedFase.id}
+            inspectionId={props.id}
+            isItStarted={!!props.activedFase.initDate || !props.hasPermission}
+            userId={props.userId}
           />
 
           {/* Renderizado condicional basado en las reglas de negocio calculadas arriba */}
-          {hasPermission ? (
+          {props.hasPermission ? (
             <Inspection
-              groups={groups}
-              id={id}
-              inspection={inspection}
+              id={props.id}
+              groups={props.groups}
+              inspection={props.inspection}
               isReadOnly={isReadOnly}
-              observation={observation}
-              setObservation={setObservation}
-              setShowObservation={setShowObservation}
-              showObservation={showObservation}
-              user={user}
+              observation={props.observation}
+              setObservation={props.setObservation}
+              setShowObservation={props.setShowObservation}
+              showObservation={props.showObservation}
+              userId={props.userId}
             />
           ) : (
             <RestrictedAccess />
           )}
 
           {/* Navegador horizontal de fases */}
-          <FooterInspections fases={inspectionFase} activePhase={faseId} />
+          <FooterInspections
+            fases={props.inspectionFase}
+            activePhase={props.faseId}
+          />
         </View>
       </SafeAreaView>
     </SafeAreaProvider>

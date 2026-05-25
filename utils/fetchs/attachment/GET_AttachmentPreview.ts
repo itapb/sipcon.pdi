@@ -1,4 +1,4 @@
-// Importamos desde la ruta /legacy para recuperar los miembros que TS no encuentra
+import { useAuthStore } from '@/store/useAuthStore';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import { Alert } from 'react-native';
@@ -8,17 +8,22 @@ const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 type DownloadProps = {
   attachmentId: number;
   userId: number;
-  token: string;
   fileName: string;
 };
 
 export const GET_AttachmentPreview = async ({
   attachmentId,
   userId,
-  token,
   fileName,
 }: DownloadProps) => {
   try {
+    const { token } = useAuthStore.getState();
+
+    if (!token) {
+      console.error('Error: No se encontró un token válido');
+      return null;
+    }
+
     // 1. Permisos con WRITE habilitado (true)
     const { status } = await MediaLibrary.requestPermissionsAsync(true);
     if (status !== 'granted') {

@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/useAuthStore';
+
 const API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
 export type Props = {
@@ -6,7 +8,6 @@ export type Props = {
   InspectionId: number;
   CompletedDate?: Date;
   InitDate?: Date;
-  token: string;
   UserInitId?: number;
 };
 
@@ -17,8 +18,23 @@ type Result = {
   lastId: number;
 };
 
-export const POST_InspectionFase = async (props: Props) => {
+type Response =
+  | { ok: true; data: Result; status: number }
+  | { ok: false; data: null; status: number };
+
+export const POST_InspectionFase = async (props: Props): Promise<Response> => {
   try {
+    const { token } = useAuthStore.getState();
+
+    if (!token) {
+      console.error('Error: No se encontró un token válido');
+      return {
+        ok: false,
+        data: null,
+        status: 401,
+      };
+    }
+
     const data_body: any = {
       Id: props.Id,
       FaseId: props.FaseId,
@@ -44,7 +60,7 @@ export const POST_InspectionFase = async (props: Props) => {
         body: JSON.stringify([data_body]),
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${props.token}`,
+          Authorization: `Bearer ${token}`,
         },
       },
     );
@@ -52,12 +68,20 @@ export const POST_InspectionFase = async (props: Props) => {
     if (!result.ok) {
       const errorText = await result.text();
       console.log('Error en la petición:', errorText);
-      return null;
+      return {
+        ok: false,
+        data: null,
+        status: result.status,
+      };
     }
 
     const data = (await result.json()) as Result;
 
-    return data;
+    return {
+      ok: true,
+      data: data,
+      status: result.status,
+    };
   } catch (error) {
     console.error('Error de red:', error);
     throw error;
