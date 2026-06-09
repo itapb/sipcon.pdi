@@ -13,6 +13,11 @@ type Props = {
   showObservation: boolean;
   setShowObservation: Dispatch<React.SetStateAction<boolean>>;
   groups: any[];
+  onUpdateQuestionLocal: (
+    idDetail: number,
+    newValue: number | null,
+    newObs: string,
+  ) => void;
 };
 
 export const Inspection: FC<Props> = (props) => {
@@ -44,6 +49,7 @@ export const Inspection: FC<Props> = (props) => {
         userId={props.userId}
         Groups={props.groups}
         readOnly={props.isReadOnly}
+        onUpdateQuestionLocal={props.onUpdateQuestionLocal}
       />
     </>
   );

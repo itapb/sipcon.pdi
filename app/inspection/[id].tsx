@@ -48,7 +48,25 @@ export default function InspectionScreen() {
     [],
   );
 
-  // Expulsión limpia si el token caducó (Status 401)
+  // MUTACIÓN LOCAL DIRECTA CON TIPADO SEGURO
+  const handleUpdateQuestionLocal = useCallback(
+    (idDetail: number, newValue: number | null, newObs: string) => {
+      setInspectionDetail((prev) =>
+        prev.map((item): DataInspectionDetail => {
+          if (item.id === idDetail) {
+            return {
+              ...item,
+              value: newValue as any,
+              observation: newObs,
+            };
+          }
+          return item;
+        }),
+      );
+    },
+    [],
+  );
+
   const handleUnauthorized = useCallback(() => {
     setInspection(null);
     setInspectionDetail([]);
@@ -151,7 +169,7 @@ export default function InspectionScreen() {
     }, [isLoggedIn, id, faseId, GetInfoPageInspection]),
   );
 
-  // --- Cómputos memorizados eficientes ---
+  // Re-calcula de forma óptima los grupos cuando inspectionDetail muta localmente
   const groups = useMemo(() => {
     return GroupFeaturesByType(inspectionDetail);
   }, [inspectionDetail]);
@@ -200,6 +218,7 @@ export default function InspectionScreen() {
       setShowObservation={setShowObservation}
       showObservation={showObservation}
       userId={user?.userId ?? 0}
+      onUpdateQuestionLocal={handleUpdateQuestionLocal}
     />
   );
 }

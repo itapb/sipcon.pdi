@@ -15,7 +15,7 @@ import { MediaActions } from '../media/MediaActions';
 import { InputByType } from './InputByType';
 import { SaveStatusLabel } from './SaveStatusLabel';
 
-type Props = {
+type ExtendedProps = {
   id: number;
   feature: string;
   fileCount: number;
@@ -27,14 +27,18 @@ type Props = {
   userId: number;
   featureValueTypeId: number;
   hasFiles: boolean;
+  onUpdateQuestionLocal: (
+    idDetail: number,
+    newValue: number | null,
+    newObs: string,
+  ) => void;
 };
 
-export const InspectionFeature: FC<Props> = memo((props) => {
-  const { id, featureId, inspectionId } = props;
+export const InspectionFeature: FC<ExtendedProps> = memo((props) => {
+  const { id, featureId, inspectionId, onUpdateQuestionLocal } = props;
   const [options, setOptions] = useState<DataFeatureOptions[]>([]);
   const [loadingOptions, setLoadingOptions] = useState(false);
 
-  // Invocamos nuestro Hook de autoguardado pasándole la función fetch nativa
   const {
     value,
     observation,
@@ -43,8 +47,8 @@ export const InspectionFeature: FC<Props> = memo((props) => {
     isValidationInvalid,
     setvalue,
     setObservation,
-    handleValueChange,
-    handleObservationChange,
+    handleValueChange: triggerAutoSaveValue,
+    handleObservationChange: triggerAutoSaveObs,
   } = useAutoSave({
     id,
     featureId,
@@ -55,13 +59,22 @@ export const InspectionFeature: FC<Props> = memo((props) => {
     },
   });
 
-  // Inicializar los estados del hook con los valores originales de la DB
   useEffect(() => {
     setvalue(props.value);
     setObservation(props.observation);
   }, [props.value, props.observation]);
 
-  // Carga de opciones dinámicas del selector
+  // Interceptores locales para replicar el cambio hacia arriba al instante
+  const internalValueChange = (newVal: number | null) => {
+    triggerAutoSaveValue(newVal);
+    onUpdateQuestionLocal(id, newVal, observation);
+  };
+
+  const internalObservationChange = (newObs: string) => {
+    triggerAutoSaveObs(newObs);
+    onUpdateQuestionLocal(id, value, newObs);
+  };
+
   useEffect(() => {
     if (+props.featureValueTypeId === 2) {
       const cached = getCachedOptions(featureId);
@@ -120,7 +133,7 @@ export const InspectionFeature: FC<Props> = memo((props) => {
         loadingOptions={loadingOptions}
         options={options}
         readOnly={props.readOnly}
-        setvalue={handleValueChange}
+        setvalue={internalValueChange}
         value={value}
       />
 
@@ -134,7 +147,7 @@ export const InspectionFeature: FC<Props> = memo((props) => {
         placeholderTextColor={isValidationInvalid ? '#FCA5A5' : '#94A3B8'}
         multiline
         value={observation}
-        onChangeText={handleObservationChange}
+        onChangeText={internalObservationChange}
         editable={!props.readOnly}
         maxLength={500}
       />

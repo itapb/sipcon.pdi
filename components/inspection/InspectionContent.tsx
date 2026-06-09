@@ -30,6 +30,11 @@ type InspectionContentProps = {
   setShowObservation: Dispatch<SetStateAction<boolean>>;
   showObservation: boolean;
   userId: number;
+  onUpdateQuestionLocal: (
+    idDetail: number,
+    newValue: number | null,
+    newObs: string,
+  ) => void;
 };
 
 export function InspectionContent(props: InspectionContentProps) {
@@ -38,7 +43,7 @@ export function InspectionContent(props: InspectionContentProps) {
     return <LoadingScreen visible={true} message='Obteniendo información...' />;
   }
 
-  // --- 2. Validacionnes o captyura de errores ---
+  // --- 2. Validaciones o captura de errores ---
   if (props.error && !props.inspection) {
     return (
       <View style={styles.centerWrapper}>
@@ -76,7 +81,7 @@ export function InspectionContent(props: InspectionContentProps) {
         <MenuHeader />
 
         <View style={styles.mainContent}>
-          {/* Componente de navegación y tambien para iniciar las fases */}
+          {/* Componente de navegación y también para iniciar las fases */}
           <BreadCrumbInspection
             faseCompleted={
               !!props.activedFase.isCompleted || !props.hasPermission
@@ -100,6 +105,7 @@ export function InspectionContent(props: InspectionContentProps) {
               setShowObservation={props.setShowObservation}
               showObservation={props.showObservation}
               userId={props.userId}
+              onUpdateQuestionLocal={props.onUpdateQuestionLocal}
             />
           ) : (
             <RestrictedAccess />
