@@ -137,7 +137,11 @@ export const ModalEndInspection: FC<Props> = (props) => {
             ClosedBy: props.userId,
             DClose: GetTime(),
             RecepBy:
-              dealerFromDB > 0 ? dealerFromDB : (valueGeneralDealer?.id ?? 0),
+              dealerFromDB > 0 &&
+              dealerFromDB !== 15464 &&
+              dealerFromDB !== 15465
+                ? dealerFromDB
+                : (valueGeneralDealer?.id ?? 0),
             BranchOffice: valueGeneralDealer?.branchOfficeId ?? 0,
             TransporterId: valueTransporter,
             VehicleId: data.vehicleId,
