@@ -22,115 +22,103 @@ type Props = {
   readOnly: boolean;
 };
 
-const isNewArch = (global as any).nativeFabricUIManager != null;
 if (
   Platform.OS === 'android' &&
-  !isNewArch &&
+  !(global as any).nativeFabricUIManager &&
   UIManager.setLayoutAnimationEnabledExperimental
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export const AccordionObservation: FC<Props> = (props) => {
+export const AccordionObservation: FC<Props> = ({
+  observation,
+  showObservation,
+  setObservation,
+  setShowObservation,
+  inspection,
+  readOnly,
+}) => {
   const [isSaving, setIsSaving] = useState(false);
 
-  const toggleObservation = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    props.setShowObservation(!props.showObservation);
-  };
-
-  const handleInternalSave = async () => {
-    setIsSaving(true);
-    try {
-      const response = await POST_Inspection({
-        inspections: [
-          {
-            Id: props.inspection.id,
-            AreaId: props.inspection.areaId,
-            CreatedBy: props.inspection.createdBy,
-            VehicleId: props.inspection.vehicleId,
-            Comment: props.observation,
-          },
-        ],
-      });
-
-      if (!response.ok) throw new Error('No se pudo procesar la petición');
-    } catch (error) {
-      console.error('Error al autoguardar:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  // --- LÓGICA DE AUTOGUARDADO CONTROLADA ---
   useEffect(() => {
-    // Si es readonly o no hay texto, no hacemos nada
-    if (props.readOnly || !props.observation) return;
-
+    if (readOnly || !observation) return;
     const delayDebounceFn = setTimeout(async () => {
-      await handleInternalSave();
+      setIsSaving(true);
+      try {
+        await POST_Inspection({
+          inspections: [
+            {
+              Id: inspection.id,
+              AreaId: inspection.areaId,
+              CreatedBy: inspection.createdBy,
+              VehicleId: inspection.vehicleId,
+              Comment: observation,
+            },
+          ],
+        });
+      } catch (error) {
+        console.error('Error al autoguardar:', error);
+      } finally {
+        setIsSaving(false);
+      }
     }, 1000);
-
     return () => clearTimeout(delayDebounceFn);
-  }, [props.observation, props.readOnly]);
+  }, [observation, readOnly]);
 
   return (
     <>
       <TouchableOpacity
         style={styles.accordionHeader}
-        onPress={toggleObservation}
+        onPress={() => {
+          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+          setShowObservation(!showObservation);
+        }}
         activeOpacity={0.7}
       >
         <View style={styles.headerLeft}>
           <MaterialCommunityIcons
-            name={props.readOnly ? 'note-text-outline' : 'note-edit-outline'}
-            size={22}
-            color={props.observation ? '#2196F3' : '#64748B'}
+            name={readOnly ? 'note-text-outline' : 'note-edit-outline'}
+            size={20}
+            color={observation ? '#2196F3' : '#64748B'}
           />
           <Text
-            style={[
-              styles.accordionTitle,
-              props.observation && styles.activeTitle,
-            ]}
+            style={[styles.accordionTitle, observation && { color: '#2196F3' }]}
           >
-            Observaciones generales {props.readOnly && '(Lectura)'}
+            Observaciones generales {readOnly && '(Lectura)'}
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={styles.headerRight}>
           {isSaving && <ActivityIndicator size={14} color='#2196F3' />}
           <MaterialCommunityIcons
-            name={props.showObservation ? 'chevron-up' : 'chevron-down'}
-            size={24}
+            name={showObservation ? 'chevron-up' : 'chevron-down'}
+            size={22}
             color='#64748B'
           />
         </View>
       </TouchableOpacity>
 
-      {props.showObservation && (
+      {showObservation && (
         <View style={styles.observationContainer}>
           <TextInput
             placeholder={
-              props.readOnly
-                ? 'Sin observaciones'
-                : 'Escribe notas permanentes...'
+              readOnly ? 'Sin observaciones' : 'Escribe notas permanentes...'
             }
-            onChangeText={props.setObservation}
-            value={props.observation}
+            onChangeText={setObservation}
+            value={observation}
             mode='outlined'
             multiline
             numberOfLines={3}
-            editable={!props.readOnly} // Desactiva la edición
-            outlineColor={props.readOnly ? '#F1F5F9' : '#E2E8F0'}
+            editable={!readOnly}
+            outlineColor={readOnly ? '#F1F5F9' : '#E2E8F0'}
             activeOutlineColor='#2196F3'
             style={[
               styles.observationInput,
-              props.readOnly && styles.readOnlyInput, // Estilo visual opcional para lectura
+              readOnly && { backgroundColor: '#F1F5F9', color: '#64748B' },
             ]}
           />
 
-          {/* Solo mostramos el footer de guardado si NO es readonly */}
-          {!props.readOnly && (
+          {!readOnly && (
             <View style={styles.autoSaveFooter}>
               <MaterialCommunityIcons
                 name={isSaving ? 'cloud-upload' : 'cloud-check'}
@@ -159,39 +147,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 14,
+    paddingVertical: 7,
     backgroundColor: '#F8FAFC',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  accordionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#64748B',
-  },
-  activeTitle: {
-    color: '#2196F3',
-  },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  accordionTitle: { fontSize: 15, fontWeight: '700', color: '#64748B' },
   observationContainer: {
     padding: 20,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
   },
-  observationInput: {
-    backgroundColor: '#F8FAFC',
-    fontSize: 14,
-    minHeight: 80,
-  },
-  readOnlyInput: {
-    backgroundColor: '#F1F5F9',
-    color: '#64748B',
-  },
+  observationInput: { backgroundColor: '#F8FAFC', fontSize: 14, minHeight: 80 },
   autoSaveFooter: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -199,9 +169,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 4,
   },
-  autoSaveText: {
-    fontSize: 10,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-  },
+  autoSaveText: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
 });

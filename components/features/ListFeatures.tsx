@@ -124,7 +124,7 @@ export const ListFeatures: FC<Props> = ({
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder='Buscar feature o grupo...'
+          placeholder='Buscar caracteristica...'
           placeholderTextColor='#94A3B8'
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -165,17 +165,17 @@ export const ListFeatures: FC<Props> = ({
 const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 5,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderColor: '#E2E8F0',
   },
   searchInput: {
-    height: 40,
+    height: 37,
     backgroundColor: '#F1F5F9',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 14,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    fontSize: 12,
     color: '#1E293B',
     fontWeight: '600',
   },

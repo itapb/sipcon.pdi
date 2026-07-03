@@ -19,7 +19,6 @@ export default function RootLayout() {
   const router = useRouter();
   const [isReady, setIsReady] = useState(false);
 
-  // 💡 Monitoreo en consola del API Endpoint y la pantalla actual
   useEffect(() => {
     const arrSegments = segments as string[];
     const paginaActual =

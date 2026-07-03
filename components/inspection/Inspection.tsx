@@ -1,3 +1,4 @@
+import { DataInspectionById } from '@/utils/fetchs/inspections/GET_InspectionById';
 import React, { Dispatch, FC } from 'react';
 import { AccordionObservation } from '../Accordion/AccordionObservation';
 import { CardCar } from '../card/CardCar';
@@ -5,7 +6,7 @@ import { ListFeatures } from '../features/ListFeatures';
 
 type Props = {
   id: number;
-  inspection: any;
+  inspection: DataInspectionById;
   userId: number;
   isReadOnly: boolean;
   observation: string;
@@ -28,6 +29,8 @@ export const Inspection: FC<Props> = (props) => {
         model_name={props.inspection.model}
         vin={props.inspection.vin}
         plate={props.inspection.vehiclePlate}
+        color={props.inspection.color}
+        year={props.inspection.year}
         hasFiles={props.inspection.hasFiles}
         inspectionId={props.id}
         userId={props.userId}

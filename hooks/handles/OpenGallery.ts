@@ -60,9 +60,9 @@ export const OpenGallery = async (props: Props) => {
         },
       });
 
-      console.log('✅ Adjunto enviado con éxito');
+      console.log('Adjunto enviado con éxito');
     } catch (error) {
-      console.error('❌ Error al subir el archivo:', error);
+      console.error('Error al subir el archivo:', error);
       Alert.alert('Error', 'No se pudo subir uno de los archivos.');
     }
   }

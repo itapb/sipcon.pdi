@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFF',
     fontWeight: '800',
-    fontSize: 13,
+    fontSize: 11,
     textTransform: 'uppercase',
   },
   red: {

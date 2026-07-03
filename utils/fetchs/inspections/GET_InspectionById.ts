@@ -17,6 +17,8 @@ export type DataInspectionById = {
   recepBy: null | string;
   userName: string;
   initByName: string;
+  color: string;
+  year: string;
   closedByName: string;
   transporterName: string;
   recepByName: string;

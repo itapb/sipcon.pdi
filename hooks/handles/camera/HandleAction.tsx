@@ -21,13 +21,13 @@ export const HandleAction = async (props: Props) => {
 
   try {
     if (props.mode === 'picture') {
-      console.log('📸 Capturando imagen...');
+      console.log('Capturando imagen...');
       const photo = await props.cameraRef.current.takePictureAsync({
         quality: 0.6,
         shutterSound: false,
       });
       if (photo) {
-        console.log('✅ FOTO TOMADA:', photo.uri);
+        console.log('FOTO TOMADA:', photo.uri);
         // TODO: Ver que hago con este result
         await POST_Attachment({
           recordId: props.recordId,
@@ -47,7 +47,7 @@ export const HandleAction = async (props: Props) => {
         props.setIsRecording(false);
       } else {
         props.setIsRecording(true);
-        console.log('🎥 Iniciando grabación...');
+        console.log('Iniciando grabación...');
 
         const video = await props.cameraRef.current.recordAsync({
           maxDuration: 60,
@@ -66,13 +66,13 @@ export const HandleAction = async (props: Props) => {
             },
           });
 
-          console.log('✅ VIDEO GRABADO:', video.uri);
+          console.log('VIDEO GRABADO:', video.uri);
           props.onCapture(video.uri, 'video');
         }
       }
     }
   } catch (error) {
-    console.error('❌ Error en HandleAction:', error);
+    console.error('Error en HandleAction:', error);
     if (props.mode === 'video') props.setIsRecording(false);
   }
 };

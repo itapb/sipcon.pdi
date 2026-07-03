@@ -1,7 +1,7 @@
 import { POST_InspectionFase } from '@/utils/fetchs/inspections/POST_InspectionFase';
 import { GetTime } from '@/utils/GetTime';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { usePathname, useRouter } from 'expo-router';
+import { usePathname, useRouter, type Href } from 'expo-router';
 import { useState, type FC } from 'react';
 import {
   ActivityIndicator,
@@ -33,110 +33,72 @@ export const BreadCrumbInspection: FC<Props> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePathname() as Href;
 
   const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/'); // Ruta por defecto si no hay historial
-    }
+    router.canGoBack() ? router.back() : router.replace('/');
   };
 
-  const handleInitInspection = () => {
-    Alert.alert(
-      'Confirmación',
-      '¿Estás seguro de que desea iniciar esta inspección?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Sí, iniciar',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              const result = await POST_InspectionFase({
-                Id: InspectionFaseId,
-                FaseId: faseId,
-                InspectionId: inspectionId,
-                InitDate: GetTime(),
-                UserInitId: userId,
-              });
+  const executeFaseAction = async (
+    message: string,
+    payloadExtra: object,
+    onDataCheck?: (data: any) => boolean,
+  ) => {
+    Alert.alert('Confirmación', message, [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Sí',
+        onPress: async () => {
+          try {
+            setLoading(true);
+            const res = await POST_InspectionFase({
+              Id: InspectionFaseId,
+              FaseId: faseId,
+              InspectionId: inspectionId,
+              ...payloadExtra,
+            });
 
-              if (!result.ok) {
-                Alert.alert(
-                  'Error al generar la inspección',
-                  'Ocurrio un error al momento de crear la inspección',
-                );
-
-                return;
-              }
-
-              router.replace({
-                pathname: pathname as any,
-                params: { faseId: faseId },
-              });
-            } catch (error) {
-              Alert.alert(
+            if (!res.ok) {
+              return Alert.alert(
                 'Error',
-                `No se pudo iniciar la inspección. ${error}`,
+                'Ocurrió un error al procesar la fase.',
               );
-            } finally {
-              setLoading(false);
             }
-          },
+
+            if (onDataCheck && !onDataCheck(res.data)) return;
+
+            router.replace({ pathname: pathname as any, params: { faseId } });
+          } catch (e) {
+            Alert.alert('Error', `Operación fallida. ${e}`);
+          } finally {
+            setLoading(false);
+          }
         },
-      ],
-    );
+      },
+    ]);
   };
 
-  const handleCompletedFase = () => {
-    Alert.alert(
-      'Confirmación',
+  const handleInitInspection = () =>
+    executeFaseAction('¿Estás seguro de que desea iniciar esta inspección?', {
+      InitDate: GetTime(),
+      UserInitId: userId,
+    });
+
+  const handleCompletedFase = () =>
+    executeFaseAction(
       '¿Estás seguro de que desea completar esta fase?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Sí',
-          onPress: async () => {
-            try {
-              setLoading(true);
-              const response = await POST_InspectionFase({
-                Id: InspectionFaseId,
-                FaseId: faseId,
-                InspectionId: inspectionId,
-                CompletedDate: GetTime(),
-              });
-
-              if (!response.ok) {
-                Alert.alert(
-                  'Error al generar la inspección',
-                  'Ocurrio un error al momento de crear la inspección',
-                );
-
-                return;
-              }
-
-              if (response.data.lastId === -1) {
-                Alert.alert(
-                  'Inspecciones pendientes',
-                  'Aún tienes caracteristicas por completar, por favor validar',
-                );
-              } else {
-                router.replace({
-                  pathname: pathname as any,
-                  params: { faseId },
-                });
-              }
-            } catch (error) {
-              Alert.alert('Error', 'No se pudo completar la fase.');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ],
+      { CompletedDate: GetTime() },
+      (data) => {
+        if (data?.lastId === -1) {
+          Alert.alert(
+            'Inspecciones pendientes',
+            'Aún tienes características por completar, por favor validar.',
+          );
+          return false;
+        }
+        return true;
+      },
     );
-  };
 
   return (
     <View style={styles.breadCrumbs}>
@@ -154,7 +116,7 @@ export const BreadCrumbInspection: FC<Props> = ({
         style={styles.backButtonContainer}
         activeOpacity={0.6}
       >
-        <MaterialCommunityIcons name='chevron-left' size={28} color='#64748B' />
+        <MaterialCommunityIcons name='chevron-left' size={24} color='#64748B' />
         <Text style={styles.backText}>Regresar</Text>
       </TouchableOpacity>
 
@@ -175,7 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 12,
-    height: 55,
+    height: 48,
     backgroundColor: '#fff',
     borderColor: '#E2E8F0',
     borderBottomWidth: 1,
@@ -184,34 +146,33 @@ const styles = StyleSheet.create({
   backButtonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 5,
   },
   backText: {
     color: '#64748B',
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    marginLeft: -4,
+    marginLeft: -2,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingCard: {
     backgroundColor: '#fff',
-    padding: 25,
-    borderRadius: 15,
+    padding: 20,
+    borderRadius: 12,
     alignItems: 'center',
-    elevation: 10,
+    elevation: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   loadingText: {
-    marginTop: 12,
-    fontWeight: '700',
+    marginTop: 10,
+    fontWeight: '600',
     color: '#1E293B',
-    fontSize: 14,
+    fontSize: 13,
   },
 });

@@ -258,7 +258,7 @@ export const ModalEndInspection: FC<Props> = (props) => {
                           style={{ color: '#000', backgroundColor: '#fff' }}
                           key={d.id}
                           label={d.name}
-                          value={d} // 💡 CLAVE: Pasamos todo el objeto de la iteración para conservar ID y BranchOfficeId
+                          value={d}
                         />
                       ))}
                     </Picker>

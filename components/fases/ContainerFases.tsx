@@ -1,6 +1,6 @@
 import { T_GroupInspectionsFase } from '@/utils/GroupInspectionsByFase';
 import { DataAreas } from '@/utils/fetchs/Areas/Get_Areas';
-import { AntDesign, Ionicons } from '@expo/vector-icons'; // 💡 Cambiamos a Ionicons para el check circular
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import React, { FC } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CardFase } from '../card/CardFase';
