@@ -66,7 +66,7 @@ export const GET_Inspections = async (props: Props): Promise<Response> => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`, // 👈 Inyectamos el token interno recuperado
+        Authorization: `Bearer ${token}`,
       },
     });
 

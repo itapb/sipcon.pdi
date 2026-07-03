@@ -1,7 +1,6 @@
 import type { FC } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Card, Text } from 'react-native-paper';
-import { ImageCar } from '../images/ImageCar';
 import { MediaActions } from '../media/MediaActions';
 
 type Props = {
@@ -47,9 +46,6 @@ export const CardCar: FC<Props> = (props) => {
           userId={props.userId}
           readOnly={props.readOnly}
         />
-
-        {/* Contenedor de imagen */}
-        <ImageCar model_name={props.model_name} />
       </Card.Content>
     </Card>
   );
