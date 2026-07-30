@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PDI_ReactNative",
-    "slug": "PDI_ReactNative",
+    "name": "PDI",
+    "slug": "PDI",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.PDI_ReactNative",
+      "package": "com.anonymous.PDI",
       "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "WRITE_EXTERNAL_STORAGE",
@@ -76,3 +76,4 @@
     }
   }
 }
+
