@@ -1,6 +1,7 @@
 import { DataAreas, GETALL_Areas } from '@/utils/fetchs/Areas/Get_Areas';
 import { GET_Encrypt } from '@/utils/fetchs/login/GET_Encrypt';
 import { GET_Salt } from '@/utils/fetchs/login/GET_Salt';
+import { GET_Version } from '@/utils/fetchs/login/GET_Version';
 import { DataUser, POST_Login } from '@/utils/fetchs/login/POST_Login';
 import { Alert } from 'react-native';
 
@@ -14,6 +15,7 @@ type Props = {
 export const HandleLogin = async (props: Props) => {
   // Limpieza de datos
   const cleanUsername = props.username.trim();
+  const version = process.env.EXPO_PUBLIC_VERSION ?? '';
 
   if (!cleanUsername || !props.password) {
     Alert.alert('Error', 'Por favor completa todos los campos');
@@ -72,6 +74,29 @@ export const HandleLogin = async (props: Props) => {
       Alert.alert(
         'Error',
         'El usuario no tiene su rol configurado, por favor contactar con su supervisor',
+      );
+      return;
+    }
+
+    // Validar si la version es correcta
+
+    const response_version = await GET_Version({
+      token: data_user.token,
+      version: version,
+    });
+
+    if (!response_version.ok) {
+      Alert.alert(
+        'Error',
+        `Ocurrió un error al procesar la versión de la aplicación PDI en tu dispositivo`,
+      );
+      return;
+    }
+
+    if (response_version.data.version !== version) {
+      Alert.alert(
+        'Error',
+        `Para continuar, es necesario contar con la última versión de PDI (${version}). Te invitamos a contactar al equipo de T.I.C. para realizar la actualización a la (${response_version.data.version}).`,
       );
       return;
     }

@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { Avatar, Divider, List, Modal, Portal, Text } from 'react-native-paper';
 
+const version = process.env.EXPO_PUBLIC_VERSION;
+
 const { width, height } = Dimensions.get('window');
 
 export const MenuHeader: FC = () => {
@@ -174,10 +176,10 @@ export const MenuHeader: FC = () => {
 
           <View style={styles.drawerFooter}>
             <Image
-              source={require('../assets/images/logos/LogoAPB.png')}
+              source={require('../assets/images/logos/ItsLogo.png')}
               style={styles.logoFooter}
             />
-            <Text style={styles.versionText}>Sistema PDI v1.0.0</Text>
+            <Text style={styles.versionText}>Sistema PDI v{version}</Text>
           </View>
         </Modal>
       </Portal>
@@ -263,6 +265,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
   },
-  logoFooter: { width: 80, height: 40, resizeMode: 'contain', opacity: 0.5 },
+  logoFooter: { width: 120, height: 40, resizeMode: 'contain', opacity: 0.8 },
   versionText: { fontSize: 11, color: '#CBD5E1', marginTop: 5 },
 });

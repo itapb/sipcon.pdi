@@ -3,7 +3,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import React, { useState, type FC } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+
+const version = process.env.EXPO_PUBLIC_VERSION;
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,7 +35,7 @@ export const FormLogin: FC = () => {
           <Text style={styles.label}>Usuario:</Text>
           <TextInput
             style={styles.input}
-            placeholder='Ingrese el usuario...'
+            placeholder='Ingrese su usuario de (SIPCON)...'
             placeholderTextColor={'#999'}
             value={username}
             onChangeText={setUserName}
@@ -79,11 +80,7 @@ export const FormLogin: FC = () => {
 
         {/* Opción en casos de olvidar la contraseña */}
         <View>
-          <TouchableOpacity
-            onPress={() => Alert.alert('Aviso', 'Contacte a soporte.')}
-          >
-            <Text style={styles.labelPasword}>Olvidé mi contraseña</Text>
-          </TouchableOpacity>
+          <Text style={styles.labelPasword}>Versión: {version}</Text>
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -127,7 +124,7 @@ const styles = StyleSheet.create({
   },
   labelPasword: {
     fontSize: 16,
-    color: '#007AFF',
+    fontWeight: 'bold',
     textAlign: 'center',
   },
   button: {
